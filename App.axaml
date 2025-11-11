@@ -1,0 +1,19 @@
+<Application xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 x:Class="dbm_select.App"
+			 xmlns:local="using:dbm_select"
+			 RequestedThemeVariant="Default">
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+	<Application.DataTemplates>
+		<local:ViewLocator/>
+	</Application.DataTemplates>
+
+	<Application.Styles>
+		<Style Selector="Border.image-tile:pointerover">
+			<Setter Property="Background" Value="#EEE"/>
+		</Style>
+
+		<FluentTheme />
+	</Application.Styles>
+</Application>
