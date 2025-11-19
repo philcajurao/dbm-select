@@ -1,8 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
+using dbm_select.ViewModels;
 using dbm_select.Models;
 using System;
 
@@ -67,9 +66,11 @@ namespace dbm_select.Views
 
                 if (imageItem != null && category != null)
                 {
-                    // For now, we just print to the debug console.
-                    // In the next step, we will add logic to save this to the ViewModel.
-                    System.Diagnostics.Debug.WriteLine($"SUCCESS: Dropped {imageItem.FileName} into {category}");
+                    // We cast the DataContext to our ViewModel and call the function to update the image
+                    if (DataContext is MainWindowViewModel vm)
+                    {
+                        vm.SetPackageImage(category, imageItem);
+                    }
                 }
             }
         }
