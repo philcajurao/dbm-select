@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:vm="using:dbm_select.ViewModels"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -13,12 +13,11 @@
 		Background="#fefefe">
 
 	<Design.DataContext>
-		<!-- This only sets the DataContext for the previewer in an IDE,
-		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
 
-	<Grid ColumnDefinitions="Auto, *">
+	<!-- ✅ ADDED x:Name="MainGrid" for coordinate calculations -->
+	<Grid ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
 		<!-- Side Dropping Area -->
 		<Border Grid.Column="0"
@@ -37,18 +36,19 @@
 							VerticalAlignment="Center"
 							Spacing="24">
 
+					<!-- 
+						✅ REMOVED DragDrop attributes. 
+						We now detect drops manually in OnPointerReleased logic.
+					-->
+
 					<!-- 8x16 Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
 							Height="120"
 							Tag="8x16"
-							DragDrop.AllowDrop="True"
-							DragDrop.Drop="OnDrop"
 							Background="Transparent">
-						<!-- Use a Panel to stack the Text and the Image on top of each other -->
 						<Panel>
-							<!-- Label: Only visible if image is NULL -->
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
 									   FontSize="8"
@@ -57,8 +57,6 @@
 									   Foreground="#1e1e1e"
 									   Text="8x16"
 									   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNull}}"/>
-
-							<!-- Image: Only visible if image is NOT NULL -->
 							<Image Source="{Binding Image8x16.Bitmap}"
 								   Stretch="UniformToFill"
 								   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -71,8 +69,6 @@
 							Width="72"
 							Height="120"
 							Tag="Barong"
-							DragDrop.AllowDrop="True"
-							DragDrop.Drop="OnDrop"
 							Background="Transparent">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
@@ -95,15 +91,13 @@
 							Width="72"
 							Height="120"
 							Tag="Toga"
-							DragDrop.AllowDrop="True"
-							DragDrop.Drop="OnDrop"
 							Background="Transparent">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
 									   FontSize="8"
 									   TextWrapping="Wrap"
-									   TextAlignment="Center"
+									   TextAlignment="Center" 
 									   Foreground="#1e1e1e"
 									   Text="Toga"
 									   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNull}}"/>
@@ -119,8 +113,6 @@
 							Width="72"
 							Height="120"
 							Tag="Any Photo"
-							DragDrop.AllowDrop="True"
-							DragDrop.Drop="OnDrop"
 							Background="Transparent">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
@@ -222,7 +214,6 @@
 					BoxShadow="0 2 24 0 #d3d3d3"
 					Grid.Row="1"
 					Grid.Column="0">
-				<!-- Changed StackPanel to Grid with RowDefinitions="Auto, *" to fill space -->
 				<Grid RowDefinitions="Auto, *">
 					<TextBlock Grid.Row="0"
 							   Text="Browse Photos"
@@ -230,7 +221,6 @@
 							   Foreground="#1e1e1e"
 							   Margin="0,0,0,10"/>
 
-					<!-- Removed Panel wrapper and fixed Height. Placed directly in Grid Row 1 -->
 					<ListBox Grid.Row="1"
 							 ItemsSource="{Binding Images}"
 							 SelectedItem="{Binding SelectedImage}"
@@ -251,9 +241,11 @@
 
 						<ListBox.ItemTemplate>
 							<DataTemplate>
+								<!-- ✅ ADDED: PointerReleased to handle the 'Drop' -->
 								<Border Classes="image-tile"
 										PointerPressed="OnPointerPressed"
 										PointerMoved="OnPointerMoved"
+										PointerReleased="OnPointerReleased"
 										Background="Transparent">
 									<StackPanel Margin="5" Width="100">
 										<Image Source="{Binding Bitmap}"
@@ -287,7 +279,6 @@
 							   FontSize="8"
 							   Foreground="#1e1e1e"/>
 
-					<!-- Placeholder text: Only visible if SelectedImage is NULL -->
 					<TextBlock Grid.Row="1"
 							   Text="Select a photo to preview"
 							   FontSize="12"
@@ -296,14 +287,12 @@
 							   VerticalAlignment="Center"
 							   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-					<!-- The Actual Preview Image -->
 					<Image Grid.Row="1"
 						   Source="{Binding SelectedImage.Bitmap}"
 						   Stretch="Uniform"
 						   Margin="0,10"
 						   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
-					<!-- Display File Name -->
 					<TextBlock Grid.Row="2"
 							   Text="{Binding SelectedImage.FileName}"
 							   FontSize="14"
@@ -326,6 +315,22 @@
 						   Foreground="#1e1e1e"/>
 			</Border>
 		</Grid>
+
+		<!-- ✅ NEW: Ghost Image Overlay Layer -->
+		<!-- IsHitTestVisible="False" ensures clicks go through it to the borders below -->
+		<Canvas x:Name="DragCanvas"
+				Grid.Column="0"
+				Grid.ColumnSpan="2"
+				IsHitTestVisible="False"
+				IsVisible="False"
+				ZIndex="100">
+			<Image x:Name="GhostImage"
+				   Width="80"
+				   Height="80"
+				   Opacity="0.7"
+				   Stretch="UniformToFill"/>
+		</Canvas>
+		
 	</Grid>
 
 </Window>

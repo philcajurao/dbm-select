@@ -1,9 +1,11 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using dbm_select.ViewModels;
+using Avalonia.VisualTree; // ✅ Required to find what is under the mouse
 using dbm_select.Models;
+using dbm_select.ViewModels;
 using System;
+using System.Linq; // ✅ Required for finding the specific Border
 
 namespace dbm_select.Views
 {
@@ -14,65 +16,103 @@ namespace dbm_select.Views
             InitializeComponent();
         }
 
-        // Stores the point where the user started clicking
+        // State variables to track the custom drag operation
+        private bool _isDragging = false;
         private Point _dragStartPoint;
+        private ImageItem? _draggedItem;
 
+        // 1. Start the Drag
         private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            // Record the position where the mouse button was pressed
             var point = e.GetCurrentPoint(this);
-            if (point.Properties.IsLeftButtonPressed)
+
+            // Check if left click AND if we clicked on an item with ImageItem context
+            if (point.Properties.IsLeftButtonPressed && sender is Control control && control.DataContext is ImageItem item)
             {
                 _dragStartPoint = point.Position;
+                _draggedItem = item;
+                _isDragging = false; // We don't start dragging immediately, we wait for movement
+
+                // ✅ CRITICAL: Capture the pointer. 
+                // This ensures we keep receiving events even if the mouse leaves the original tile.
+                e.Pointer?.Capture(control);
             }
         }
 
-        private async void OnPointerMoved(object? sender, PointerEventArgs e)
+        // 2. Move the Ghost Image
+        private void OnPointerMoved(object? sender, PointerEventArgs e)
         {
-            // Check if the left button is held down
+            // If we aren't holding an item, do nothing
+            if (sender is not Control control) return;
+
             var point = e.GetCurrentPoint(this);
-            if (!point.Properties.IsLeftButtonPressed) return;
 
-            // Calculate how far the mouse has moved
-            var distance = Math.Sqrt(Math.Pow(point.Position.X - _dragStartPoint.X, 2) +
-                                     Math.Pow(point.Position.Y - _dragStartPoint.Y, 2));
-
-            // Only start dragging if moved more than 10 pixels (prevents accidental drags on clicks)
-            if (distance > 10)
+            // Logic to detecting the START of a drag (moved > 10px)
+            if (!_isDragging && _draggedItem != null && point.Properties.IsLeftButtonPressed)
             {
-                if (sender is Border border && border.DataContext is ImageItem imageItem)
-                {
-                    // Create the drag data payload
-                    var dragData = new DataObject();
-                    dragData.Set("ImageItem", imageItem); // We store the ImageItem object
+                var distance = Math.Sqrt(Math.Pow(point.Position.X - _dragStartPoint.X, 2) +
+                                         Math.Pow(point.Position.Y - _dragStartPoint.Y, 2));
 
-                    // Initiate the Drag and Drop operation
-                    // This awaits until the drop is complete
-                    await DragDrop.DoDragDrop(e, dragData, DragDropEffects.Copy);
+                if (distance > 10)
+                {
+                    _isDragging = true;
+
+                    // ✅ Show the Ghost Image
+                    // Note: 'GhostImage' and 'DragCanvas' are defined in your XAML
+                    GhostImage.Source = _draggedItem.Bitmap;
+                    DragCanvas.IsVisible = true;
                 }
             }
+
+            // Logic for WHILE dragging
+            if (_isDragging && DragCanvas.IsVisible)
+            {
+                // Get position relative to the whole window (MainGrid)
+                // Note: 'MainGrid' is the name we gave the root Grid in XAML
+                var relativePoint = e.GetPosition(MainGrid);
+
+                // Center the ghost image on the mouse cursor
+                double x = relativePoint.X - (GhostImage.Width / 2);
+                double y = relativePoint.Y - (GhostImage.Height / 2);
+
+                // Move the image
+                Canvas.SetLeft(GhostImage, x);
+                Canvas.SetTop(GhostImage, y);
+            }
         }
 
-        private void OnDrop(object? sender, DragEventArgs e)
+        // 3. Drop (Release)
+        private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
-            // 1. Validate the data and the target
-            if (e.Data.Contains("ImageItem") && sender is Border targetBorder)
+            // If we were actually dragging something...
+            if (_isDragging && _draggedItem != null)
             {
-                // 2. Get the data
-                var imageItem = e.Data.Get("ImageItem") as ImageItem;
+                // ✅ Manual Hit Testing
+                // Ask the MainGrid: "What visual elements are under the mouse right now?"
+                var currentPosition = e.GetPosition(MainGrid);
+                var visuals = MainGrid.GetVisualsAt(currentPosition);
 
-                // 3. Get the category from the Tag we set in XAML (e.g., "Barong", "8x16")
-                var category = targetBorder.Tag?.ToString();
+                // Find the first Border in that stack that has a Tag (our Drop Boxes)
+                var targetBorder = visuals.OfType<Border>().FirstOrDefault(b => b.Tag != null);
 
-                if (imageItem != null && category != null)
+                if (targetBorder != null)
                 {
-                    // We cast the DataContext to our ViewModel and call the function to update the image
-                    if (DataContext is MainWindowViewModel vm)
+                    var category = targetBorder.Tag.ToString();
+
+                    // Update the ViewModel
+                    if (!string.IsNullOrEmpty(category) && DataContext is MainWindowViewModel vm)
                     {
-                        vm.SetPackageImage(category, imageItem);
+                        vm.SetPackageImage(category, _draggedItem);
+                        System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {category}");
                     }
                 }
             }
+
+            // ✅ Cleanup / Reset
+            _isDragging = false;
+            _draggedItem = null;
+            DragCanvas.IsVisible = false; // Hide the ghost image
+            e.Pointer?.Capture(null);     // Stop tracking the mouse
         }
     }
 }
