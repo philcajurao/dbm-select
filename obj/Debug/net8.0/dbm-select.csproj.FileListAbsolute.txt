@@ -73,3 +73,4 @@ C:\Users\Phil\Documents\GitHub\dbm-select\obj\Debug\net8.0\refint\dbm-select.dll
 C:\Users\Phil\Documents\GitHub\dbm-select\obj\Debug\net8.0\dbm-select.pdb
 C:\Users\Phil\Documents\GitHub\dbm-select\obj\Debug\net8.0\dbm-select.genruntimeconfig.cache
 C:\Users\Phil\Documents\GitHub\dbm-select\obj\Debug\net8.0\ref\dbm-select.dll
+C:\Users\Phil\Documents\GitHub\dbm-select\obj\Debug\net8.0\dbm-select.sourcelink.json

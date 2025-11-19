@@ -30,52 +30,111 @@
 						   HorizontalAlignment="Center"
 						   Padding="8,0"
 						   Foreground="#1e1e1e">DBM Estudyo</TextBlock>
+
+				<!-- Drop Targets Container -->
 				<StackPanel Grid.Row="1"
 							HorizontalAlignment="Center"
 							VerticalAlignment="Center"
 							Spacing="24">
+
+					<!-- 8x16 Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
-							Height="120">
-						<TextBlock HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   FontSize="8"
-								   TextWrapping="Wrap"
-								   TextAlignment="Center"
-								   Foreground="#1e1e1e">8x16</TextBlock>
+							Height="120"
+							Tag="8x16"
+							DragDrop.AllowDrop="True"
+							DragDrop.Drop="OnDrop"
+							Background="Transparent">
+						<!-- Use a Panel to stack the Text and the Image on top of each other -->
+						<Panel>
+							<!-- Label: Only visible if image is NULL -->
+							<TextBlock HorizontalAlignment="Center"
+									   VerticalAlignment="Center"
+									   FontSize="8"
+									   TextWrapping="Wrap"
+									   TextAlignment="Center"
+									   Foreground="#1e1e1e"
+									   Text="8x16"
+									   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+							<!-- Image: Only visible if image is NOT NULL -->
+							<Image Source="{Binding Image8x16.Bitmap}"
+								   Stretch="UniformToFill"
+								   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Panel>
 					</Border>
+
+					<!-- Barong Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
-							Height="120">
-						<TextBlock HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   FontSize="8"
-								   TextWrapping="Wrap"
-								   TextAlignment="Center"
-								   Foreground="#1e1e1e">Barong</TextBlock>
+							Height="120"
+							Tag="Barong"
+							DragDrop.AllowDrop="True"
+							DragDrop.Drop="OnDrop"
+							Background="Transparent">
+						<Panel>
+							<TextBlock HorizontalAlignment="Center"
+									   VerticalAlignment="Center"
+									   FontSize="8"
+									   TextWrapping="Wrap"
+									   TextAlignment="Center"
+									   Foreground="#1e1e1e"
+									   Text="Barong"
+									   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageBarong.Bitmap}"
+								   Stretch="UniformToFill"
+								   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Panel>
 					</Border>
+
+					<!-- Toga Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
-							Height="120">
-						<TextBlock HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   FontSize="8"
-								   TextWrapping="Wrap"
-								   TextAlignment="Center" Foreground="#1e1e1e">Toga</TextBlock>
+							Height="120"
+							Tag="Toga"
+							DragDrop.AllowDrop="True"
+							DragDrop.Drop="OnDrop"
+							Background="Transparent">
+						<Panel>
+							<TextBlock HorizontalAlignment="Center"
+									   VerticalAlignment="Center"
+									   FontSize="8"
+									   TextWrapping="Wrap"
+									   TextAlignment="Center"
+									   Foreground="#1e1e1e"
+									   Text="Toga"
+									   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageToga.Bitmap}"
+								   Stretch="UniformToFill"
+								   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Panel>
 					</Border>
+
+					<!-- Any Photo Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
-							Height="120">
-						<TextBlock HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   FontSize="8"
-								   TextWrapping="Wrap"
-								   TextAlignment="Center"
-								   Foreground="#1e1e1e">Any Photo</TextBlock>
+							Height="120"
+							Tag="Any Photo"
+							DragDrop.AllowDrop="True"
+							DragDrop.Drop="OnDrop"
+							Background="Transparent">
+						<Panel>
+							<TextBlock HorizontalAlignment="Center"
+									   VerticalAlignment="Center"
+									   FontSize="8"
+									   TextWrapping="Wrap"
+									   TextAlignment="Center"
+									   Foreground="#1e1e1e"
+									   Text="Any Photo"
+									   IsVisible="{Binding ImageAnyPhoto, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageAnyPhoto.Bitmap}"
+								   Stretch="UniformToFill"
+								   IsVisible="{Binding ImageAnyPhoto, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Panel>
 					</Border>
 				</StackPanel>
 
@@ -163,52 +222,57 @@
 					BoxShadow="0 2 24 0 #d3d3d3"
 					Grid.Row="1"
 					Grid.Column="0">
-				<StackPanel>
-					<TextBlock Text="Browse Photos"
+				<!-- Changed StackPanel to Grid with RowDefinitions="Auto, *" to fill space -->
+				<Grid RowDefinitions="Auto, *">
+					<TextBlock Grid.Row="0"
+							   Text="Browse Photos"
 							   FontSize="8"
-							   Foreground="#1e1e1e"/>
+							   Foreground="#1e1e1e"
+							   Margin="0,0,0,10"/>
 
-					<!--<TextBlock Text="Browse your photos here..."
-					FontSize="12"
-					Foreground="#d3d3d3"
-					HorizontalAlignment="Center"
-					VerticalAlignment="Center"/>-->
+					<!-- Removed Panel wrapper and fixed Height. Placed directly in Grid Row 1 -->
+					<ListBox Grid.Row="1"
+							 ItemsSource="{Binding Images}"
+							 SelectedItem="{Binding SelectedImage}"
+							 Background="Transparent">
 
-					<Panel HorizontalAlignment="Center">
-						<ItemsControl ItemsSource="{Binding Images}">
-							<ItemsControl.ItemsPanel>
-								<ItemsPanelTemplate>
-									<WrapPanel Orientation="Horizontal" />
-								</ItemsPanelTemplate>
-							</ItemsControl.ItemsPanel>
+						<ListBox.ItemsPanel>
+							<ItemsPanelTemplate>
+								<WrapPanel Orientation="Horizontal" />
+							</ItemsPanelTemplate>
+						</ListBox.ItemsPanel>
 
-							<ItemsControl.ItemTemplate>
-								<DataTemplate>
-									<Border Classes="image-tile"
-											Background="Transparent">
-										<StackPanel Margin="5" Width="100">
-											<Image Source="{Binding Bitmap}"
-												   Width="30"
-												   Height="30"
-												   Stretch="UniformToFill"
-												   HorizontalAlignment="Left"/>
-											<TextBlock Text="{Binding FileName}"
-													   TextWrapping="Wrap"
-													   HorizontalAlignment="Left"
-													   FontSize="10"
-													   Foreground="Black"
-													   Margin="0,5,0,0"/>
-										</StackPanel>
-									</Border>
-								</DataTemplate>
-							</ItemsControl.ItemTemplate>
-						</ItemsControl>
-					</Panel>
+						<ListBox.Styles>
+							<Style Selector="ListBoxItem">
+								<Setter Property="Padding" Value="4"/>
+								<Setter Property="CornerRadius" Value="4"/>
+							</Style>
+						</ListBox.Styles>
 
-
-				</StackPanel>
-
-
+						<ListBox.ItemTemplate>
+							<DataTemplate>
+								<Border Classes="image-tile"
+										PointerPressed="OnPointerPressed"
+										PointerMoved="OnPointerMoved"
+										Background="Transparent">
+									<StackPanel Margin="5" Width="100">
+										<Image Source="{Binding Bitmap}"
+											   Width="80"
+											   Height="80"
+											   Stretch="UniformToFill"
+											   HorizontalAlignment="Center"/>
+										<TextBlock Text="{Binding FileName}"
+												   TextWrapping="Wrap"
+												   HorizontalAlignment="Center"
+												   FontSize="10"
+												   Foreground="Black"
+												   Margin="0,5,0,0"/>
+									</StackPanel>
+								</Border>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
+				</Grid>
 			</Border>
 
 			<!--Quick Preview Area-->
@@ -217,17 +281,37 @@
 					BoxShadow="0 2 24 0 #d3d3d3"
 					Grid.Row="1"
 					Grid.Column="1">
-				<Panel>
-					<TextBlock Text="Quick Preview"
+				<Grid RowDefinitions="Auto, *, Auto">
+					<TextBlock Grid.Row="0"
+							   Text="Quick Preview"
 							   FontSize="8"
 							   Foreground="#1e1e1e"/>
 
-					<TextBlock Text="See your photo here..."
+					<!-- Placeholder text: Only visible if SelectedImage is NULL -->
+					<TextBlock Grid.Row="1"
+							   Text="Select a photo to preview"
 							   FontSize="12"
 							   Foreground="#d3d3d3"
 							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
-				</Panel>
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+					<!-- The Actual Preview Image -->
+					<Image Grid.Row="1"
+						   Source="{Binding SelectedImage.Bitmap}"
+						   Stretch="Uniform"
+						   Margin="0,10"
+						   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+					<!-- Display File Name -->
+					<TextBlock Grid.Row="2"
+							   Text="{Binding SelectedImage.FileName}"
+							   FontSize="14"
+							   FontWeight="Bold"
+							   Foreground="#1e1e1e"
+							   HorizontalAlignment="Center"
+							   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+				</Grid>
 			</Border>
 
 			<!--Sample Preview Package Area-->
