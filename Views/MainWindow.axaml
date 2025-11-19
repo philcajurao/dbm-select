@@ -36,9 +36,9 @@
 							VerticalAlignment="Center"
 							Spacing="24">
 
-					<!-- 
-						✅ REMOVED DragDrop attributes. 
-						We now detect drops manually in OnPointerReleased logic.
+					<!--
+					✅ REMOVED DragDrop attributes.
+					We now detect drops manually in OnPointerReleased logic.
 					-->
 
 					<!-- 8x16 Box -->
@@ -97,7 +97,7 @@
 									   VerticalAlignment="Center"
 									   FontSize="8"
 									   TextWrapping="Wrap"
-									   TextAlignment="Center" 
+									   TextAlignment="Center"
 									   Foreground="#1e1e1e"
 									   Text="Toga"
 									   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNull}}"/>
@@ -141,6 +141,7 @@
 							HorizontalContentAlignment="Center"
 							Foreground="#1e1e1e">Submit</Button>
 					<Button Grid.Column="1"
+							Command="{Binding ClearAllCommand}"
 							Width="40"
 							Height="16"
 							FontSize="8"
@@ -167,45 +168,41 @@
 					Grid.Column="0"
 					Grid.ColumnSpan="2">
 
-				<!--Text Fields-->
-				<StackPanel Orientation="Horizontal"
-							Spacing="10">
-					<TextBox Width="150"
-							 Height="2"
-							 Watermark="Email"
-							 Cursor="IBeam"/>
-					<TextBox Width="150"
-							 Height="2"
-							 Watermark="Name"
-							 Cursor="IBeam"/>
+				<!-- Redesigned Input Layout -->
+				<Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
 
-					<!--Radio Fields-->
-					<StackPanel Orientation="Horizontal"
-								Spacing="20">
-						<RadioButton GroupName="Package Group"
-									 FontSize="8"
-									 Content="Basic Package"
-									 Cursor="Hand"/>
-						<RadioButton GroupName="Package Group"
-									 FontSize="8"
-									 Content="Package A"
-									 Cursor="Hand"/>
-						<RadioButton GroupName="Package Group"
-									 FontSize="8"
-									 Content="Package B"
-									 Cursor="Hand"/>
-						<RadioButton GroupName="Package Group"
-									 FontSize="8"
-									 Content="Package C"
-									 Cursor="Hand"/>
-						<RadioButton GroupName="Package Group"
-									 FontSize="8"
-									 Content="Package D"
-									 Cursor="Hand"/>
+					<!-- Text Inputs -->
+					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+						<StackPanel Spacing="5">
+							<TextBlock Text="Email Address" FontSize="10" Foreground="#888"/>
+							<TextBox Width="200"
+									 Text="{Binding ClientEmail}"
+									 Watermark="e.g. client@email.com"
+									 Cursor="IBeam"/>
+						</StackPanel>
+
+						<StackPanel Spacing="5">
+							<TextBlock Text="Client Name" FontSize="10" Foreground="#888"/>
+							<TextBox Width="200"
+									 Text="{Binding ClientName}"
+									 Watermark="e.g. John Doe"
+									 Cursor="IBeam"/>
+						</StackPanel>
 					</StackPanel>
 
+					<!-- Package Selection -->
+					<StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
+						<TextBlock Text="Select Package" FontSize="10" Foreground="#888" HorizontalAlignment="Right"/>
+						<StackPanel Orientation="Horizontal" Spacing="15">
+							<RadioButton Foreground="#888" GroupName="Package Group" Content="Basic" IsChecked="True" Cursor="Hand"/>
+							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg A" Cursor="Hand"/>
+							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg B" Cursor="Hand"/>
+							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg C" Cursor="Hand"/>
+							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg D" Cursor="Hand"/>
+						</StackPanel>
+					</StackPanel>
 
-				</StackPanel>
+				</Grid>
 			</Border>
 
 			<!--Browse Photos Area-->
@@ -330,7 +327,7 @@
 				   Opacity="0.7"
 				   Stretch="UniformToFill"/>
 		</Canvas>
-		
+
 	</Grid>
 
 </Window>

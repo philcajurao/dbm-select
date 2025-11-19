@@ -1,8 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel; // Required for [ObservableProperty]
+﻿using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel; // Required for [ObservableProperty]
+using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using System.Collections.ObjectModel;
 using System.IO;
-using Avalonia.Media.Imaging;
 
 namespace dbm_select.ViewModels
 {
@@ -15,20 +16,24 @@ namespace dbm_select.ViewModels
             LoadImages(@"C:\Users\Phil\Pictures");
         }
 
+        // ✅ NEW: Client Data Inputs
+        [ObservableProperty] private string? _clientName;
+        [ObservableProperty] private string? _clientEmail;
+
         // ✅ 1. Add the SelectedImage property
         // The Toolkit automatically generates "SelectedImage" property from this field
         // and handles the notification to the View.
         [ObservableProperty]
         private ImageItem? _selectedImage;
 
-        // ✅ NEW: Properties to store the images dropped into the specific boxes
+        // Properties to store the images dropped into the specific boxes
         // We name them based on the box they belong to.
         [ObservableProperty] private ImageItem? _image8x16;
         [ObservableProperty] private ImageItem? _imageBarong;
         [ObservableProperty] private ImageItem? _imageToga;
         [ObservableProperty] private ImageItem? _imageAnyPhoto;
 
-        // ✅ NEW: Helper method to assign the image based on the Category string
+        // Helper method to assign the image based on the Category string
         public void SetPackageImage(string category, ImageItem image)
         {
             switch (category)
@@ -38,6 +43,25 @@ namespace dbm_select.ViewModels
                 case "Toga": ImageToga = image; break;
                 case "Any Photo": ImageAnyPhoto = image; break;
             }
+        }
+
+        // Clear All Command
+        // The Toolkit automatically generates "ClearAllCommand" from this method
+        [RelayCommand]
+        public void ClearAll()
+        {
+            // Reset Text Inputs
+            ClientName = string.Empty;
+            ClientEmail = string.Empty;
+
+            // Reset Selected Preview
+            SelectedImage = null;
+
+            // Reset Package Slots
+            Image8x16 = null;
+            ImageBarong = null;
+            ImageToga = null;
+            ImageAnyPhoto = null;
         }
 
         public ObservableCollection<ImageItem> Images { get; } = new();
