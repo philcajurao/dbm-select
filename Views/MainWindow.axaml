@@ -17,15 +17,13 @@
 	</Design.DataContext>
 
 	<Window.Resources>
-		<!-- Geometry for Trash Bin Icon -->
 		<StreamGeometry x:Key="TrashIcon">M10,2 L9,3 L5,3 L5,4 L15,4 L15,3 L11,3 L10,2 Z M5,5 L5,16 C5,17.1045695 5.8954305,18 7,18 L13,18 C14.1045695,18 15,17.1045695 15,16 L15,5 L5,5 Z</StreamGeometry>
 	</Window.Resources>
 
 	<Window.Styles>
-		<!-- Style for the Delete Overlay Button -->
 		<Style Selector="Button.delete-overlay">
-			<Setter Property="Background" Value="#99000000"/> <!-- Semi-transparent black -->
-			<Setter Property="Opacity" Value="0"/> <!-- Invisible by default -->
+			<Setter Property="Background" Value="#99000000"/>
+			<Setter Property="Opacity" Value="0"/>
 			<Setter Property="HorizontalAlignment" Value="Stretch"/>
 			<Setter Property="VerticalAlignment" Value="Stretch"/>
 			<Setter Property="BorderThickness" Value="0"/>
@@ -38,7 +36,6 @@
 				</Transitions>
 			</Setter>
 		</Style>
-		<!-- Show on Hover -->
 		<Style Selector="Button.delete-overlay:pointerover">
 			<Setter Property="Opacity" Value="1"/>
 		</Style>
@@ -71,14 +68,10 @@
 							Tag="8x10"
 							Background="Transparent">
 						<Panel>
-							<!-- Label -->
 							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
 									   Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<!-- Image -->
 							<Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-							<!-- ✅ NEW: Delete Overlay (Visible on Hover if Image Exists) -->
 							<Button Classes="delete-overlay"
 									Command="{Binding ClearSlotCommand}"
 									CommandParameter="8x10"
@@ -102,8 +95,6 @@
 									   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-							<!-- ✅ NEW: Delete Overlay -->
 							<Button Classes="delete-overlay"
 									Command="{Binding ClearSlotCommand}"
 									CommandParameter="Barong"
@@ -126,8 +117,6 @@
 									   Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-							<!-- ✅ NEW: Delete Overlay -->
 							<Button Classes="delete-overlay"
 									Command="{Binding ClearSlotCommand}"
 									CommandParameter="Creative"
@@ -150,8 +139,6 @@
 									   Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-							<!-- ✅ NEW: Delete Overlay -->
 							<Button Classes="delete-overlay"
 									Command="{Binding ClearSlotCommand}"
 									CommandParameter="Any"
@@ -174,8 +161,6 @@
 									   Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-							<!-- ✅ NEW: Delete Overlay -->
 							<Button Classes="delete-overlay"
 									Command="{Binding ClearSlotCommand}"
 									CommandParameter="Instax"
@@ -198,6 +183,7 @@
 							HorizontalContentAlignment="Center"
 							Cursor="Hand"
 							Foreground="#1e1e1e">Submit</Button>
+					
 					<Button Grid.Column="1"
 							Command="{Binding ClearAllCommand}"
 							Width="40"
@@ -211,7 +197,7 @@
 			</Grid>
 		</Border>
 
-		<!-- Main Content Area (Right side) -->
+		<!-- Main Content Area -->
 		<Grid RowDefinitions="Auto, *, Auto"
 			  ColumnDefinitions="*, *"
 			  Grid.Column="1"
@@ -245,15 +231,41 @@
 									 Cursor="IBeam"/>
 						</StackPanel>
 					</StackPanel>
+					
 					<!-- Package Selection -->
 					<StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
 						<TextBlock Text="Select Package" FontSize="10" Foreground="#888" HorizontalAlignment="Right"/>
 						<StackPanel Orientation="Horizontal" Spacing="15">
-							<RadioButton GroupName="Package Group" Content="Basic" IsChecked="True" Command="{Binding UpdatePackageCommand}" CommandParameter="Basic Package" Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" Content="Pkg A" Command="{Binding UpdatePackageCommand}" CommandParameter="Package A" Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" Content="Pkg B" Command="{Binding UpdatePackageCommand}" CommandParameter="Package B" Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" Content="Pkg C" Command="{Binding UpdatePackageCommand}" CommandParameter="Package C" Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" Content="Pkg D" Command="{Binding UpdatePackageCommand}" CommandParameter="Package D" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" 
+										 Content="Basic" 
+										 IsChecked="{Binding IsBasicSelected}"
+										 Command="{Binding UpdatePackageCommand}" 
+										 CommandParameter="Basic Package" 
+										 Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" 
+										 Content="Pkg A" 
+										 IsChecked="{Binding IsPkgASelected}"
+										 Command="{Binding UpdatePackageCommand}" 
+										 CommandParameter="Package A" 
+										 Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" 
+										 Content="Pkg B" 
+										 IsChecked="{Binding IsPkgBSelected}"
+										 Command="{Binding UpdatePackageCommand}" 
+										 CommandParameter="Package B" 
+										 Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" 
+										 Content="Pkg C" 
+										 IsChecked="{Binding IsPkgCSelected}"
+										 Command="{Binding UpdatePackageCommand}" 
+										 CommandParameter="Package C" 
+										 Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" 
+										 Content="Pkg D" 
+										 IsChecked="{Binding IsPkgDSelected}"
+										 Command="{Binding UpdatePackageCommand}" 
+										 CommandParameter="Package D" 
+										 Cursor="Hand"/>
 						</StackPanel>
 					</StackPanel>
 				</Grid>
@@ -315,6 +327,65 @@
 					Grid.Column="0"
 					Grid.ColumnSpan="2">
 				<TextBlock Text="Sample Preview Package" FontSize="8" Foreground="#1e1e1e"/>
+			</Border>
+		</Grid>
+
+		<!-- Clear Confirmation Dialog Overlay -->
+		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+			  Background="#99000000"
+			  IsVisible="{Binding IsClearConfirmationVisible}"
+			  ZIndex="200">
+			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="300">
+				<StackPanel Spacing="20">
+					<TextBlock Text="Are you sure you want to clear all data?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+						<Button Content="Yes, Clear" Command="{Binding ConfirmClearCommand}" Background="#d9534f" Foreground="White" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+						<Button Content="Cancel" Command="{Binding CancelClearCommand}" Background="#f0f0f0" Foreground="Black" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+					</StackPanel>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<!-- Submit Confirmation Dialog Overlay -->
+		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+			  Background="#99000000"
+			  IsVisible="{Binding IsSubmitConfirmationVisible}"
+			  ZIndex="200">
+			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="300">
+				<StackPanel Spacing="20">
+					<TextBlock Text="Are you sure you want to save and submit this order?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+						<Button Content="Yes, Submit" Command="{Binding ConfirmSubmitCommand}" Background="#5cb85c" Foreground="White" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+						<Button Content="Cancel" Command="{Binding CancelSubmitCommand}" Background="#f0f0f0" Foreground="Black" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+					</StackPanel>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<!-- ✅ NEW: Validation Error Dialog Overlay -->
+		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+			  Background="#99000000"
+			  IsVisible="{Binding IsErrorDialogVisible}"
+			  ZIndex="200">
+			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="350">
+				<StackPanel Spacing="20">
+					<TextBlock Text="Action Required" FontWeight="Bold" FontSize="16" Foreground="#d9534f" HorizontalAlignment="Center"/>
+					
+					<TextBlock Text="{Binding ErrorMessage}" 
+							   FontSize="14" 
+							   TextWrapping="Wrap" 
+							   TextAlignment="Center" 
+							   HorizontalAlignment="Center"/>
+					
+					<Button Content="OK" 
+							Command="{Binding CloseErrorDialogCommand}"
+							Background="#f0f0f0" 
+							Foreground="Black"
+							Padding="20,8"
+							CornerRadius="4"
+							HorizontalAlignment="Center"
+							Cursor="Hand"/>
+				</StackPanel>
 			</Border>
 		</Grid>
 

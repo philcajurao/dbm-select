@@ -1,10 +1,12 @@
-﻿using Avalonia.Media.Imaging;
-using CommunityToolkit.Mvvm.ComponentModel; // Required for [ObservableProperty]
-using CommunityToolkit.Mvvm.Input;          // Required for [RelayCommand]
+﻿using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text.RegularExpressions; // ✅ Required for Email Validation
 
 namespace dbm_select.ViewModels
 {
@@ -12,9 +14,9 @@ namespace dbm_select.ViewModels
     {
         public MainWindowViewModel()
         {
-            LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
+            if (Design.IsDesignMode) return;
 
-            // Initialize visibility
+            LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
             UpdateVisibility("Basic Package");
         }
 
@@ -25,23 +27,37 @@ namespace dbm_select.ViewModels
         // Track selected package (Default to Basic)
         [ObservableProperty] private string _selectedPackage = "Basic Package";
 
+        // Radio Button Selection States
+        [ObservableProperty] private bool _isBasicSelected = true;
+        [ObservableProperty] private bool _isPkgASelected;
+        [ObservableProperty] private bool _isPkgBSelected;
+        [ObservableProperty] private bool _isPkgCSelected;
+        [ObservableProperty] private bool _isPkgDSelected;
+
         // Selection Preview
         [ObservableProperty] private ImageItem? _selectedImage;
 
-        // ✅ RENAMED: Image Slots to match your specific list
-        [ObservableProperty] private ImageItem? _image8x10;      // Was 8x16
+        // Image Slots
+        [ObservableProperty] private ImageItem? _image8x10;
         [ObservableProperty] private ImageItem? _imageBarong;
-        [ObservableProperty] private ImageItem? _imageCreative;  // Was Toga
-        [ObservableProperty] private ImageItem? _imageAny;       // Was Any Photo
+        [ObservableProperty] private ImageItem? _imageCreative;
+        [ObservableProperty] private ImageItem? _imageAny;
         [ObservableProperty] private ImageItem? _imageInstax;
 
-        // ✅ RENAMED: Visibility Flags
+        // Visibility Flags
         [ObservableProperty] private bool _isBarongVisible;
-        [ObservableProperty] private bool _isCreativeVisible; // Was Toga
+        [ObservableProperty] private bool _isCreativeVisible;
         [ObservableProperty] private bool _isAnyVisible;
         [ObservableProperty] private bool _isInstaxVisible;
 
-        // Command to update SelectedPackage when a RadioButton is clicked
+        // Confirmation Dialog Flags
+        [ObservableProperty] private bool _isClearConfirmationVisible;
+        [ObservableProperty] private bool _isSubmitConfirmationVisible;
+
+        // Validation Error Dialog
+        [ObservableProperty] private bool _isErrorDialogVisible;
+        [ObservableProperty] private string _errorMessage = "Please check your inputs.";
+
         [RelayCommand]
         public void UpdatePackage(string packageName)
         {
@@ -49,43 +65,32 @@ namespace dbm_select.ViewModels
             UpdateVisibility(packageName);
         }
 
-        // ✅ LOGIC UPDATE: Separated C and D logic
         private void UpdateVisibility(string pkg)
         {
-            // 1. Reset all to Hidden
             IsBarongVisible = false;
             IsCreativeVisible = false;
             IsAnyVisible = false;
             IsInstaxVisible = false;
 
-            // 2. Configure based on Package List
-
-            // Basic: 8x10 Only (Default)
-
-            // Package A & B: 8x10 + Barong
             if (pkg == "Package A" || pkg == "Package B")
             {
                 IsBarongVisible = true;
             }
-            // Package C: 8x10 + Barong + Creative + Any (NO INSTAX)
             else if (pkg == "Package C")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
-                IsInstaxVisible = false;
             }
-            // Package D: 8x10 + Barong + Creative + Any + INSTAX
             else if (pkg == "Package D")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
-                IsInstaxVisible = true; // ✅ Instax only for D
+                IsInstaxVisible = true;
             }
         }
 
-        // Helper method to assign the image based on the Category string
         public void SetPackageImage(string category, ImageItem image)
         {
             switch (category)
@@ -98,7 +103,6 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // Clear Slot Command
         [RelayCommand]
         public void ClearSlot(string category)
         {
@@ -112,47 +116,133 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // Clear All Command
+        // --- Clear All Logic ---
         [RelayCommand]
         public void ClearAll()
         {
+            IsClearConfirmationVisible = true;
+        }
+
+        [RelayCommand]
+        public void ConfirmClear()
+        {
+            ResetData();
+            IsClearConfirmationVisible = false;
+        }
+
+        [RelayCommand]
+        public void CancelClear()
+        {
+            IsClearConfirmationVisible = false;
+        }
+
+        // --- Submit Logic ---
+
+        [RelayCommand]
+        public void Submit()
+        {
+            // 1. VALIDATE: Check Name and Email Existence
+            if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
+            {
+                ErrorMessage = "Please enter both the Client Name and Email Address.";
+                IsErrorDialogVisible = true;
+                return;
+            }
+
+            // ✅ 2. VALIDATE: Check Email Format
+            if (!IsValidEmail(ClientEmail))
+            {
+                ErrorMessage = "The Email Address format is invalid.\n(e.g., user@example.com)";
+                IsErrorDialogVisible = true;
+                return;
+            }
+
+            // 3. VALIDATE: Check if required image slots are filled
+            bool isMissingImages = false;
+
+            if (Image8x10 == null) isMissingImages = true;
+            else if (IsBarongVisible && ImageBarong == null) isMissingImages = true;
+            else if (IsCreativeVisible && ImageCreative == null) isMissingImages = true;
+            else if (IsAnyVisible && ImageAny == null) isMissingImages = true;
+            else if (IsInstaxVisible && ImageInstax == null) isMissingImages = true;
+
+            if (isMissingImages)
+            {
+                ErrorMessage = $"Your selected package ({SelectedPackage}) requires all photo slots to be filled.";
+                IsErrorDialogVisible = true;
+                return;
+            }
+
+            // If all checks pass, show the confirm dialog
+            IsSubmitConfirmationVisible = true;
+        }
+
+        // ✅ Helper function for Email Regex
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                // Simple Regex for Email Validation
+                return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        [RelayCommand]
+        public void ConfirmSubmit()
+        {
+            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+
+            if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
+
+            SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
+
+            if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
+            if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
+            if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
+            if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", outputFolder);
+
+            System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
+
+            IsSubmitConfirmationVisible = false;
+            ResetData();
+        }
+
+        [RelayCommand]
+        public void CancelSubmit()
+        {
+            IsSubmitConfirmationVisible = false;
+        }
+
+        [RelayCommand]
+        public void CloseErrorDialog()
+        {
+            IsErrorDialogVisible = false;
+        }
+
+        private void ResetData()
+        {
             ClientName = string.Empty;
             ClientEmail = string.Empty;
+
             SelectedPackage = "Basic Package";
+            IsBasicSelected = true;
+            IsPkgASelected = false;
+            IsPkgBSelected = false;
+            IsPkgCSelected = false;
+            IsPkgDSelected = false;
 
             SelectedImage = null;
-
-            // Reset Slots
             Image8x10 = null;
             ImageBarong = null;
             ImageCreative = null;
             ImageAny = null;
             ImageInstax = null;
 
-            // Reset visibility to Basic
             UpdateVisibility("Basic Package");
-        }
-
-        // Submit Command
-        [RelayCommand]
-        public void Submit()
-        {
-            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
-
-            if (!Directory.Exists(outputFolder))
-            {
-                Directory.CreateDirectory(outputFolder);
-            }
-
-            // Save Images with updated labels
-            SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
-            SaveImageToFile(ImageBarong, " Barong ", outputFolder);
-            SaveImageToFile(ImageCreative, " Creative ", outputFolder);
-            SaveImageToFile(ImageAny, " Any ", outputFolder);
-            SaveImageToFile(ImageInstax, " Instax ", outputFolder);
-
-            System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
-            ClearAll();
         }
 
         private void SaveImageToFile(ImageItem? image, string sizeCategory, string folderPath)
@@ -169,17 +259,11 @@ namespace dbm_select.ViewModels
                 string newFileName = $"({pkg}) {name}{sizeCategory}{originalName}{extension}";
 
                 foreach (char c in Path.GetInvalidFileNameChars())
-                {
                     newFileName = newFileName.Replace(c, '_');
-                }
 
-                string destPath = Path.Combine(folderPath, newFileName);
-                File.Copy(image.FullPath, destPath, true);
+                File.Copy(image.FullPath, Path.Combine(folderPath, newFileName), true);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error saving image: {ex.Message}");
-            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}"); }
         }
 
         public ObservableCollection<ImageItem> Images { get; } = new();
@@ -187,21 +271,18 @@ namespace dbm_select.ViewModels
         public void LoadImages(string folderPath)
         {
             Images.Clear();
-
             if (!Directory.Exists(folderPath)) return;
 
             var supportedExtensions = new[] { "*.jpg", "*.jpeg", "*.png" };
-
             foreach (var ext in supportedExtensions)
             {
                 foreach (var file in Directory.GetFiles(folderPath, ext))
                 {
                     try
                     {
-                        var bitmap = new Bitmap(file);
                         Images.Add(new ImageItem
                         {
-                            Bitmap = bitmap,
+                            Bitmap = new Bitmap(file),
                             FileName = Path.GetFileName(file),
                             FullPath = file
                         });
