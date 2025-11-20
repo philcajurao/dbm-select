@@ -16,6 +16,34 @@
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
 
+	<Window.Resources>
+		<!-- Geometry for Trash Bin Icon -->
+		<StreamGeometry x:Key="TrashIcon">M10,2 L9,3 L5,3 L5,4 L15,4 L15,3 L11,3 L10,2 Z M5,5 L5,16 C5,17.1045695 5.8954305,18 7,18 L13,18 C14.1045695,18 15,17.1045695 15,16 L15,5 L5,5 Z</StreamGeometry>
+	</Window.Resources>
+
+	<Window.Styles>
+		<!-- Style for the Delete Overlay Button -->
+		<Style Selector="Button.delete-overlay">
+			<Setter Property="Background" Value="#99000000"/> <!-- Semi-transparent black -->
+			<Setter Property="Opacity" Value="0"/> <!-- Invisible by default -->
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="CornerRadius" Value="0"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Transitions">
+				<Transitions>
+					<DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+				</Transitions>
+			</Setter>
+		</Style>
+		<!-- Show on Hover -->
+		<Style Selector="Button.delete-overlay:pointerover">
+			<Setter Property="Opacity" Value="1"/>
+		</Style>
+	</Window.Styles>
+
 	<Grid ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
 		<!-- Side Dropping Area -->
@@ -35,8 +63,7 @@
 							VerticalAlignment="Center"
 							Spacing="24">
 
-					<!-- 8x10 Box (Always Visible) -->
-					<!-- ✅ Updated Tag and Text from 8x16 to 8x10 -->
+					<!-- 8x10 Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
@@ -44,17 +71,20 @@
 							Tag="8x10"
 							Background="Transparent">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="8"
-									   TextWrapping="Wrap"
-									   TextAlignment="Center"
-									   Foreground="#1e1e1e"
-									   Text="8x10"
-									   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding Image8x10.Bitmap}"
-								   Stretch="UniformToFill"
+							<!-- Label -->
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+									   Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<!-- Image -->
+							<Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+							<!-- ✅ NEW: Delete Overlay (Visible on Hover if Image Exists) -->
+							<Button Classes="delete-overlay"
+									Command="{Binding ClearSlotCommand}"
+									CommandParameter="8x10"
+									IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
+								<PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+							</Button>
 						</Panel>
 					</Border>
 
@@ -67,22 +97,23 @@
 							Background="Transparent"
 							IsVisible="{Binding IsBarongVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="8"
-									   TextWrapping="Wrap"
-									   TextAlignment="Center"
-									   Foreground="#1e1e1e"
-									   Text="Barong / Filipiniana"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+									   TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana"
 									   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageBarong.Bitmap}"
-								   Stretch="UniformToFill"
+							<Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+							<!-- ✅ NEW: Delete Overlay -->
+							<Button Classes="delete-overlay"
+									Command="{Binding ClearSlotCommand}"
+									CommandParameter="Barong"
+									IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
+								<PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+							</Button>
 						</Panel>
 					</Border>
 
-					<!-- Creative Box (Hidden for Basic, A, B) -->
-					<!-- ✅ Updated Tag and Text from Toga to Creative -->
+					<!-- Creative Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
@@ -91,22 +122,22 @@
 							Background="Transparent"
 							IsVisible="{Binding IsCreativeVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="8"
-									   TextWrapping="Wrap"
-									   TextAlignment="Center"
-									   Foreground="#1e1e1e"
-									   Text="Creative"
-									   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageCreative.Bitmap}"
-								   Stretch="UniformToFill"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+									   Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+							<!-- ✅ NEW: Delete Overlay -->
+							<Button Classes="delete-overlay"
+									Command="{Binding ClearSlotCommand}"
+									CommandParameter="Creative"
+									IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
+								<PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+							</Button>
 						</Panel>
 					</Border>
 
-					<!-- Any Box (Hidden for Basic, A, B) -->
-					<!-- ✅ Updated Tag and Text from Any Photo to Any -->
+					<!-- Any Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
@@ -115,21 +146,22 @@
 							Background="Transparent"
 							IsVisible="{Binding IsAnyVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="8"
-									   TextWrapping="Wrap"
-									   TextAlignment="Center"
-									   Foreground="#1e1e1e"
-									   Text="Any"
-									   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageAny.Bitmap}"
-								   Stretch="UniformToFill"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+									   Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+							<!-- ✅ NEW: Delete Overlay -->
+							<Button Classes="delete-overlay"
+									Command="{Binding ClearSlotCommand}"
+									CommandParameter="Any"
+									IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
+								<PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+							</Button>
 						</Panel>
 					</Border>
 
-					<!-- INSTAX Photo Box (Visible ONLY for D) -->
+					<!-- INSTAX Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
@@ -138,17 +170,18 @@
 							Background="Transparent"
 							IsVisible="{Binding IsInstaxVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="8"
-									   TextWrapping="Wrap"
-									   TextAlignment="Center"
-									   Foreground="#1e1e1e"
-									   Text="Instax"
-									   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageInstax.Bitmap}"
-								   Stretch="UniformToFill"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+									   Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+							<!-- ✅ NEW: Delete Overlay -->
+							<Button Classes="delete-overlay"
+									Command="{Binding ClearSlotCommand}"
+									CommandParameter="Instax"
+									IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
+								<PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+							</Button>
 						</Panel>
 					</Border>
 				</StackPanel>
@@ -178,7 +211,7 @@
 			</Grid>
 		</Border>
 
-		<!-- Main Content Area -->
+		<!-- Main Content Area (Right side) -->
 		<Grid RowDefinitions="Auto, *, Auto"
 			  ColumnDefinitions="*, *"
 			  Grid.Column="1"
@@ -194,9 +227,7 @@
 					Grid.Column="0"
 					Grid.ColumnSpan="2">
 
-				<!-- Redesigned Input Layout -->
 				<Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
-
 					<!-- Text Inputs -->
 					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 						<StackPanel Spacing="5">
@@ -206,7 +237,6 @@
 									 Watermark="e.g. client@email.com"
 									 Cursor="IBeam"/>
 						</StackPanel>
-
 						<StackPanel Spacing="5">
 							<TextBlock Text="Client Name" FontSize="10" Foreground="#888"/>
 							<TextBox Width="200"
@@ -215,44 +245,17 @@
 									 Cursor="IBeam"/>
 						</StackPanel>
 					</StackPanel>
-
 					<!-- Package Selection -->
 					<StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
 						<TextBlock Text="Select Package" FontSize="10" Foreground="#888" HorizontalAlignment="Right"/>
 						<StackPanel Orientation="Horizontal" Spacing="15">
-							<RadioButton GroupName="Package Group"
-										 Content="Basic"
-										 IsChecked="True"
-										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Basic Package"
-										 Cursor="Hand"/>
-
-							<RadioButton GroupName="Package Group"
-										 Content="Pkg A"
-										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package A"
-										 Cursor="Hand"/>
-
-							<RadioButton GroupName="Package Group"
-										 Content="Pkg B"
-										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package B"
-										 Cursor="Hand"/>
-
-							<RadioButton GroupName="Package Group"
-										 Content="Pkg C"
-										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package C"
-										 Cursor="Hand"/>
-
-							<RadioButton GroupName="Package Group"
-										 Content="Pkg D"
-										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package D"
-										 Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" Content="Basic" IsChecked="True" Command="{Binding UpdatePackageCommand}" CommandParameter="Basic Package" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" Content="Pkg A" Command="{Binding UpdatePackageCommand}" CommandParameter="Package A" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" Content="Pkg B" Command="{Binding UpdatePackageCommand}" CommandParameter="Package B" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" Content="Pkg C" Command="{Binding UpdatePackageCommand}" CommandParameter="Package C" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group" Content="Pkg D" Command="{Binding UpdatePackageCommand}" CommandParameter="Package D" Cursor="Hand"/>
 						</StackPanel>
 					</StackPanel>
-
 				</Grid>
 			</Border>
 
@@ -263,49 +266,25 @@
 					Grid.Row="1"
 					Grid.Column="0">
 				<Grid RowDefinitions="Auto, *">
-					<TextBlock Grid.Row="0"
-							   Text="Browse Photos"
-							   FontSize="8"
-							   Foreground="#1e1e1e"
-							   Margin="0,0,0,10"/>
-
-					<ListBox Grid.Row="1"
-							 ItemsSource="{Binding Images}"
-							 SelectedItem="{Binding SelectedImage}"
-							 Background="Transparent">
-
+					<TextBlock Grid.Row="0" Text="Browse Photos" FontSize="8" Foreground="#1e1e1e" Margin="0,0,0,10"/>
+					<ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent">
 						<ListBox.ItemsPanel>
 							<ItemsPanelTemplate>
 								<WrapPanel Orientation="Horizontal" />
 							</ItemsPanelTemplate>
 						</ListBox.ItemsPanel>
-
 						<ListBox.Styles>
 							<Style Selector="ListBoxItem">
 								<Setter Property="Padding" Value="4"/>
 								<Setter Property="CornerRadius" Value="4"/>
 							</Style>
 						</ListBox.Styles>
-
 						<ListBox.ItemTemplate>
 							<DataTemplate>
-								<Border Classes="image-tile"
-										PointerPressed="OnPointerPressed"
-										PointerMoved="OnPointerMoved"
-										PointerReleased="OnPointerReleased"
-										Background="Transparent">
+								<Border Classes="image-tile" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
 									<StackPanel Margin="5" Width="100">
-										<Image Source="{Binding Bitmap}"
-											   Width="80"
-											   Height="80"
-											   Stretch="UniformToFill"
-											   HorizontalAlignment="Center"/>
-										<TextBlock Text="{Binding FileName}"
-												   TextWrapping="Wrap"
-												   HorizontalAlignment="Center"
-												   FontSize="10"
-												   Foreground="Black"
-												   Margin="0,5,0,0"/>
+										<Image Source="{Binding Bitmap}" Width="80" Height="80" Stretch="UniformToFill" HorizontalAlignment="Center"/>
+										<TextBlock Text="{Binding FileName}" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="10" Foreground="Black" Margin="0,5,0,0"/>
 									</StackPanel>
 								</Border>
 							</DataTemplate>
@@ -321,32 +300,10 @@
 					Grid.Row="1"
 					Grid.Column="1">
 				<Grid RowDefinitions="Auto, *, Auto">
-					<TextBlock Grid.Row="0"
-							   Text="Quick Preview"
-							   FontSize="8"
-							   Foreground="#1e1e1e"/>
-
-					<TextBlock Grid.Row="1"
-							   Text="Select a photo to preview"
-							   FontSize="12"
-							   Foreground="#d3d3d3"
-							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"
-							   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
-
-					<Image Grid.Row="1"
-						   Source="{Binding SelectedImage.Bitmap}"
-						   Stretch="Uniform"
-						   Margin="0,10"
-						   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-
-					<TextBlock Grid.Row="2"
-							   Text="{Binding SelectedImage.FileName}"
-							   FontSize="14"
-							   FontWeight="Bold"
-							   Foreground="#1e1e1e"
-							   HorizontalAlignment="Center"
-							   IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+					<TextBlock Grid.Row="0" Text="Quick Preview" FontSize="8" Foreground="#1e1e1e"/>
+					<TextBlock Grid.Row="1" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
+					<Image Grid.Row="1" Source="{Binding SelectedImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+					<TextBlock Grid.Row="2" Text="{Binding SelectedImage.FileName}" FontSize="14" FontWeight="Bold" Foreground="#1e1e1e" HorizontalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 				</Grid>
 			</Border>
 
@@ -357,24 +314,13 @@
 					Grid.Row="2"
 					Grid.Column="0"
 					Grid.ColumnSpan="2">
-				<TextBlock Text="Sample Preview Package"
-						   FontSize="8"
-						   Foreground="#1e1e1e"/>
+				<TextBlock Text="Sample Preview Package" FontSize="8" Foreground="#1e1e1e"/>
 			</Border>
 		</Grid>
 
 		<!-- Ghost Image Overlay -->
-		<Canvas x:Name="DragCanvas"
-				Grid.Column="0"
-				Grid.ColumnSpan="2"
-				IsHitTestVisible="False"
-				IsVisible="False"
-				ZIndex="100">
-			<Image x:Name="GhostImage"
-				   Width="80"
-				   Height="80"
-				   Opacity="0.7"
-				   Stretch="UniformToFill"/>
+		<Canvas x:Name="DragCanvas" Grid.Column="0" Grid.ColumnSpan="2" IsHitTestVisible="False" IsVisible="False" ZIndex="100">
+			<Image x:Name="GhostImage" Width="80" Height="80" Opacity="0.7" Stretch="UniformToFill"/>
 		</Canvas>
 
 	</Grid>

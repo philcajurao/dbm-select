@@ -98,6 +98,20 @@ namespace dbm_select.ViewModels
             }
         }
 
+        // Clear Slot Command
+        [RelayCommand]
+        public void ClearSlot(string category)
+        {
+            switch (category)
+            {
+                case "8x10": Image8x10 = null; break;
+                case "Barong": ImageBarong = null; break;
+                case "Creative": ImageCreative = null; break;
+                case "Any": ImageAny = null; break;
+                case "Instax": ImageInstax = null; break;
+            }
+        }
+
         // Clear All Command
         [RelayCommand]
         public void ClearAll()
