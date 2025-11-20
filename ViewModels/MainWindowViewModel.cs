@@ -1,7 +1,8 @@
 ﻿using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel; // Required for [ObservableProperty]
-using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;          // Required for [RelayCommand]
 using dbm_select.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 
@@ -9,59 +10,162 @@ namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        // This constructor loads images immediately for testing purposes
         public MainWindowViewModel()
         {
-            // Replace this path with a real folder on your PC for testing
-            LoadImages(@"C:\Users\Phil\Pictures");
+            LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
+
+            // Initialize visibility
+            UpdateVisibility("Basic Package");
         }
 
-        // ✅ NEW: Client Data Inputs
+        // Client Data Inputs
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
 
-        // ✅ 1. Add the SelectedImage property
-        // The Toolkit automatically generates "SelectedImage" property from this field
-        // and handles the notification to the View.
-        [ObservableProperty]
-        private ImageItem? _selectedImage;
+        // Track selected package (Default to Basic)
+        [ObservableProperty] private string _selectedPackage = "Basic Package";
 
-        // Properties to store the images dropped into the specific boxes
-        // We name them based on the box they belong to.
-        [ObservableProperty] private ImageItem? _image8x16;
+        // Selection Preview
+        [ObservableProperty] private ImageItem? _selectedImage;
+
+        // ✅ RENAMED: Image Slots to match your specific list
+        [ObservableProperty] private ImageItem? _image8x10;      // Was 8x16
         [ObservableProperty] private ImageItem? _imageBarong;
-        [ObservableProperty] private ImageItem? _imageToga;
-        [ObservableProperty] private ImageItem? _imageAnyPhoto;
+        [ObservableProperty] private ImageItem? _imageCreative;  // Was Toga
+        [ObservableProperty] private ImageItem? _imageAny;       // Was Any Photo
+        [ObservableProperty] private ImageItem? _imageInstax;
+
+        // ✅ RENAMED: Visibility Flags
+        [ObservableProperty] private bool _isBarongVisible;
+        [ObservableProperty] private bool _isCreativeVisible; // Was Toga
+        [ObservableProperty] private bool _isAnyVisible;
+        [ObservableProperty] private bool _isInstaxVisible;
+
+        // Command to update SelectedPackage when a RadioButton is clicked
+        [RelayCommand]
+        public void UpdatePackage(string packageName)
+        {
+            SelectedPackage = packageName;
+            UpdateVisibility(packageName);
+        }
+
+        // ✅ LOGIC UPDATE: Separated C and D logic
+        private void UpdateVisibility(string pkg)
+        {
+            // 1. Reset all to Hidden
+            IsBarongVisible = false;
+            IsCreativeVisible = false;
+            IsAnyVisible = false;
+            IsInstaxVisible = false;
+
+            // 2. Configure based on Package List
+
+            // Basic: 8x10 Only (Default)
+
+            // Package A & B: 8x10 + Barong
+            if (pkg == "Package A" || pkg == "Package B")
+            {
+                IsBarongVisible = true;
+            }
+            // Package C: 8x10 + Barong + Creative + Any (NO INSTAX)
+            else if (pkg == "Package C")
+            {
+                IsBarongVisible = true;
+                IsCreativeVisible = true;
+                IsAnyVisible = true;
+                IsInstaxVisible = false;
+            }
+            // Package D: 8x10 + Barong + Creative + Any + INSTAX
+            else if (pkg == "Package D")
+            {
+                IsBarongVisible = true;
+                IsCreativeVisible = true;
+                IsAnyVisible = true;
+                IsInstaxVisible = true; // ✅ Instax only for D
+            }
+        }
 
         // Helper method to assign the image based on the Category string
         public void SetPackageImage(string category, ImageItem image)
         {
             switch (category)
             {
-                case "8x16": Image8x16 = image; break;
+                case "8x10": Image8x10 = image; break;
                 case "Barong": ImageBarong = image; break;
-                case "Toga": ImageToga = image; break;
-                case "Any Photo": ImageAnyPhoto = image; break;
+                case "Creative": ImageCreative = image; break;
+                case "Any": ImageAny = image; break;
+                case "Instax": ImageInstax = image; break;
             }
         }
 
         // Clear All Command
-        // The Toolkit automatically generates "ClearAllCommand" from this method
         [RelayCommand]
         public void ClearAll()
         {
-            // Reset Text Inputs
             ClientName = string.Empty;
             ClientEmail = string.Empty;
+            SelectedPackage = "Basic Package";
 
-            // Reset Selected Preview
             SelectedImage = null;
 
-            // Reset Package Slots
-            Image8x16 = null;
+            // Reset Slots
+            Image8x10 = null;
             ImageBarong = null;
-            ImageToga = null;
-            ImageAnyPhoto = null;
+            ImageCreative = null;
+            ImageAny = null;
+            ImageInstax = null;
+
+            // Reset visibility to Basic
+            UpdateVisibility("Basic Package");
+        }
+
+        // Submit Command
+        [RelayCommand]
+        public void Submit()
+        {
+            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+
+            // Save Images with updated labels
+            SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
+            SaveImageToFile(ImageBarong, " Barong ", outputFolder);
+            SaveImageToFile(ImageCreative, " Creative ", outputFolder);
+            SaveImageToFile(ImageAny, " Any ", outputFolder);
+            SaveImageToFile(ImageInstax, " Instax ", outputFolder);
+
+            System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
+            ClearAll();
+        }
+
+        private void SaveImageToFile(ImageItem? image, string sizeCategory, string folderPath)
+        {
+            if (image == null || string.IsNullOrEmpty(image.FullPath)) return;
+
+            try
+            {
+                string pkg = SelectedPackage;
+                string name = ClientName ?? "No name";
+                string originalName = Path.GetFileNameWithoutExtension(image.FileName);
+                string extension = Path.GetExtension(image.FileName);
+
+                string newFileName = $"({pkg}) {name}{sizeCategory}{originalName}{extension}";
+
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    newFileName = newFileName.Replace(c, '_');
+                }
+
+                string destPath = Path.Combine(folderPath, newFileName);
+                File.Copy(image.FullPath, destPath, true);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving image: {ex.Message}");
+            }
         }
 
         public ObservableCollection<ImageItem> Images { get; } = new();
@@ -80,19 +184,15 @@ namespace dbm_select.ViewModels
                 {
                     try
                     {
-                        // Note: Loading full bitmaps here is heavy on memory. 
-                        // In production, consider loading thumbnails only.
                         var bitmap = new Bitmap(file);
                         Images.Add(new ImageItem
                         {
                             Bitmap = bitmap,
-                            FileName = Path.GetFileName(file)
+                            FileName = Path.GetFileName(file),
+                            FullPath = file
                         });
                     }
-                    catch
-                    {
-                        // Ignore errors
-                    }
+                    catch { }
                 }
             }
         }

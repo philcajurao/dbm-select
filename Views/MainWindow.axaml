@@ -16,7 +16,6 @@
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
 
-	<!-- ✅ ADDED x:Name="MainGrid" for coordinate calculations -->
 	<Grid ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
 		<!-- Side Dropping Area -->
@@ -36,17 +35,13 @@
 							VerticalAlignment="Center"
 							Spacing="24">
 
-					<!--
-					✅ REMOVED DragDrop attributes.
-					We now detect drops manually in OnPointerReleased logic.
-					-->
-
-					<!-- 8x16 Box -->
+					<!-- 8x10 Box (Always Visible) -->
+					<!-- ✅ Updated Tag and Text from 8x16 to 8x10 -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
 							Height="120"
-							Tag="8x16"
+							Tag="8x10"
 							Background="Transparent">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
@@ -55,11 +50,11 @@
 									   TextWrapping="Wrap"
 									   TextAlignment="Center"
 									   Foreground="#1e1e1e"
-									   Text="8x16"
-									   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding Image8x16.Bitmap}"
+									   Text="8x10"
+									   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding Image8x10.Bitmap}"
 								   Stretch="UniformToFill"
-								   IsVisible="{Binding Image8x16, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 						</Panel>
 					</Border>
 
@@ -69,7 +64,8 @@
 							Width="72"
 							Height="120"
 							Tag="Barong"
-							Background="Transparent">
+							Background="Transparent"
+							IsVisible="{Binding IsBarongVisible}">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
@@ -77,7 +73,7 @@
 									   TextWrapping="Wrap"
 									   TextAlignment="Center"
 									   Foreground="#1e1e1e"
-									   Text="Barong"
+									   Text="Barong / Filipiniana"
 									   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageBarong.Bitmap}"
 								   Stretch="UniformToFill"
@@ -85,13 +81,15 @@
 						</Panel>
 					</Border>
 
-					<!-- Toga Box -->
+					<!-- Creative Box (Hidden for Basic, A, B) -->
+					<!-- ✅ Updated Tag and Text from Toga to Creative -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
 							Height="120"
-							Tag="Toga"
-							Background="Transparent">
+							Tag="Creative"
+							Background="Transparent"
+							IsVisible="{Binding IsCreativeVisible}">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
@@ -99,21 +97,23 @@
 									   TextWrapping="Wrap"
 									   TextAlignment="Center"
 									   Foreground="#1e1e1e"
-									   Text="Toga"
-									   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageToga.Bitmap}"
+									   Text="Creative"
+									   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageCreative.Bitmap}"
 								   Stretch="UniformToFill"
-								   IsVisible="{Binding ImageToga, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 						</Panel>
 					</Border>
 
-					<!-- Any Photo Box -->
+					<!-- Any Box (Hidden for Basic, A, B) -->
+					<!-- ✅ Updated Tag and Text from Any Photo to Any -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
 							Width="72"
 							Height="120"
-							Tag="Any Photo"
-							Background="Transparent">
+							Tag="Any"
+							Background="Transparent"
+							IsVisible="{Binding IsAnyVisible}">
 						<Panel>
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
@@ -121,11 +121,34 @@
 									   TextWrapping="Wrap"
 									   TextAlignment="Center"
 									   Foreground="#1e1e1e"
-									   Text="Any Photo"
-									   IsVisible="{Binding ImageAnyPhoto, Converter={x:Static ObjectConverters.IsNull}}"/>
-							<Image Source="{Binding ImageAnyPhoto.Bitmap}"
+									   Text="Any"
+									   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageAny.Bitmap}"
 								   Stretch="UniformToFill"
-								   IsVisible="{Binding ImageAnyPhoto, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+								   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+						</Panel>
+					</Border>
+
+					<!-- INSTAX Photo Box (Visible ONLY for D) -->
+					<Border BorderBrush="Gray"
+							BorderThickness="1"
+							Width="72"
+							Height="120"
+							Tag="Instax"
+							Background="Transparent"
+							IsVisible="{Binding IsInstaxVisible}">
+						<Panel>
+							<TextBlock HorizontalAlignment="Center"
+									   VerticalAlignment="Center"
+									   FontSize="8"
+									   TextWrapping="Wrap"
+									   TextAlignment="Center"
+									   Foreground="#1e1e1e"
+									   Text="Instax"
+									   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
+							<Image Source="{Binding ImageInstax.Bitmap}"
+								   Stretch="UniformToFill"
+								   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 						</Panel>
 					</Border>
 				</StackPanel>
@@ -134,11 +157,13 @@
 					  ColumnDefinitions="*, *"
 					  HorizontalAlignment="Center">
 					<Button Grid.Column="0"
+							Command="{Binding SubmitCommand}"
 							Width="40"
 							Height="16"
 							FontSize="8"
 							Padding="2"
 							HorizontalContentAlignment="Center"
+							Cursor="Hand"
 							Foreground="#1e1e1e">Submit</Button>
 					<Button Grid.Column="1"
 							Command="{Binding ClearAllCommand}"
@@ -147,6 +172,7 @@
 							FontSize="8"
 							Padding="2"
 							HorizontalContentAlignment="Center"
+							Cursor="Hand"
 							Foreground="#1e1e1e">Clear All</Button>
 				</Grid>
 			</Grid>
@@ -194,11 +220,36 @@
 					<StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
 						<TextBlock Text="Select Package" FontSize="10" Foreground="#888" HorizontalAlignment="Right"/>
 						<StackPanel Orientation="Horizontal" Spacing="15">
-							<RadioButton Foreground="#888" GroupName="Package Group" Content="Basic" IsChecked="True" Cursor="Hand"/>
-							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg A" Cursor="Hand"/>
-							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg B" Cursor="Hand"/>
-							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg C" Cursor="Hand"/>
-							<RadioButton Foreground="#888" GroupName="Package Group" Content="Pkg D" Cursor="Hand"/>
+							<RadioButton GroupName="Package Group"
+										 Content="Basic"
+										 IsChecked="True"
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Basic Package"
+										 Cursor="Hand"/>
+
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg A"
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package A"
+										 Cursor="Hand"/>
+
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg B"
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package B"
+										 Cursor="Hand"/>
+
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg C"
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package C"
+										 Cursor="Hand"/>
+
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg D"
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package D"
+										 Cursor="Hand"/>
 						</StackPanel>
 					</StackPanel>
 
@@ -238,7 +289,6 @@
 
 						<ListBox.ItemTemplate>
 							<DataTemplate>
-								<!-- ✅ ADDED: PointerReleased to handle the 'Drop' -->
 								<Border Classes="image-tile"
 										PointerPressed="OnPointerPressed"
 										PointerMoved="OnPointerMoved"
@@ -313,8 +363,7 @@
 			</Border>
 		</Grid>
 
-		<!-- ✅ NEW: Ghost Image Overlay Layer -->
-		<!-- IsHitTestVisible="False" ensures clicks go through it to the borders below -->
+		<!-- Ghost Image Overlay -->
 		<Canvas x:Name="DragCanvas"
 				Grid.Column="0"
 				Grid.ColumnSpan="2"
