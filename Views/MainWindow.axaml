@@ -116,12 +116,12 @@
 					<!-- 8x10 Box -->
 					<Border BorderBrush="Gray"
 							BorderThickness="1"
-							Width="72"
+							Width="120"
 							Height="120"
 							Tag="8x10"
 							Background="Transparent">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8"
 									   Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -143,7 +143,7 @@
 							Background="Transparent"
 							IsVisible="{Binding IsBarongVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8"
 									   TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana"
 									   IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"
@@ -166,7 +166,7 @@
 							Background="Transparent"
 							IsVisible="{Binding IsCreativeVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8"
 									   Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -188,7 +188,7 @@
 							Background="Transparent"
 							IsVisible="{Binding IsAnyVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8"
 									   Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -210,7 +210,7 @@
 							Background="Transparent"
 							IsVisible="{Binding IsInstaxVisible}">
 						<Panel>
-							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8" Foreground="#1e1e1e"
+							<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="8"
 									   Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
 							<Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"
 								   IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -230,16 +230,14 @@
 					  ColumnSpacing="10">
 					<Button Grid.Column="0"
 							Command="{Binding SubmitCommand}"
-							Width="75"
-							Padding="4"
+							Padding="12, 8"
 							HorizontalContentAlignment="Center"
 							Cursor="Hand"
 							>Submit</Button>
 
 					<Button Grid.Column="1"
 							Command="{Binding ClearAllCommand}"
-							Width="75"
-							Padding="4"
+							Padding="12, 8"
 							HorizontalContentAlignment="Center"
 							Cursor="Hand"
 							>Clear All</Button>
