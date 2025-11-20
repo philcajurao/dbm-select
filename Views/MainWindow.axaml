@@ -3,14 +3,15 @@
 		xmlns:vm="using:dbm_select.ViewModels"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="800"
-		Width="1024"
+		mc:Ignorable="d"
+		Width="1280"
 		Height="800"
 		x:Class="dbm_select.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
-		Icon="/Assets/avalonia-logo.ico"
-		Title="DBM Estudyo"
-		Background="#fefefe">
+		Icon="/Assets/DBM LOGO.png"
+		Title="DBM Select"
+		TransparencyLevelHint="AcrylicBlur"
+		Background="#202020">
 
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
@@ -39,20 +40,72 @@
 		<Style Selector="Button.delete-overlay:pointerover">
 			<Setter Property="Opacity" Value="1"/>
 		</Style>
+
+		<!-- Base properties shared by all dialog buttons -->
+		<Style Selector="Button.dialog-btn">
+			<Setter Property="Padding" Value="15,8"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+
+		<!-- Danger Button (Red) - Keeps color on hover, lowers opacity -->
+		<Style Selector="Button.danger">
+			<Setter Property="Background" Value="#d9534f"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+		<Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#d9534f"/> <!-- Force keep red -->
+			<Setter Property="Opacity" Value="0.8"/> <!-- Lower opacity -->
+		</Style>
+
+		<!-- Success Button (Green) -->
+		<Style Selector="Button.success">
+			<Setter Property="Background" Value="#5cb85c"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+		<Style Selector="Button.success:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#5cb85c"/>
+			<Setter Property="Opacity" Value="0.8"/>
+		</Style>
+
+		<!-- Secondary Button (Gray) -->
+		<Style Selector="Button.secondary">
+			<Setter Property="Background" Value="#f0f0f0"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+		<Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#f0f0f0"/>
+			<Setter Property="Opacity" Value="0.8"/>
+		</Style>
 	</Window.Styles>
 
 	<Grid ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
 		<!-- Side Dropping Area -->
-		<Border Grid.Column="0"
-				Padding="0,16"
-				BoxShadow="0 0 24 0 #d3d3d3">
+		<ExperimentalAcrylicBorder Grid.Column="0"
+								   Padding="8,16">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial
+				BackgroundSource="Digger"
+				TintColor="Black"
+				TintOpacity="0.8"
+				MaterialOpacity="0.5" />
+			</ExperimentalAcrylicBorder.Material>
+
 			<Grid RowSpacing="8"
 				  RowDefinitions="Auto, *, Auto">
-				<TextBlock Grid.Row="0"
-						   HorizontalAlignment="Center"
-						   Padding="8,0"
-						   Foreground="#1e1e1e">DBM Estudyo</TextBlock>
+
+				<Image Grid.Row="0"
+					   Source="avares://dbm-select/Assets/LOGO.png"
+					   Height="100"
+					   Width="200"
+					   Stretch="Uniform"
+					   UseLayoutRounding="True"
+					   HorizontalAlignment="Center"
+					   VerticalAlignment="Top"
+					   Margin="0,0,0,10"/>
 
 				<!-- Drop Targets Container -->
 				<StackPanel Grid.Row="1"
@@ -173,29 +226,26 @@
 
 				<Grid Grid.Row="2"
 					  ColumnDefinitions="*, *"
-					  HorizontalAlignment="Center">
+					  HorizontalAlignment="Center"
+					  ColumnSpacing="10">
 					<Button Grid.Column="0"
 							Command="{Binding SubmitCommand}"
-							Width="40"
-							Height="16"
-							FontSize="8"
-							Padding="2"
+							Width="75"
+							Padding="4"
 							HorizontalContentAlignment="Center"
 							Cursor="Hand"
-							Foreground="#1e1e1e">Submit</Button>
-					
+							>Submit</Button>
+
 					<Button Grid.Column="1"
 							Command="{Binding ClearAllCommand}"
-							Width="40"
-							Height="16"
-							FontSize="8"
-							Padding="2"
+							Width="75"
+							Padding="4"
 							HorizontalContentAlignment="Center"
 							Cursor="Hand"
-							Foreground="#1e1e1e">Clear All</Button>
+							>Clear All</Button>
 				</Grid>
 			</Grid>
-		</Border>
+		</ExperimentalAcrylicBorder>
 
 		<!-- Main Content Area -->
 		<Grid RowDefinitions="Auto, *, Auto"
@@ -206,12 +256,19 @@
 			  Margin="16">
 
 			<!--Top Input Data Area-->
-			<Border CornerRadius="8"
-					Padding="24"
-					BoxShadow="0 2 24 0 #d3d3d3"
-					Grid.Row="0"
-					Grid.Column="0"
-					Grid.ColumnSpan="2">
+			<ExperimentalAcrylicBorder CornerRadius="8"
+									   Padding="24"
+									   Grid.Row="0"
+									   Grid.Column="0"
+									   Grid.ColumnSpan="2">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
 
 				<Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
 					<!-- Text Inputs -->
@@ -231,162 +288,219 @@
 									 Cursor="IBeam"/>
 						</StackPanel>
 					</StackPanel>
-					
+
 					<!-- Package Selection -->
 					<StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
 						<TextBlock Text="Select Package" FontSize="10" Foreground="#888" HorizontalAlignment="Right"/>
 						<StackPanel Orientation="Horizontal" Spacing="15">
-							<RadioButton GroupName="Package Group" 
-										 Content="Basic" 
+							<RadioButton GroupName="Package Group"
+										 Content="Basic"
 										 IsChecked="{Binding IsBasicSelected}"
-										 Command="{Binding UpdatePackageCommand}" 
-										 CommandParameter="Basic Package" 
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Basic Package"
 										 Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" 
-										 Content="Pkg A" 
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg A"
 										 IsChecked="{Binding IsPkgASelected}"
-										 Command="{Binding UpdatePackageCommand}" 
-										 CommandParameter="Package A" 
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package A"
 										 Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" 
-										 Content="Pkg B" 
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg B"
 										 IsChecked="{Binding IsPkgBSelected}"
-										 Command="{Binding UpdatePackageCommand}" 
-										 CommandParameter="Package B" 
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package B"
 										 Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" 
-										 Content="Pkg C" 
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg C"
 										 IsChecked="{Binding IsPkgCSelected}"
-										 Command="{Binding UpdatePackageCommand}" 
-										 CommandParameter="Package C" 
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package C"
 										 Cursor="Hand"/>
-							<RadioButton GroupName="Package Group" 
-										 Content="Pkg D" 
+							<RadioButton GroupName="Package Group"
+										 Content="Pkg D"
 										 IsChecked="{Binding IsPkgDSelected}"
-										 Command="{Binding UpdatePackageCommand}" 
-										 CommandParameter="Package D" 
+										 Command="{Binding UpdatePackageCommand}"
+										 CommandParameter="Package D"
 										 Cursor="Hand"/>
 						</StackPanel>
 					</StackPanel>
 				</Grid>
-			</Border>
+			</ExperimentalAcrylicBorder>
 
 			<!--Browse Photos Area-->
-			<Border CornerRadius="8"
-					Padding="24"
-					BoxShadow="0 2 24 0 #d3d3d3"
+			<Border BorderBrush="#666666"
+					BorderThickness="1"
+					CornerRadius="8"
+					ClipToBounds="True"
 					Grid.Row="1"
 					Grid.Column="0">
-				<Grid RowDefinitions="Auto, *">
-					<TextBlock Grid.Row="0" Text="Browse Photos" FontSize="8" Foreground="#1e1e1e" Margin="0,0,0,10"/>
-					<ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent">
-						<ListBox.ItemsPanel>
-							<ItemsPanelTemplate>
-								<WrapPanel Orientation="Horizontal" />
-							</ItemsPanelTemplate>
-						</ListBox.ItemsPanel>
-						<ListBox.Styles>
-							<Style Selector="ListBoxItem">
-								<Setter Property="Padding" Value="4"/>
-								<Setter Property="CornerRadius" Value="4"/>
-							</Style>
-						</ListBox.Styles>
-						<ListBox.ItemTemplate>
-							<DataTemplate>
-								<Border Classes="image-tile" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
-									<StackPanel Margin="5" Width="100">
-										<Image Source="{Binding Bitmap}" Width="80" Height="80" Stretch="UniformToFill" HorizontalAlignment="Center"/>
-										<TextBlock Text="{Binding FileName}" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="10" Foreground="Black" Margin="0,5,0,0"/>
-									</StackPanel>
-								</Border>
-							</DataTemplate>
-						</ListBox.ItemTemplate>
-					</ListBox>
-				</Grid>
-			</Border>
+				<ExperimentalAcrylicBorder CornerRadius="8"
+										   Padding="24">
 
+					<ExperimentalAcrylicBorder.Material>
+						<ExperimentalAcrylicMaterial
+						BackgroundSource="Digger"
+						TintColor="#000000"
+						TintOpacity="1"
+						MaterialOpacity="1" />
+					</ExperimentalAcrylicBorder.Material>
+
+					<Grid RowDefinitions="Auto, *">
+						<TextBlock Grid.Row="0" Text="Browse Photos" FontSize="8" Margin="0,0,0,10"/>
+						<ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent">
+							<ListBox.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel Orientation="Horizontal" />
+								</ItemsPanelTemplate>
+							</ListBox.ItemsPanel>
+							<ListBox.Styles>
+								<Style Selector="ListBoxItem">
+									<Setter Property="Padding" Value="4"/>
+									<Setter Property="CornerRadius" Value="4"/>
+								</Style>
+							</ListBox.Styles>
+							<ListBox.ItemTemplate>
+								<DataTemplate>
+									<Border Classes="image-tile" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
+										<StackPanel Margin="12" Width="100">
+											<Image Source="{Binding Bitmap}" Width="80" Height="80" Stretch="UniformToFill" HorizontalAlignment="Center"/>
+											<TextBlock Text="{Binding FileName}" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
+										</StackPanel>
+									</Border>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</Grid>
+				</ExperimentalAcrylicBorder>
+			</Border>
 			<!--Quick Preview Area-->
-			<Border CornerRadius="8"
-					Padding="24"
-					BoxShadow="0 2 24 0 #d3d3d3"
-					Grid.Row="1"
-					Grid.Column="1">
+			<ExperimentalAcrylicBorder CornerRadius="8"
+									   Padding="24"
+									   Grid.Row="1"
+									   Grid.Column="1">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
+
 				<Grid RowDefinitions="Auto, *, Auto">
 					<TextBlock Grid.Row="0" Text="Quick Preview" FontSize="8" Foreground="#1e1e1e"/>
 					<TextBlock Grid.Row="1" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
 					<Image Grid.Row="1" Source="{Binding SelectedImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-					<TextBlock Grid.Row="2" Text="{Binding SelectedImage.FileName}" FontSize="14" FontWeight="Bold" Foreground="#1e1e1e" HorizontalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+					<TextBlock Grid.Row="2" Text="{Binding SelectedImage.FileName}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 				</Grid>
-			</Border>
+			</ExperimentalAcrylicBorder>
 
 			<!--Sample Preview Package Area-->
-			<Border CornerRadius="8"
-					Padding="24"
-					BoxShadow="0 2 24 0 #d3d3d3"
-					Grid.Row="2"
-					Grid.Column="0"
-					Grid.ColumnSpan="2">
+			<ExperimentalAcrylicBorder CornerRadius="8"
+									   Padding="24"
+									   Grid.Row="2"
+									   Grid.Column="0"
+									   Grid.ColumnSpan="2">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
+
 				<TextBlock Text="Sample Preview Package" FontSize="8" Foreground="#1e1e1e"/>
-			</Border>
+			</ExperimentalAcrylicBorder>
 		</Grid>
 
 		<!-- Clear Confirmation Dialog Overlay -->
-		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+		<Grid Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="#99000000"
 			  IsVisible="{Binding IsClearConfirmationVisible}"
 			  ZIndex="200">
-			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="300">
+			<ExperimentalAcrylicBorder CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
+
 				<StackPanel Spacing="20">
 					<TextBlock Text="Are you sure you want to clear all data?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
 					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-						<Button Content="Yes, Clear" Command="{Binding ConfirmClearCommand}" Background="#d9534f" Foreground="White" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
-						<Button Content="Cancel" Command="{Binding CancelClearCommand}" Background="#f0f0f0" Foreground="Black" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+						<!-- ✅ Updated to use 'danger' class -->
+						<Button Content="Yes, Clear" Classes="dialog-btn danger" Command="{Binding ConfirmClearCommand}"/>
+						<!-- ✅ Updated to use 'secondary' class -->
+						<Button Content="Cancel" Classes="dialog-btn secondary" Command="{Binding CancelClearCommand}"/>
 					</StackPanel>
 				</StackPanel>
-			</Border>
+			</ExperimentalAcrylicBorder>
 		</Grid>
 
 		<!-- Submit Confirmation Dialog Overlay -->
-		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+		<Grid Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="#99000000"
 			  IsVisible="{Binding IsSubmitConfirmationVisible}"
 			  ZIndex="200">
-			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="300">
+			<ExperimentalAcrylicBorder CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
+
 				<StackPanel Spacing="20">
-					<TextBlock Text="Are you sure you want to save and submit this order?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+					<TextBlock Text="Are you sure you want to save and submit this images?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
 					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-						<Button Content="Yes, Submit" Command="{Binding ConfirmSubmitCommand}" Background="#5cb85c" Foreground="White" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
-						<Button Content="Cancel" Command="{Binding CancelSubmitCommand}" Background="#f0f0f0" Foreground="Black" Padding="15,8" CornerRadius="4" Cursor="Hand"/>
+						<!-- ✅ Updated to use 'success' class -->
+						<Button Content="Yes, Submit" Classes="dialog-btn success" Command="{Binding ConfirmSubmitCommand}"/>
+						<!-- ✅ Updated to use 'secondary' class -->
+						<Button Content="Cancel" Classes="dialog-btn secondary" Command="{Binding CancelSubmitCommand}"/>
 					</StackPanel>
 				</StackPanel>
-			</Border>
+			</ExperimentalAcrylicBorder>
 		</Grid>
 
 		<!-- ✅ NEW: Validation Error Dialog Overlay -->
-		<Grid Grid.Column="0" Grid.ColumnSpan="2" 
+		<Grid Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="#99000000"
 			  IsVisible="{Binding IsErrorDialogVisible}"
 			  ZIndex="200">
-			<Border Background="White" CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 4 16 0 #66000000" Width="350">
+			<ExperimentalAcrylicBorder CornerRadius="8" Padding="20" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.8"
+					MaterialOpacity="0.5" />
+				</ExperimentalAcrylicBorder.Material>
+
 				<StackPanel Spacing="20">
 					<TextBlock Text="Action Required" FontWeight="Bold" FontSize="16" Foreground="#d9534f" HorizontalAlignment="Center"/>
-					
-					<TextBlock Text="{Binding ErrorMessage}" 
-							   FontSize="14" 
-							   TextWrapping="Wrap" 
-							   TextAlignment="Center" 
+
+					<TextBlock Text="{Binding ErrorMessage}"
+							   FontSize="14"
+							   TextWrapping="Wrap"
+							   TextAlignment="Center"
 							   HorizontalAlignment="Center"/>
-					
-					<Button Content="OK" 
+
+					<!-- ✅ Updated to use 'secondary' class -->
+					<Button Content="OK"
+							Classes="dialog-btn secondary"
 							Command="{Binding CloseErrorDialogCommand}"
-							Background="#f0f0f0" 
-							Foreground="Black"
-							Padding="20,8"
-							CornerRadius="4"
 							HorizontalAlignment="Center"
-							Cursor="Hand"/>
+							Padding="20,8"/>
 				</StackPanel>
-			</Border>
+			</ExperimentalAcrylicBorder>
 		</Grid>
 
 		<!-- Ghost Image Overlay -->

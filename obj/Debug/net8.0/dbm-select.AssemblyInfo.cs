@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("dbm-select")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d285f536e6b67ee4a25e41c1a7bb772d8b710f8a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+01efc2513d997aa99abac6a8d344ef9409056bc1")]
 [assembly: System.Reflection.AssemblyProductAttribute("dbm-select")]
 [assembly: System.Reflection.AssemblyTitleAttribute("dbm-select")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
