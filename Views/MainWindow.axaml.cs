@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree; // ✅ Required to find what is under the mouse
 using dbm_select.Models;
 using dbm_select.ViewModels;
@@ -14,6 +16,30 @@ namespace dbm_select.Views
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        // ✅ NEW: Browse Folder Button Handler
+        private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
+        {
+            // 1. Open the Folder Picker
+            var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Folder with Photos",
+                AllowMultiple = false
+            });
+
+            // 2. If user selected a folder
+            if (folders.Count >= 1)
+            {
+                // Get the local path (e.g., "C:\Users\Name\Pictures")
+                var folderPath = folders[0].Path.LocalPath;
+
+                // 3. Call ViewModel to load images
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    vm.LoadImages(folderPath);
+                }
+            }
         }
 
         // State variables to track the custom drag operation

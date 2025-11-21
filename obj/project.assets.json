@@ -1464,19 +1464,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Phil\\.nuget\\packages\\": {}
+    "C:\\Users\\philc\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Phil\\Documents\\GitHub\\dbm-select\\dbm-select.csproj",
+      "projectUniqueName": "C:\\Users\\philc\\OneDrive\\DBMSelect\\dbm-select\\dbm-select.csproj",
       "projectName": "dbm-select",
-      "projectPath": "C:\\Users\\Phil\\Documents\\GitHub\\dbm-select\\dbm-select.csproj",
-      "packagesPath": "C:\\Users\\Phil\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Phil\\Documents\\GitHub\\dbm-select\\obj\\",
+      "projectPath": "C:\\Users\\philc\\OneDrive\\DBMSelect\\dbm-select\\dbm-select.csproj",
+      "packagesPath": "C:\\Users\\philc\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\philc\\OneDrive\\DBMSelect\\dbm-select\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Phil\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\philc\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -1502,7 +1502,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -1544,12 +1544,30 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.22, 8.0.22]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[8.0.22, 8.0.22]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.22, 8.0.22]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.22, 8.0.22]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

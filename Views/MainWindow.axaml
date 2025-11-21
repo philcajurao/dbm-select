@@ -345,6 +345,21 @@
 					</ExperimentalAcrylicBorder.Material>
 
 					<Grid RowDefinitions="Auto, *">
+						<!-- ✅ UPDATED: Header Area with Title and Browse Button -->
+						<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+							<TextBlock Text="Browse Photos" 
+									   FontSize="8" 
+									   Foreground="#1e1e1e" 
+									   VerticalAlignment="Center"/>
+							
+							<!-- Browse Button -->
+							<Button Grid.Column="1" 
+									Content="Open Folder" 
+									Click="BrowseFolder_Click" 
+									Classes="dialog-btn secondary" 
+									Padding="8,4"
+									FontSize="10"/>
+						</Grid>
 						<TextBlock Grid.Row="0" Text="Browse Photos" FontSize="8" Margin="0,0,0,10"/>
 						<ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent">
 							<ListBox.ItemsPanel>
