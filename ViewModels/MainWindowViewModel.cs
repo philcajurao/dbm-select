@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
+using dbmselect.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -12,12 +13,15 @@ namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+        private const string DEFAULT_IMAGE_FOLDER = "C:\\DBM";
+        private const string DEFAULT_SELECTED_IMAGE_FOLDER = "DBM_SELECT";
+        private const string INPUT_ERROR_MESSAGE = "Please check your inputs.";
         public MainWindowViewModel()
         {
             if (Design.IsDesignMode) return;
 
             LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
-            UpdateVisibility("Basic Package");
+            UpdateVisibility(PackgeConstants.BasicPackage);
         }
 
         // Client Data Inputs
@@ -25,7 +29,7 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string? _clientEmail;
 
         // Track selected package (Default to Basic)
-        [ObservableProperty] private string _selectedPackage = "Basic Package";
+        [ObservableProperty] private string _selectedPackage = PackgeConstants.BasicPackage;
 
         // Radio Button Selection States
         [ObservableProperty] private bool _isBasicSelected = true;
@@ -56,7 +60,7 @@ namespace dbm_select.ViewModels
 
         // Validation Error Dialog
         [ObservableProperty] private bool _isErrorDialogVisible;
-        [ObservableProperty] private string _errorMessage = "Please check your inputs.";
+        [ObservableProperty] private string _errorMessage = INPUT_ERROR_MESSAGE;
 
         [RelayCommand]
         public void UpdatePackage(string packageName)
@@ -72,17 +76,17 @@ namespace dbm_select.ViewModels
             IsAnyVisible = false;
             IsInstaxVisible = false;
 
-            if (pkg == "Package A" || pkg == "Package B")
+            if (pkg == PackgeConstants.PackageA || pkg == PackgeConstants.PackageB)
             {
                 IsBarongVisible = true;
             }
-            else if (pkg == "Package C")
+            else if (pkg == PackgeConstants.PackageC)
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
             }
-            else if (pkg == "Package D")
+            else if (pkg == PackgeConstants.PackageD)
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
@@ -95,11 +99,11 @@ namespace dbm_select.ViewModels
         {
             switch (category)
             {
-                case "8x10": Image8x10 = image; break;
-                case "Barong": ImageBarong = image; break;
-                case "Creative": ImageCreative = image; break;
-                case "Any": ImageAny = image; break;
-                case "Instax": ImageInstax = image; break;
+                case CategoryConstants.EightByTen: Image8x10 = image; break;
+                case CategoryConstants.Barong: ImageBarong = image; break;
+                case CategoryConstants.Creative: ImageCreative = image; break;
+                case CategoryConstants.Any: ImageAny = image; break;
+                case CategoryConstants.Instax: ImageInstax = image; break;
             }
         }
 
@@ -108,11 +112,11 @@ namespace dbm_select.ViewModels
         {
             switch (category)
             {
-                case "8x10": Image8x10 = null; break;
-                case "Barong": ImageBarong = null; break;
-                case "Creative": ImageCreative = null; break;
-                case "Any": ImageAny = null; break;
-                case "Instax": ImageInstax = null; break;
+                case CategoryConstants.EightByTen: Image8x10 = null; break;
+                case CategoryConstants.Barong: ImageBarong = null; break;
+                case CategoryConstants.Creative: ImageCreative = null; break;
+                case CategoryConstants.Any: ImageAny = null; break;
+                case CategoryConstants.Instax: ImageInstax = null; break;
             }
         }
 
@@ -194,16 +198,16 @@ namespace dbm_select.ViewModels
         [RelayCommand]
         public void ConfirmSubmit()
         {
-            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+            string outputFolder = Path.Combine(DEFAULT_IMAGE_FOLDER, DEFAULT_SELECTED_IMAGE_FOLDER);
 
             if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
 
-            SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
+            SaveImageToFile(Image8x10, $" " + CategoryConstants.EightByTen + " ", outputFolder);
 
-            if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
-            if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
-            if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
-            if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", outputFolder);
+            if (IsBarongVisible) SaveImageToFile(ImageBarong, $" " + CategoryConstants.Barong + " ", outputFolder);
+            if (IsCreativeVisible) SaveImageToFile(ImageCreative, $" " + CategoryConstants.Creative + " ", outputFolder);
+            if (IsAnyVisible) SaveImageToFile(ImageAny, $" " + CategoryConstants.Any + " ", outputFolder);
+            if (IsInstaxVisible) SaveImageToFile(ImageInstax, $" " + CategoryConstants.Instax + " ", outputFolder);
 
             System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
 
@@ -228,7 +232,7 @@ namespace dbm_select.ViewModels
             ClientName = string.Empty;
             ClientEmail = string.Empty;
 
-            SelectedPackage = "Basic Package";
+            SelectedPackage = PackgeConstants.BasicPackage;
             IsBasicSelected = true;
             IsPkgASelected = false;
             IsPkgBSelected = false;
@@ -242,7 +246,7 @@ namespace dbm_select.ViewModels
             ImageAny = null;
             ImageInstax = null;
 
-            UpdateVisibility("Basic Package");
+            UpdateVisibility(PackgeConstants.BasicPackage);
         }
 
         private void SaveImageToFile(ImageItem? image, string sizeCategory, string folderPath)
