@@ -348,8 +348,7 @@
 						<!-- Header Area with Title and Browse Button -->
 						<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
 							<TextBlock Text="Browse Photos" 
-									   FontSize="8" 
-									   Foreground="#1e1e1e" 
+									   FontSize="12" 
 									   VerticalAlignment="Center"/>
 							
 							<!-- Browse Button -->
@@ -403,8 +402,8 @@
 				</ExperimentalAcrylicBorder.Material>
 
 				<Grid RowDefinitions="Auto, *, Auto">
-					<TextBlock Grid.Row="0" Text="Quick Preview" FontSize="8" Foreground="#1e1e1e"/>
-					<TextBlock Grid.Row="1" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
+					<TextBlock Grid.Row="0" Text="Quick Preview" FontSize="12" Foreground="#888"/>
+					<TextBlock Grid.Row="1" Text="Select a photo to preview" FontSize="8" Foreground="#888" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
 					<Image Grid.Row="1" Source="{Binding SelectedImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 					<TextBlock Grid.Row="2" Text="{Binding SelectedImage.FileName}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 				</Grid>
@@ -430,7 +429,7 @@
 					<TextBlock Grid.Column="0" 
 							   Text="Sample Preview Package" 
 							   FontSize="8" 
-							   Foreground="#1e1e1e"
+							   Foreground="#888"
 							   VerticalAlignment="Center"/>
 
 					<!-- ✅ UPDATED: Right Gear Icon Button opens Settings Dialog -->
