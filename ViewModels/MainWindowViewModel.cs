@@ -6,25 +6,48 @@ using dbm_select.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.RegularExpressions; // ✅ Required for Email Validation
+using System.Text.RegularExpressions;
+using System.Text.Json; // ✅ NEW: Required for saving settings
 
 namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+        // Path to store the settings file (e.g., AppData/Roaming/DBM_Select/settings.json)
+        private readonly string _settingsFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DBM_Select",
+            "settings.json");
+
         public MainWindowViewModel()
         {
             if (Design.IsDesignMode) return;
 
             LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
+
+            // ✅ CHANGED: Try to load saved settings first. If fails, use default.
+            if (!LoadSettings())
+            {
+                OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+            }
+
             UpdateVisibility("Basic Package");
+        }
+
+        // Output Folder Path
+        [ObservableProperty] private string _outputFolderPath;
+
+        // ✅ NEW: Auto-save whenever the OutputFolderPath property changes
+        partial void OnOutputFolderPathChanged(string value)
+        {
+            SaveSettings();
         }
 
         // Client Data Inputs
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
 
-        // Track selected package (Default to Basic)
+        // Track selected package
         [ObservableProperty] private string _selectedPackage = "Basic Package";
 
         // Radio Button Selection States
@@ -53,10 +76,71 @@ namespace dbm_select.ViewModels
         // Confirmation Dialog Flags
         [ObservableProperty] private bool _isClearConfirmationVisible;
         [ObservableProperty] private bool _isSubmitConfirmationVisible;
-
-        // Validation Error Dialog
         [ObservableProperty] private bool _isErrorDialogVisible;
+
+        // Settings Dialog Flag
+        [ObservableProperty] private bool _isSettingsDialogVisible;
+
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
+
+        // --- Settings Persistence Logic ---
+
+        private bool LoadSettings()
+        {
+            try
+            {
+                if (File.Exists(_settingsFilePath))
+                {
+                    string json = File.ReadAllText(_settingsFilePath);
+                    var settings = JsonSerializer.Deserialize<AppSettings>(json);
+
+                    if (settings != null && !string.IsNullOrEmpty(settings.LastOutputFolder))
+                    {
+                        OutputFolderPath = settings.LastOutputFolder;
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load settings: {ex.Message}");
+            }
+            return false;
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                // Ensure directory exists
+                string? dir = Path.GetDirectoryName(_settingsFilePath);
+                if (dir != null && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                var settings = new AppSettings
+                {
+                    LastOutputFolder = OutputFolderPath
+                };
+
+                string json = JsonSerializer.Serialize(settings);
+                File.WriteAllText(_settingsFilePath, json);
+                System.Diagnostics.Debug.WriteLine($"Settings saved to {_settingsFilePath}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to save settings: {ex.Message}");
+            }
+        }
+
+        // Simple internal class to hold settings data
+        public class AppSettings
+        {
+            public string? LastOutputFolder { get; set; }
+        }
+
+        // --- End Persistence Logic ---
 
         [RelayCommand]
         public void UpdatePackage(string packageName)
@@ -136,12 +220,23 @@ namespace dbm_select.ViewModels
             IsClearConfirmationVisible = false;
         }
 
-        // --- Submit Logic ---
+        // --- Settings Logic ---
+        [RelayCommand]
+        public void OpenSettings()
+        {
+            IsSettingsDialogVisible = true;
+        }
 
+        [RelayCommand]
+        public void CloseSettings()
+        {
+            IsSettingsDialogVisible = false;
+        }
+
+        // --- Submit Logic ---
         [RelayCommand]
         public void Submit()
         {
-            // 1. VALIDATE: Check Name and Email Existence
             if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
             {
                 ErrorMessage = "Please enter both the Client Name and Email Address.";
@@ -149,7 +244,6 @@ namespace dbm_select.ViewModels
                 return;
             }
 
-            // ✅ 2. VALIDATE: Check Email Format
             if (!IsValidEmail(ClientEmail))
             {
                 ErrorMessage = "The Email Address format is invalid.\n(e.g., user@example.com)";
@@ -157,9 +251,7 @@ namespace dbm_select.ViewModels
                 return;
             }
 
-            // 3. VALIDATE: Check if required image slots are filled
             bool isMissingImages = false;
-
             if (Image8x10 == null) isMissingImages = true;
             else if (IsBarongVisible && ImageBarong == null) isMissingImages = true;
             else if (IsCreativeVisible && ImageCreative == null) isMissingImages = true;
@@ -173,33 +265,17 @@ namespace dbm_select.ViewModels
                 return;
             }
 
-            // If all checks pass, show the confirm dialog
             IsSubmitConfirmationVisible = true;
-        }
-
-        // ✅ Helper function for Email Regex
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                // Simple Regex for Email Validation
-                return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         [RelayCommand]
         public void ConfirmSubmit()
         {
-            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+            string outputFolder = OutputFolderPath;
 
             if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
 
             SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
-
             if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
             if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
             if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
@@ -223,12 +299,21 @@ namespace dbm_select.ViewModels
             IsErrorDialogVisible = false;
         }
 
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+            }
+            catch { return false; }
+        }
+
         private void ResetData()
         {
             ClientName = string.Empty;
             ClientEmail = string.Empty;
-
             SelectedPackage = "Basic Package";
+
             IsBasicSelected = true;
             IsPkgASelected = false;
             IsPkgBSelected = false;
