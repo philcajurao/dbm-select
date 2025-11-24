@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		mc:Ignorable="d"
+		d:DesignWidth="500" d:DesignHeight="300"
+		Width="500" Height="300"
+		x:Class="dbm_select.Views.SplashWindow"
+		SystemDecorations="None"
+		WindowStartupLocation="CenterScreen"
+		Topmost="True"
+		TransparencyLevelHint="AcrylicBlur"
+		Background="Transparent">
+
+	<Border BorderBrush="#666666"
+			BorderThickness="1"
+			CornerRadius="12"
+			ClipToBounds="True"
+			BoxShadow="0 0 20 5 #66000000">
+		<ExperimentalAcrylicBorder CornerRadius="12">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial
+				BackgroundSource="Digger"
+				TintColor="Black"
+				TintOpacity="0.95"
+				MaterialOpacity="0.95" />
+			</ExperimentalAcrylicBorder.Material>
+
+			<Grid RowDefinitions="*, Auto" Margin="40">
+
+				<!-- Logo Area -->
+				<StackPanel Grid.Row="0" VerticalAlignment="Center" Spacing="20">
+					<Image Source="avares://dbm-select/Assets/DBM LOGO.png"
+						   Height="120"
+						   Stretch="Uniform"/>
+
+					<TextBlock Text="DBM Select"
+							   FontSize="24"
+							   FontWeight="Bold"
+							   Foreground="#f0f0f0"
+							   HorizontalAlignment="Center"/>
+				</StackPanel>
+
+				<!-- Loading Indicator -->
+				<StackPanel Grid.Row="1" Spacing="10">
+					<ProgressBar IsIndeterminate="True"
+								 Height="2"
+								 Foreground="#5cb85c"
+								 Background="#333333"/>
+
+					<TextBlock Text="Loading Estudyo Resources..."
+							   FontSize="10"
+							   Foreground="Gray"
+							   HorizontalAlignment="Center"/>
+				</StackPanel>
+
+			</Grid>
+		</ExperimentalAcrylicBorder>
+	</Border>
+</Window>

@@ -1,11 +1,13 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading; // Required for Dispatcher
 using dbm_select.ViewModels;
 using dbm_select.Views;
+using System.Linq;
+using System.Threading.Tasks; // Required for Task
 
 namespace dbm_select
 {
@@ -20,18 +22,43 @@ namespace dbm_select
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-
-                //Load Browse Files
-                var vm = new MainWindowViewModel();
-                vm.LoadImages(@"C:\Users\Phil\Pictures"); // Load files at startup
-
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+                // Avoid duplicate validations
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
+
+                // 1. Create and Show Splash Screen FIRST
+                var splashScreen = new SplashWindow();
+                desktop.MainWindow = splashScreen;
+                splashScreen.Show();
+
+                // 2. Run the Loading Logic in the background
+                Task.Run(async () =>
                 {
-                    DataContext = vm,
-                };
+                    // Simulate heavy loading work (e.g., 3 seconds)
+                    await Task.Delay(3000);
+
+                    // 3. Switch to Main Window (Must be done on UI Thread)
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        // Initialize ViewModel
+                        var vm = new MainWindowViewModel();
+                        // Note: The ViewModel constructor likely loads images by default, 
+                        // but we keep your specific path here to be safe.
+                        vm.LoadImages(@"C:\Users\Phil\Pictures");
+
+                        // Create the real Main Window
+                        var mainWindow = new MainWindow
+                        {
+                            DataContext = vm,
+                        };
+
+                        // Swap the main window reference
+                        desktop.MainWindow = mainWindow;
+                        mainWindow.Show();
+
+                        // Close the splash screen
+                        splashScreen.Close();
+                    });
+                });
             }
 
             base.OnFrameworkInitializationCompleted();
