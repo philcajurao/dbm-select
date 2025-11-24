@@ -3,7 +3,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
-using MiniExcelLibs; // ✅ REQUIRED
+using MiniExcelLibs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,29 +27,53 @@ namespace dbm_select.ViewModels
 
             LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
 
+            // Default Defaults
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+            OutputFolderPath = defaultPath;
+            ExcelFolderPath = defaultPath;
+
             if (!LoadSettings())
             {
-                OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+                if (string.IsNullOrEmpty(OutputFolderPath)) OutputFolderPath = defaultPath;
+                if (string.IsNullOrEmpty(ExcelFolderPath)) ExcelFolderPath = defaultPath;
             }
 
-            // ✅ UPDATED: Use "Basic"
             UpdateVisibility("Basic");
         }
 
-        [ObservableProperty] private string _outputFolderPath = string.Empty;
+        // --- PATH PROPERTIES ---
 
-        partial void OnOutputFolderPathChanged(string value)
+        // Snapshot variables to track changes
+        private string _snapOutputFolder = string.Empty;
+        private string _snapExcelFolder = string.Empty;
+        private string _snapExcelFileName = string.Empty;
+
+        // ✅ NEW: Track if settings have changed
+        [ObservableProperty] private bool _isSettingsDirty;
+
+        [ObservableProperty] private string _outputFolderPath = string.Empty;
+        partial void OnOutputFolderPathChanged(string value) => CheckSettingsDirty();
+
+        [ObservableProperty] private string _excelFolderPath = string.Empty;
+        partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
+
+        [ObservableProperty] private string _excelFileName = "Order_Log";
+        partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
+
+        private void CheckSettingsDirty()
         {
-            SaveSettings();
+            IsSettingsDirty =
+                OutputFolderPath != _snapOutputFolder ||
+                ExcelFolderPath != _snapExcelFolder ||
+                ExcelFileName != _snapExcelFileName;
         }
+
+        // --- APP STATE PROPERTIES ---
 
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
-
-        // ✅ UPDATED: Default to "Basic"
         [ObservableProperty] private string _selectedPackage = "Basic";
 
-        // Radio Button Selection States
         [ObservableProperty] private bool _isBasicSelected = true;
         [ObservableProperty] private bool _isPkgASelected;
         [ObservableProperty] private bool _isPkgBSelected;
@@ -77,6 +101,8 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
+        // --- SETTINGS PERSISTENCE ---
+
         private bool LoadSettings()
         {
             try
@@ -86,9 +112,19 @@ namespace dbm_select.ViewModels
                     string json = File.ReadAllText(_settingsFilePath);
                     var settings = JsonSerializer.Deserialize<AppSettings>(json);
 
-                    if (settings != null && !string.IsNullOrEmpty(settings.LastOutputFolder))
+                    if (settings != null)
                     {
-                        OutputFolderPath = settings.LastOutputFolder;
+                        if (!string.IsNullOrEmpty(settings.LastOutputFolder))
+                            OutputFolderPath = settings.LastOutputFolder;
+
+                        if (!string.IsNullOrEmpty(settings.LastExcelFolder))
+                            ExcelFolderPath = settings.LastExcelFolder;
+                        else
+                            ExcelFolderPath = OutputFolderPath;
+
+                        if (!string.IsNullOrEmpty(settings.LastExcelFileName))
+                            ExcelFileName = settings.LastExcelFileName;
+
                         return true;
                     }
                 }
@@ -112,7 +148,9 @@ namespace dbm_select.ViewModels
 
                 var settings = new AppSettings
                 {
-                    LastOutputFolder = OutputFolderPath
+                    LastOutputFolder = OutputFolderPath,
+                    LastExcelFolder = ExcelFolderPath,
+                    LastExcelFileName = ExcelFileName
                 };
 
                 string json = JsonSerializer.Serialize(settings);
@@ -124,7 +162,11 @@ namespace dbm_select.ViewModels
         public class AppSettings
         {
             public string? LastOutputFolder { get; set; }
+            public string? LastExcelFolder { get; set; }
+            public string? LastExcelFileName { get; set; }
         }
+
+        // --- LOGIC COMMANDS ---
 
         [RelayCommand]
         public void UpdatePackage(string packageName)
@@ -133,7 +175,6 @@ namespace dbm_select.ViewModels
             UpdateVisibility(packageName);
         }
 
-        // ✅ UPDATED: Check for short names "A", "B", "C", "D"
         private void UpdateVisibility(string pkg)
         {
             IsBarongVisible = false;
@@ -204,17 +245,39 @@ namespace dbm_select.ViewModels
             IsClearConfirmationVisible = false;
         }
 
+        // --- Settings Logic ---
+
         [RelayCommand]
         public void OpenSettings()
         {
+            // Snapshot current values
+            _snapOutputFolder = OutputFolderPath;
+            _snapExcelFolder = ExcelFolderPath;
+            _snapExcelFileName = ExcelFileName;
+
+            IsSettingsDirty = false;
             IsSettingsDialogVisible = true;
         }
 
+        // Revert changes if cancelled
         [RelayCommand]
-        public void CloseSettings()
+        public void CancelSettings()
         {
+            OutputFolderPath = _snapOutputFolder;
+            ExcelFolderPath = _snapExcelFolder;
+            ExcelFileName = _snapExcelFileName;
             IsSettingsDialogVisible = false;
         }
+
+        // Save only when button clicked
+        [RelayCommand]
+        public void SaveAndCloseSettings()
+        {
+            SaveSettings();
+            IsSettingsDialogVisible = false;
+        }
+
+        // --- Submit Logic ---
 
         [RelayCommand]
         public void Submit()
@@ -260,17 +323,19 @@ namespace dbm_select.ViewModels
             {
                 if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
 
-                // 1. Save Image Files
                 SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
                 if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
                 if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
                 if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
                 if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", outputFolder);
 
-                // 2. SAVE TO EXCEL LOGIC
-                string excelPath = Path.Combine(outputFolder, "Order_Log.xlsx");
+                string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName);
+                if (!excelPath.EndsWith(".xlsx")) excelPath += ".xlsx";
 
-                // Create new item
+                // Ensure excel directory exists if different
+                if (!Directory.Exists(Path.GetDirectoryName(excelPath)))
+                    Directory.CreateDirectory(Path.GetDirectoryName(excelPath)!);
+
                 var newItem = new OrderLogItem
                 {
                     Status = "DONE CHOOSING",
@@ -287,39 +352,25 @@ namespace dbm_select.ViewModels
 
                 var allRows = new List<OrderLogItem>();
 
-                // Read existing data if file exists
                 if (File.Exists(excelPath))
                 {
-                    try
-                    {
-                        allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
-                    }
-                    catch
-                    {
-                        // Ignore read errors, we will just overwrite 
-                    }
+                    try { allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); }
+                    catch { }
                 }
 
-                // Add new row
                 allRows.Add(newItem);
 
-                // Delete old file to ensure overwrite
-                if (File.Exists(excelPath))
-                {
-                    File.Delete(excelPath);
-                }
+                if (File.Exists(excelPath)) File.Delete(excelPath);
 
-                // Save fresh file with headers
                 MiniExcel.SaveAs(excelPath, allRows);
 
-                System.Diagnostics.Debug.WriteLine($"Saved images and log to {outputFolder}");
+                System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder} and log to {excelPath}");
 
                 IsThankYouDialogVisible = true;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
-
                 ErrorMessage = $"An error occurred while saving.\n\nIf the Excel file is open, please CLOSE it and try again.\n\nDetails: {ex.Message}";
                 IsErrorDialogVisible = true;
             }
@@ -357,7 +408,6 @@ namespace dbm_select.ViewModels
         {
             ClientName = string.Empty;
             ClientEmail = string.Empty;
-            // ✅ UPDATED: Use "Basic"
             SelectedPackage = "Basic";
 
             IsBasicSelected = true;
@@ -373,7 +423,6 @@ namespace dbm_select.ViewModels
             ImageAny = null;
             ImageInstax = null;
 
-            // ✅ UPDATED: Use "Basic"
             UpdateVisibility("Basic");
         }
 
