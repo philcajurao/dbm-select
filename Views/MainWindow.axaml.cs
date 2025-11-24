@@ -37,18 +37,17 @@ namespace dbm_select.Views
             }
         }
 
-        // ✅ NEW: Set Output Folder Button Handler
+        // Set Output Folder Button Handler
         private async void SetOutputFolder_Click(object? sender, RoutedEventArgs e)
         {
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "Select Where to Save Orders",
+                Title = "Select Where to Save Images",
                 AllowMultiple = false
             });
 
             if (folders.Count >= 1)
             {
-                // Update ViewModel property
                 if (DataContext is MainWindowViewModel vm)
                 {
                     vm.OutputFolderPath = folders[0].Path.LocalPath;
@@ -56,8 +55,28 @@ namespace dbm_select.Views
             }
         }
 
-        // Stores the point where the user started clicking
+        // ✅ NEW: Set Excel Folder Button Handler
+        private async void SetExcelFolder_Click(object? sender, RoutedEventArgs e)
+        {
+            var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Where to Save Excel Log",
+                AllowMultiple = false
+            });
+
+            if (folders.Count >= 1)
+            {
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    vm.ExcelFolderPath = folders[0].Path.LocalPath;
+                }
+            }
+        }
+
+        // --- Existing Drag & Drop Logic ---
         private Point _dragStartPoint;
+        private bool _isDragging = false;
+        private ImageItem? _draggedItem;
 
         private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
@@ -66,14 +85,10 @@ namespace dbm_select.Views
             {
                 _dragStartPoint = point.Position;
                 _draggedItem = item;
-                _isDragging = false; 
-
+                _isDragging = false;
                 e.Pointer?.Capture(control);
             }
         }
-
-        private bool _isDragging = false;
-        private ImageItem? _draggedItem;
 
         private void OnPointerMoved(object? sender, PointerEventArgs e)
         {
@@ -115,7 +130,6 @@ namespace dbm_select.Views
                 if (targetBorder != null)
                 {
                     var category = targetBorder.Tag.ToString();
-                    
                     if (!string.IsNullOrEmpty(category) && DataContext is MainWindowViewModel vm)
                     {
                         vm.SetPackageImage(category, _draggedItem);
@@ -127,7 +141,7 @@ namespace dbm_select.Views
             _isDragging = false;
             _draggedItem = null;
             DragCanvas.IsVisible = false;
-            e.Pointer?.Capture(null); 
+            e.Pointer?.Capture(null);
         }
     }
 }
