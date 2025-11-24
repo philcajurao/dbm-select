@@ -3,18 +3,17 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
-using dbmselect.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Text.Json; // ✅ NEW: Required for saving settings
+using System.Text.Json;
 
 namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        // Path to store the settings file (e.g., AppData/Roaming/DBM_Select/settings.json)
+        // Path to store the settings file
         private readonly string _settingsFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "DBM_Select",
@@ -26,7 +25,6 @@ namespace dbm_select.ViewModels
 
             LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
 
-            // ✅ CHANGED: Try to load saved settings first. If fails, use default.
             if (!LoadSettings())
             {
                 OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
@@ -38,7 +36,6 @@ namespace dbm_select.ViewModels
         // Output Folder Path
         [ObservableProperty] private string _outputFolderPath;
 
-        // ✅ NEW: Auto-save whenever the OutputFolderPath property changes
         partial void OnOutputFolderPathChanged(string value)
         {
             SaveSettings();
@@ -46,10 +43,20 @@ namespace dbm_select.ViewModels
 
         // Client Data Inputs
         [ObservableProperty] private string? _clientName;
+
+        // ✅ NEW: Automatically capitalize Client Name
+        partial void OnClientNameChanged(string? value)
+        {
+            if (value is not null && value != value.ToUpper())
+            {
+                ClientName = value.ToUpper();
+            }
+        }
+
         [ObservableProperty] private string? _clientEmail;
 
-        // Track selected package (Default to Basic)
-        [ObservableProperty] private string _selectedPackage = PackgeConstants.BasicPackage;
+        // Track selected package
+        [ObservableProperty] private string _selectedPackage = "Basic Package";
 
         // Radio Button Selection States
         [ObservableProperty] private bool _isBasicSelected = true;
@@ -78,9 +85,10 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isClearConfirmationVisible;
         [ObservableProperty] private bool _isSubmitConfirmationVisible;
         [ObservableProperty] private bool _isErrorDialogVisible;
-
-        // Settings Dialog Flag
         [ObservableProperty] private bool _isSettingsDialogVisible;
+
+        // Thank You Dialog Flag
+        [ObservableProperty] private bool _isThankYouDialogVisible;
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
@@ -113,7 +121,6 @@ namespace dbm_select.ViewModels
         {
             try
             {
-                // Ensure directory exists
                 string? dir = Path.GetDirectoryName(_settingsFilePath);
                 if (dir != null && !Directory.Exists(dir))
                 {
@@ -127,15 +134,10 @@ namespace dbm_select.ViewModels
 
                 string json = JsonSerializer.Serialize(settings);
                 File.WriteAllText(_settingsFilePath, json);
-                System.Diagnostics.Debug.WriteLine($"Settings saved to {_settingsFilePath}");
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to save settings: {ex.Message}");
-            }
+            catch (Exception ex) { }
         }
 
-        // Simple internal class to hold settings data
         public class AppSettings
         {
             public string? LastOutputFolder { get; set; }
@@ -157,17 +159,17 @@ namespace dbm_select.ViewModels
             IsAnyVisible = false;
             IsInstaxVisible = false;
 
-            if (pkg == PackgeConstants.PackageA || pkg == PackgeConstants.PackageB)
+            if (pkg == "Package A" || pkg == "Package B")
             {
                 IsBarongVisible = true;
             }
-            else if (pkg == PackgeConstants.PackageC)
+            else if (pkg == "Package C")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
             }
-            else if (pkg == PackgeConstants.PackageD)
+            else if (pkg == "Package D")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
@@ -180,11 +182,11 @@ namespace dbm_select.ViewModels
         {
             switch (category)
             {
-                case CategoryConstants.EightByTen: Image8x10 = image; break;
-                case CategoryConstants.Barong: ImageBarong = image; break;
-                case CategoryConstants.Creative: ImageCreative = image; break;
-                case CategoryConstants.Any: ImageAny = image; break;
-                case CategoryConstants.Instax: ImageInstax = image; break;
+                case "8x10": Image8x10 = image; break;
+                case "Barong": ImageBarong = image; break;
+                case "Creative": ImageCreative = image; break;
+                case "Any": ImageAny = image; break;
+                case "Instax": ImageInstax = image; break;
             }
         }
 
@@ -193,11 +195,11 @@ namespace dbm_select.ViewModels
         {
             switch (category)
             {
-                case CategoryConstants.EightByTen: Image8x10 = null; break;
-                case CategoryConstants.Barong: ImageBarong = null; break;
-                case CategoryConstants.Creative: ImageCreative = null; break;
-                case CategoryConstants.Any: ImageAny = null; break;
-                case CategoryConstants.Instax: ImageInstax = null; break;
+                case "8x10": Image8x10 = null; break;
+                case "Barong": ImageBarong = null; break;
+                case "Creative": ImageCreative = null; break;
+                case "Any": ImageAny = null; break;
+                case "Instax": ImageInstax = null; break;
             }
         }
 
@@ -285,6 +287,16 @@ namespace dbm_select.ViewModels
             System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
 
             IsSubmitConfirmationVisible = false;
+
+            // SHOW THANK YOU DIALOG instead of resetting immediately
+            IsThankYouDialogVisible = true;
+        }
+
+        // Close Thank You Dialog and Reset Data
+        [RelayCommand]
+        public void CloseThankYouDialog()
+        {
+            IsThankYouDialogVisible = false;
             ResetData();
         }
 
@@ -313,8 +325,8 @@ namespace dbm_select.ViewModels
         {
             ClientName = string.Empty;
             ClientEmail = string.Empty;
+            SelectedPackage = "Basic Package";
 
-            SelectedPackage = PackgeConstants.BasicPackage;
             IsBasicSelected = true;
             IsPkgASelected = false;
             IsPkgBSelected = false;
@@ -328,7 +340,7 @@ namespace dbm_select.ViewModels
             ImageAny = null;
             ImageInstax = null;
 
-            UpdateVisibility(PackgeConstants.BasicPackage);
+            UpdateVisibility("Basic Package");
         }
 
         private void SaveImageToFile(ImageItem? image, string sizeCategory, string folderPath)
