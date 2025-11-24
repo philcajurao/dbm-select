@@ -3,17 +3,19 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
+using MiniExcelLibs; // ✅ REQUIRED
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Linq;
 
 namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        // Path to store the settings file
         private readonly string _settingsFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "DBM_Select",
@@ -30,33 +32,22 @@ namespace dbm_select.ViewModels
                 OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
             }
 
-            UpdateVisibility("Basic Package");
+            // ✅ UPDATED: Use "Basic"
+            UpdateVisibility("Basic");
         }
 
-        // Output Folder Path
-        [ObservableProperty] private string _outputFolderPath;
+        [ObservableProperty] private string _outputFolderPath = string.Empty;
 
         partial void OnOutputFolderPathChanged(string value)
         {
             SaveSettings();
         }
 
-        // Client Data Inputs
         [ObservableProperty] private string? _clientName;
-
-        // ✅ NEW: Automatically capitalize Client Name
-        partial void OnClientNameChanged(string? value)
-        {
-            if (value is not null && value != value.ToUpper())
-            {
-                ClientName = value.ToUpper();
-            }
-        }
-
         [ObservableProperty] private string? _clientEmail;
 
-        // Track selected package
-        [ObservableProperty] private string _selectedPackage = "Basic Package";
+        // ✅ UPDATED: Default to "Basic"
+        [ObservableProperty] private string _selectedPackage = "Basic";
 
         // Radio Button Selection States
         [ObservableProperty] private bool _isBasicSelected = true;
@@ -65,34 +56,26 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isPkgCSelected;
         [ObservableProperty] private bool _isPkgDSelected;
 
-        // Selection Preview
         [ObservableProperty] private ImageItem? _selectedImage;
 
-        // Image Slots
         [ObservableProperty] private ImageItem? _image8x10;
         [ObservableProperty] private ImageItem? _imageBarong;
         [ObservableProperty] private ImageItem? _imageCreative;
         [ObservableProperty] private ImageItem? _imageAny;
         [ObservableProperty] private ImageItem? _imageInstax;
 
-        // Visibility Flags
         [ObservableProperty] private bool _isBarongVisible;
         [ObservableProperty] private bool _isCreativeVisible;
         [ObservableProperty] private bool _isAnyVisible;
         [ObservableProperty] private bool _isInstaxVisible;
 
-        // Confirmation Dialog Flags
         [ObservableProperty] private bool _isClearConfirmationVisible;
         [ObservableProperty] private bool _isSubmitConfirmationVisible;
         [ObservableProperty] private bool _isErrorDialogVisible;
         [ObservableProperty] private bool _isSettingsDialogVisible;
-
-        // Thank You Dialog Flag
         [ObservableProperty] private bool _isThankYouDialogVisible;
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
-
-        // --- Settings Persistence Logic ---
 
         private bool LoadSettings()
         {
@@ -135,15 +118,13 @@ namespace dbm_select.ViewModels
                 string json = JsonSerializer.Serialize(settings);
                 File.WriteAllText(_settingsFilePath, json);
             }
-            catch (Exception ex) { }
+            catch (Exception) { }
         }
 
         public class AppSettings
         {
             public string? LastOutputFolder { get; set; }
         }
-
-        // --- End Persistence Logic ---
 
         [RelayCommand]
         public void UpdatePackage(string packageName)
@@ -152,6 +133,7 @@ namespace dbm_select.ViewModels
             UpdateVisibility(packageName);
         }
 
+        // ✅ UPDATED: Check for short names "A", "B", "C", "D"
         private void UpdateVisibility(string pkg)
         {
             IsBarongVisible = false;
@@ -159,17 +141,17 @@ namespace dbm_select.ViewModels
             IsAnyVisible = false;
             IsInstaxVisible = false;
 
-            if (pkg == "Package A" || pkg == "Package B")
+            if (pkg == "A" || pkg == "B")
             {
                 IsBarongVisible = true;
             }
-            else if (pkg == "Package C")
+            else if (pkg == "C")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
             }
-            else if (pkg == "Package D")
+            else if (pkg == "D")
             {
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
@@ -203,7 +185,6 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // --- Clear All Logic ---
         [RelayCommand]
         public void ClearAll()
         {
@@ -223,7 +204,6 @@ namespace dbm_select.ViewModels
             IsClearConfirmationVisible = false;
         }
 
-        // --- Settings Logic ---
         [RelayCommand]
         public void OpenSettings()
         {
@@ -236,7 +216,6 @@ namespace dbm_select.ViewModels
             IsSettingsDialogVisible = false;
         }
 
-        // --- Submit Logic ---
         [RelayCommand]
         public void Submit()
         {
@@ -275,24 +254,77 @@ namespace dbm_select.ViewModels
         public void ConfirmSubmit()
         {
             string outputFolder = OutputFolderPath;
-
-            if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
-
-            SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
-            if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
-            if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
-            if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
-            if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", outputFolder);
-
-            System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder}");
-
             IsSubmitConfirmationVisible = false;
 
-            // SHOW THANK YOU DIALOG instead of resetting immediately
-            IsThankYouDialogVisible = true;
+            try
+            {
+                if (!Directory.Exists(outputFolder)) Directory.CreateDirectory(outputFolder);
+
+                // 1. Save Image Files
+                SaveImageToFile(Image8x10, " 8x10 ", outputFolder);
+                if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", outputFolder);
+                if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", outputFolder);
+                if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", outputFolder);
+                if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", outputFolder);
+
+                // 2. SAVE TO EXCEL LOGIC
+                string excelPath = Path.Combine(outputFolder, "Order_Log.xlsx");
+
+                // Create new item
+                var newItem = new OrderLogItem
+                {
+                    Status = "DONE CHOOSING",
+                    Name = ClientName?.ToUpper() ?? "UNKNOWN",
+                    Email = ClientEmail ?? "",
+                    Package = SelectedPackage,
+                    Box_8x10 = Image8x10?.FileName ?? "Empty",
+                    Box_Barong = IsBarongVisible ? (ImageBarong?.FileName ?? "Empty") : "N/A",
+                    Box_Creative = IsCreativeVisible ? (ImageCreative?.FileName ?? "Empty") : "N/A",
+                    Box_Any = IsAnyVisible ? (ImageAny?.FileName ?? "Empty") : "N/A",
+                    Box_Instax = IsInstaxVisible ? (ImageInstax?.FileName ?? "Empty") : "N/A",
+                    TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+
+                var allRows = new List<OrderLogItem>();
+
+                // Read existing data if file exists
+                if (File.Exists(excelPath))
+                {
+                    try
+                    {
+                        allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
+                    }
+                    catch
+                    {
+                        // Ignore read errors, we will just overwrite 
+                    }
+                }
+
+                // Add new row
+                allRows.Add(newItem);
+
+                // Delete old file to ensure overwrite
+                if (File.Exists(excelPath))
+                {
+                    File.Delete(excelPath);
+                }
+
+                // Save fresh file with headers
+                MiniExcel.SaveAs(excelPath, allRows);
+
+                System.Diagnostics.Debug.WriteLine($"Saved images and log to {outputFolder}");
+
+                IsThankYouDialogVisible = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
+
+                ErrorMessage = $"An error occurred while saving.\n\nIf the Excel file is open, please CLOSE it and try again.\n\nDetails: {ex.Message}";
+                IsErrorDialogVisible = true;
+            }
         }
 
-        // Close Thank You Dialog and Reset Data
         [RelayCommand]
         public void CloseThankYouDialog()
         {
@@ -325,7 +357,8 @@ namespace dbm_select.ViewModels
         {
             ClientName = string.Empty;
             ClientEmail = string.Empty;
-            SelectedPackage = "Basic Package";
+            // ✅ UPDATED: Use "Basic"
+            SelectedPackage = "Basic";
 
             IsBasicSelected = true;
             IsPkgASelected = false;
@@ -340,28 +373,25 @@ namespace dbm_select.ViewModels
             ImageAny = null;
             ImageInstax = null;
 
-            UpdateVisibility("Basic Package");
+            // ✅ UPDATED: Use "Basic"
+            UpdateVisibility("Basic");
         }
 
         private void SaveImageToFile(ImageItem? image, string sizeCategory, string folderPath)
         {
             if (image == null || string.IsNullOrEmpty(image.FullPath)) return;
 
-            try
-            {
-                string pkg = SelectedPackage;
-                string name = ClientName ?? "No name";
-                string originalName = Path.GetFileNameWithoutExtension(image.FileName);
-                string extension = Path.GetExtension(image.FileName);
+            string pkg = SelectedPackage;
+            string name = (ClientName ?? "No name").ToUpper();
+            string originalName = Path.GetFileNameWithoutExtension(image.FileName);
+            string extension = Path.GetExtension(image.FileName);
 
-                string newFileName = $"({pkg}) {name}{sizeCategory}{originalName}{extension}";
+            string newFileName = $"({pkg}) {name}{sizeCategory}{originalName}{extension}";
 
-                foreach (char c in Path.GetInvalidFileNameChars())
-                    newFileName = newFileName.Replace(c, '_');
+            foreach (char c in Path.GetInvalidFileNameChars())
+                newFileName = newFileName.Replace(c, '_');
 
-                File.Copy(image.FullPath, Path.Combine(folderPath, newFileName), true);
-            }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}"); }
+            File.Copy(image.FullPath, Path.Combine(folderPath, newFileName), true);
         }
 
         public ObservableCollection<ImageItem> Images { get; } = new();

@@ -286,11 +286,10 @@
 						<StackPanel Spacing="5">
 							<TextBlock Text="Client Name" FontSize="10" Foreground="#888"/>
 							
-							<!-- ✅ UPDATED: Added UpdateSourceTrigger=PropertyChanged -->
-							<!-- This ensures the ViewModel receives the text immediately as you type -->
+							<!-- ✅ FIXED: Removed text capitalization binding -->
 							<TextBox Width="200"
-									 Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}"
-									 Watermark="e.g. JOHN DOE"
+									 Text="{Binding ClientName}"
+									 Watermark="e.g. John Doe"
 									 Cursor="IBeam"/>
 						</StackPanel>
 					</StackPanel>
@@ -303,31 +302,31 @@
 										 Content="Basic"
 										 IsChecked="{Binding IsBasicSelected}"
 										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Basic Package"
+										 CommandParameter="Basic"
 										 Cursor="Hand"/>
 							<RadioButton GroupName="Package Group"
 										 Content="Pkg A"
 										 IsChecked="{Binding IsPkgASelected}"
 										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package A"
+										 CommandParameter="A"
 										 Cursor="Hand"/>
 							<RadioButton GroupName="Package Group"
 										 Content="Pkg B"
 										 IsChecked="{Binding IsPkgBSelected}"
 										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package B"
+										 CommandParameter="B"
 										 Cursor="Hand"/>
 							<RadioButton GroupName="Package Group"
 										 Content="Pkg C"
 										 IsChecked="{Binding IsPkgCSelected}"
 										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package C"
+										 CommandParameter="C"
 										 Cursor="Hand"/>
 							<RadioButton GroupName="Package Group"
 										 Content="Pkg D"
 										 IsChecked="{Binding IsPkgDSelected}"
 										 Command="{Binding UpdatePackageCommand}"
-										 CommandParameter="Package D"
+										 CommandParameter="D"
 										 Cursor="Hand"/>
 						</StackPanel>
 					</StackPanel>
@@ -624,13 +623,13 @@
 							  Height="48" 
 							  HorizontalAlignment="Center"/>
 
-					<TextBlock Text="Thank you for choosing us!" 
+					<TextBlock Text="Success!" 
 							   FontSize="20" 
 							   FontWeight="Bold" 
 							   Foreground="White" 
 							   HorizontalAlignment="Center"/>
 
-					<TextBlock Text="Your pictures are now being process carefully." 
+					<TextBlock Text="Your order has been submitted successfully." 
 							   FontSize="14" 
 							   Foreground="#d3d3d3" 
 							   TextWrapping="Wrap" 
