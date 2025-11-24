@@ -5,11 +5,11 @@ using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using MiniExcelLibs;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Collections.Generic; // Added for List<>
 using System.Linq;
 
 namespace dbm_select.ViewModels
@@ -27,28 +27,19 @@ namespace dbm_select.ViewModels
 
             LoadImages(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)));
 
-            // Default Defaults
-            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
-            OutputFolderPath = defaultPath;
-            ExcelFolderPath = defaultPath;
-
             if (!LoadSettings())
             {
-                if (string.IsNullOrEmpty(OutputFolderPath)) OutputFolderPath = defaultPath;
-                if (string.IsNullOrEmpty(ExcelFolderPath)) ExcelFolderPath = defaultPath;
+                OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
             }
 
             UpdateVisibility("Basic");
         }
 
         // --- PATH PROPERTIES ---
-
-        // Snapshot variables to track changes
         private string _snapOutputFolder = string.Empty;
         private string _snapExcelFolder = string.Empty;
         private string _snapExcelFileName = string.Empty;
 
-        // ✅ NEW: Track if settings have changed
         [ObservableProperty] private bool _isSettingsDirty;
 
         [ObservableProperty] private string _outputFolderPath = string.Empty;
@@ -93,11 +84,18 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isAnyVisible;
         [ObservableProperty] private bool _isInstaxVisible;
 
+        // Dialog Flags
         [ObservableProperty] private bool _isClearConfirmationVisible;
         [ObservableProperty] private bool _isSubmitConfirmationVisible;
         [ObservableProperty] private bool _isErrorDialogVisible;
         [ObservableProperty] private bool _isSettingsDialogVisible;
         [ObservableProperty] private bool _isThankYouDialogVisible;
+
+        [ObservableProperty] private bool _isImportantNotesDialogVisible;
+
+        // ✅ NEW: Acknowledgement Dialog Properties
+        [ObservableProperty] private bool _isAcknowledgementDialogVisible;
+        [ObservableProperty] private bool _isImportantNotesChecked; // Checkbox state
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
@@ -245,21 +243,16 @@ namespace dbm_select.ViewModels
             IsClearConfirmationVisible = false;
         }
 
-        // --- Settings Logic ---
-
         [RelayCommand]
         public void OpenSettings()
         {
-            // Snapshot current values
             _snapOutputFolder = OutputFolderPath;
             _snapExcelFolder = ExcelFolderPath;
             _snapExcelFileName = ExcelFileName;
-
             IsSettingsDirty = false;
             IsSettingsDialogVisible = true;
         }
 
-        // Revert changes if cancelled
         [RelayCommand]
         public void CancelSettings()
         {
@@ -269,7 +262,6 @@ namespace dbm_select.ViewModels
             IsSettingsDialogVisible = false;
         }
 
-        // Save only when button clicked
         [RelayCommand]
         public void SaveAndCloseSettings()
         {
@@ -313,11 +305,42 @@ namespace dbm_select.ViewModels
             IsSubmitConfirmationVisible = true;
         }
 
+        // Step 1: Confirm Submit -> Open Notes
         [RelayCommand]
         public void ConfirmSubmit()
         {
-            string outputFolder = OutputFolderPath;
             IsSubmitConfirmationVisible = false;
+            IsImportantNotesDialogVisible = true;
+        }
+
+        // ✅ NEW: Step 2: Continue from Notes -> Open Acknowledgement
+        [RelayCommand]
+        public void ContinueFromNotes()
+        {
+            IsImportantNotesDialogVisible = false;
+            IsImportantNotesChecked = false; // Reset Checkbox
+            IsAcknowledgementDialogVisible = true;
+        }
+
+        [RelayCommand]
+        public void CancelNotes()
+        {
+            IsImportantNotesDialogVisible = false;
+        }
+
+        // ✅ NEW: Cancel Acknowledgement
+        [RelayCommand]
+        public void CancelAcknowledgement()
+        {
+            IsAcknowledgementDialogVisible = false;
+        }
+
+        // ✅ NEW: Step 3: Proceed from Acknowledgement -> Save Data
+        [RelayCommand]
+        public void ProceedFromAcknowledgement()
+        {
+            string outputFolder = OutputFolderPath;
+            IsAcknowledgementDialogVisible = false;
 
             try
             {
@@ -332,9 +355,11 @@ namespace dbm_select.ViewModels
                 string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName);
                 if (!excelPath.EndsWith(".xlsx")) excelPath += ".xlsx";
 
-                // Ensure excel directory exists if different
-                if (!Directory.Exists(Path.GetDirectoryName(excelPath)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(excelPath)!);
+                string? excelDir = Path.GetDirectoryName(excelPath);
+                if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
+                {
+                    Directory.CreateDirectory(excelDir);
+                }
 
                 var newItem = new OrderLogItem
                 {
@@ -366,6 +391,7 @@ namespace dbm_select.ViewModels
 
                 System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder} and log to {excelPath}");
 
+                // Show Thank You Dialog
                 IsThankYouDialogVisible = true;
             }
             catch (Exception ex)
@@ -381,6 +407,12 @@ namespace dbm_select.ViewModels
         {
             IsThankYouDialogVisible = false;
             ResetData();
+        }
+
+        [RelayCommand]
+        public void CloseSettings()
+        {
+            CancelSettings();
         }
 
         [RelayCommand]

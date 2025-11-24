@@ -10,8 +10,8 @@
 		x:DataType="vm:MainWindowViewModel"
 		Icon="/Assets/DBM LOGO.png"
 		Title="DBM Select"
-		TransparencyLevelHint="AcrylicBlur"
-		Background="#202020">
+		TransparencyLevelHint="AcrylicBlur, Blur"
+		Background="Transparent">
 
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
@@ -285,7 +285,7 @@
 						</StackPanel>
 						<StackPanel Spacing="5">
 							<TextBlock Text="Client Name" FontSize="10" Foreground="#888"/>
-							
+
 							<!-- ✅ FIXED: Removed text capitalization binding -->
 							<TextBox Width="200"
 									 Text="{Binding ClientName}"
@@ -354,20 +354,20 @@
 					<Grid RowDefinitions="Auto, *">
 						<!-- Header Area with Title and Browse Button -->
 						<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-							<TextBlock Text="Browse Photos" 
-									   FontSize="12" 
-									   Foreground="#1e1e1e" 
+							<TextBlock Text="Browse Photos"
+									   FontSize="12"
+									   Foreground="#1e1e1e"
 									   VerticalAlignment="Center"/>
-							
+
 							<!-- Browse Button -->
-							<Button Grid.Column="1" 
-									Content="Open Folder" 
-									Click="BrowseFolder_Click" 
-									Classes="dialog-btn secondary" 
+							<Button Grid.Column="1"
+									Content="Open Folder"
+									Click="BrowseFolder_Click"
+									Classes="dialog-btn secondary"
 									Padding="8,4"
 									FontSize="10"/>
 						</Grid>
-						
+
 						<ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent">
 							<ListBox.ItemsPanel>
 								<ItemsPanelTemplate>
@@ -394,7 +394,7 @@
 					</Grid>
 				</ExperimentalAcrylicBorder>
 			</Border>
-			
+
 			<!--Quick Preview Area-->
 			<ExperimentalAcrylicBorder CornerRadius="8"
 									   Padding="24"
@@ -434,16 +434,16 @@
 
 				<Grid ColumnDefinitions="*, Auto">
 					<!-- Left Text -->
-					<TextBlock Grid.Column="0" 
-							   Text="Sample Preview Package" 
-							   FontSize="8" 
+					<TextBlock Grid.Column="0"
+							   Text="Sample Preview Package"
+							   FontSize="8"
 							   Foreground="#1e1e1e"
 							   VerticalAlignment="Center"/>
 
 					<!-- Right Gear Icon Button -->
-					<Button Grid.Column="1" 
+					<Button Grid.Column="1"
 							Command="{Binding OpenSettingsCommand}"
-							Classes="dialog-btn secondary" 
+							Classes="dialog-btn secondary"
 							Padding="8"
 							CornerRadius="20"
 							ToolTip.Tip="Open Settings">
@@ -555,29 +555,27 @@
 					<!-- Header -->
 					<Grid ColumnDefinitions="*, Auto">
 						<TextBlock Text="Settings" FontSize="18" FontWeight="Bold" Foreground="#f0f0f0"/>
-						
-						<!-- Close (X) Button cancels changes -->
-						<Button Command="{Binding CancelSettingsCommand}" 
-								Content="✕" 
-								Background="Transparent" 
+						<Button Command="{Binding CloseSettingsCommand}"
+								Content="✕"
+								Background="Transparent"
 								Foreground="#d3d3d3"
 								Padding="5"
 								FontSize="14"
 								Cursor="Hand"/>
 					</Grid>
-					
+
 					<Separator Height="1" Background="#404040" Margin="0,0,0,10"/>
 
 					<!-- General Settings Section -->
-					<StackPanel Spacing="10">
+					<StackPanel Spacing="15">
 						<TextBlock Text="General" FontSize="14" FontWeight="SemiBold" Foreground="#d3d3d3"/>
-						
+
 						<!-- Save Location Row -->
 						<Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
 							<PathIcon Grid.Row="0" Grid.Column="0" Data="{StaticResource FolderIcon}" Width="20" Height="20" Foreground="Gray" Margin="0,0,10,0" VerticalAlignment="Center"/>
-							
+
 							<StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
-								<TextBlock Text="Save Location" FontSize="12" Foreground="#f0f0f0"/>
+								<TextBlock Text="Images Save Location" FontSize="12" Foreground="#f0f0f0"/>
 								<TextBlock Text="{Binding OutputFolderPath}" FontSize="10" Foreground="Gray" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding OutputFolderPath}"/>
 							</StackPanel>
 
@@ -589,11 +587,11 @@
 									Padding="10,5"
 									Margin="10,0,0,0"/>
 						</Grid>
-						
+
 						<!-- Excel Location Row -->
 						<Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
 							<PathIcon Grid.Row="0" Grid.Column="0" Data="{StaticResource FolderIcon}" Width="20" Height="20" Foreground="Gray" Margin="0,0,10,0" VerticalAlignment="Center"/>
-							
+
 							<StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
 								<TextBlock Text="Excel Log Location" FontSize="12" Foreground="#f0f0f0"/>
 								<TextBlock Text="{Binding ExcelFolderPath}" FontSize="10" Foreground="Gray" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExcelFolderPath}"/>
@@ -611,36 +609,153 @@
 						<!-- Excel Filename -->
 						<Grid ColumnDefinitions="Auto, *, Auto">
 							<TextBlock Grid.Column="0" Text="Excel Filename" Foreground="Gray" VerticalAlignment="Center" Margin="30,0,10,0"/>
-							
-							<!-- Added UpdateSourceTrigger so dirty check works instantly -->
-							<TextBox Grid.Column="1" 
+
+							<TextBox Grid.Column="1"
 									 Text="{Binding ExcelFileName, UpdateSourceTrigger=PropertyChanged}"
 									 Background="#333333"
 									 Foreground="White"
 									 BorderThickness="0"
 									 CornerRadius="4"
 									 VerticalAlignment="Center"/>
-									 
+
 							<TextBlock Grid.Column="2" Text=".xlsx" Foreground="Gray" VerticalAlignment="Center" Margin="5,0,0,0"/>
 						</Grid>
 					</StackPanel>
 
 					<Separator Height="1" Background="#404040" Margin="0,10"/>
 
-					<!-- ✅ UPDATED: Save and Cancel Buttons -->
+					<!-- ✅ UPDATED: Added Save and Cancel Buttons -->
 					<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-						<!-- Save: Disabled if IsSettingsDirty is false -->
-						<Button Content="Save" 
+						<Button Content="Save"
 								Command="{Binding SaveAndCloseSettingsCommand}"
 								IsEnabled="{Binding IsSettingsDirty}"
-								Classes="dialog-btn success" 
+								Classes="dialog-btn success"
 								Padding="25,8"/>
-								
-						<!-- Cancel: Reverts changes -->
-						<Button Content="Cancel" 
-								Command="{Binding CancelSettingsCommand}" 
-								Classes="dialog-btn secondary" 
+
+						<Button Content="Cancel"
+								Command="{Binding CancelSettingsCommand}"
+								Classes="dialog-btn secondary"
 								Padding="25,8"/>
+					</StackPanel>
+				</StackPanel>
+			</ExperimentalAcrylicBorder>
+		</Grid>
+
+		<!-- ✅ UPDATED: Important Notes Dialog (No Checkbox, Just Continue) -->
+		<Grid Grid.Column="0" Grid.ColumnSpan="2"
+			  Background="#99000000"
+			  IsVisible="{Binding IsImportantNotesDialogVisible}"
+			  ZIndex="250">
+			<ExperimentalAcrylicBorder CornerRadius="8" Padding="30" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.9"
+					MaterialOpacity="0.95" />
+				</ExperimentalAcrylicBorder.Material>
+
+				<StackPanel Spacing="20">
+					<TextBlock Text="IMPORTANT NOTES"
+							   FontSize="18"
+							   FontWeight="Bold"
+							   Foreground="#d9534f"
+							   HorizontalAlignment="Center"/>
+
+					<StackPanel Spacing="10">
+						<TextBlock Text="• Please double check all your chosen photos." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• Ensure your Name and Email are correct." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• CLAIMING OF PHOTOS WILL BE AFTER 6-8 WEEKS" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• STRICTLY NO CANCELLATION OF ORDERS once submitted." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• FOR YOUR SOFT COPIES: It will only be available on Google Drive for 10 days. Please ensure to download them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• FOR RE-UPLOADING SOFT COPIES: After the 10-day period, re-uploading soft copies will incur a cost of 300 per student. We encourage you to save your soft copies to avoid any fees." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• FOR PRINT AND FRAME STORAGE: Unclaimed prints and frames will only be stored for 45 days. After this period, we will discard them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="• FOR RE-PRINT AND FRAME: If you need a re-print and frame after the original has been discarded, it will cost 500." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+					</StackPanel>
+
+
+					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center" Margin="0,10,0,0">
+						<!-- Continue button, always enabled -->
+						<Button Content="Continue"
+								Command="{Binding ContinueFromNotesCommand}"
+								Classes="dialog-btn success"
+								Width="100"/>
+
+						<Button Content="Cancel"
+								Command="{Binding CancelNotesCommand}"
+								Classes="dialog-btn secondary"
+								Width="100"/>
+					</StackPanel>
+				</StackPanel>
+			</ExperimentalAcrylicBorder>
+		</Grid>
+
+		<!-- ✅ NEW: Acknowledgement Dialog (With Checkbox) -->
+		<Grid Grid.Column="0" Grid.ColumnSpan="2"
+			  Background="#99000000"
+			  IsVisible="{Binding IsAcknowledgementDialogVisible}"
+			  ZIndex="250">
+			<ExperimentalAcrylicBorder CornerRadius="8" Padding="30" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
+
+				<ExperimentalAcrylicBorder.Material>
+					<ExperimentalAcrylicMaterial
+					BackgroundSource="Digger"
+					TintColor="Black"
+					TintOpacity="0.9"
+					MaterialOpacity="0.95" />
+				</ExperimentalAcrylicBorder.Material>
+
+				<StackPanel Spacing="20">
+					<TextBlock Text="ACKNOWLEDGEMENT"
+							   FontSize="18"
+							   FontWeight="Bold"
+							   Foreground="#f0f0f0"
+							   HorizontalAlignment="Center"/>
+
+					<TextBlock Text="I hereby acknowledge and agree with the information provided by DBM ESTUDYO. I have thoroughly reviewed and understood the details, guidelines, and policies presented by DBM ESTUDYO and willingly consent to the terms outlined therein."
+							   FontSize="12"
+							   Foreground="#d3d3d3"
+							   TextWrapping="Wrap"
+							   TextAlignment="Center"/>
+					<TextBlock Text="DBM ESTUDYO has provided me with comprehensive information regarding the photography session, scheduled to take place at Brgy. Sta Cruz Antipolo City. This includes a detailed description of the session, the intended use of the photographs, and any available packages or services."
+							   FontSize="12"
+							   Foreground="#d3d3d3"
+							   TextWrapping="Wrap"
+							   TextAlignment="Center"/>
+					<StackPanel>
+						<TextBlock Text="Note:" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="📌 DBM ESTUDYO does not accept self-edited photos for final printing." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+						<TextBlock Text="📌 8x10 and 9x12 printed photos will include studio watermarks." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+					</StackPanel>
+					<TextBlock Text="In addition to the details about the photography session, I also acknowledge and agree to adhere to the guidelines and policies set forth by DBM ESTUDYO. These guidelines may cover various aspects, including conduct during the session, usage of the studio facilities, and any other pertinent information."
+							   FontSize="12"
+							   Foreground="#d3d3d3"
+							   TextWrapping="Wrap"
+							   TextAlignment="Center"/>
+					<TextBlock Text="By providing this acknowledgment, I affirm that I have had the opportunity to ask questions and seek clarification on any aspects of the information provided by DBM ESTUDYO. I enter into this agreement willingly and understand that my consent is valid indefinitely unless revoked in writing by either party."
+							   FontSize="12"
+							   Foreground="#d3d3d3"
+							   TextWrapping="Wrap"
+							   TextAlignment="Center"/>
+
+					<CheckBox IsChecked="{Binding IsImportantNotesChecked}"
+							  Content="I Agree and Proceed"
+							  Foreground="White"
+							  HorizontalAlignment="Center"/>
+
+					<StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+						<!-- Proceed: Enabled only if checkbox is checked -->
+						<Button Content="Proceed"
+								Command="{Binding ProceedFromAcknowledgementCommand}"
+								IsEnabled="{Binding IsImportantNotesChecked}"
+								Classes="dialog-btn success"
+								Width="100"/>
+
+						<Button Content="Cancel"
+								Command="{Binding CancelAcknowledgementCommand}"
+								Classes="dialog-btn secondary"
+								Width="100"/>
 					</StackPanel>
 				</StackPanel>
 			</ExperimentalAcrylicBorder>
@@ -662,28 +777,28 @@
 				</ExperimentalAcrylicBorder.Material>
 
 				<StackPanel Spacing="20" HorizontalAlignment="Center">
-					<PathIcon Data="{StaticResource CheckIcon}" 
-							  Foreground="#5cb85c" 
-							  Width="48" 
-							  Height="48" 
+					<PathIcon Data="{StaticResource CheckIcon}"
+							  Foreground="#5cb85c"
+							  Width="48"
+							  Height="48"
 							  HorizontalAlignment="Center"/>
 
-					<TextBlock Text="Thank you for choosing us!" 
-							   FontSize="20" 
-							   FontWeight="Bold" 
-							   Foreground="White" 
+					<TextBlock Text="Thank you for choosing us!"
+							   FontSize="20"
+							   FontWeight="Bold"
+							   Foreground="White"
 							   HorizontalAlignment="Center"/>
 
-					<TextBlock Text="Your photos are now being processed to a premium quality prints." 
-							   FontSize="14" 
-							   Foreground="#d3d3d3" 
-							   TextWrapping="Wrap" 
+					<TextBlock Text="Your photos are now being processed for a premium quality."
+							   FontSize="14"
+							   Foreground="#d3d3d3"
+							   TextWrapping="Wrap"
 							   TextAlignment="Center"
 							   HorizontalAlignment="Center"/>
 
-					<Button Content="OK" 
-							Command="{Binding CloseThankYouDialogCommand}" 
-							Classes="dialog-btn success" 
+					<Button Content="OK"
+							Command="{Binding CloseThankYouDialogCommand}"
+							Classes="dialog-btn success"
 							HorizontalAlignment="Center"
 							Width="100"/>
 				</StackPanel>
