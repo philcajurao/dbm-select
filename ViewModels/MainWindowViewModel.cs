@@ -91,11 +91,12 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isSettingsDialogVisible;
         [ObservableProperty] private bool _isThankYouDialogVisible;
 
-        [ObservableProperty] private bool _isImportantNotesDialogVisible;
+        // ✅ NEW: Preview Package Dialog Flag
+        [ObservableProperty] private bool _isPreviewPackageDialogVisible;
 
-        // ✅ NEW: Acknowledgement Dialog Properties
+        [ObservableProperty] private bool _isImportantNotesDialogVisible;
         [ObservableProperty] private bool _isAcknowledgementDialogVisible;
-        [ObservableProperty] private bool _isImportantNotesChecked; // Checkbox state
+        [ObservableProperty] private bool _isImportantNotesChecked;
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
@@ -243,9 +244,12 @@ namespace dbm_select.ViewModels
             IsClearConfirmationVisible = false;
         }
 
+        // --- Settings Logic ---
+
         [RelayCommand]
         public void OpenSettings()
         {
+            // Snapshot current values
             _snapOutputFolder = OutputFolderPath;
             _snapExcelFolder = ExcelFolderPath;
             _snapExcelFileName = ExcelFileName;
@@ -267,6 +271,19 @@ namespace dbm_select.ViewModels
         {
             SaveSettings();
             IsSettingsDialogVisible = false;
+        }
+
+        // ✅ NEW: Preview Dialog Logic
+        [RelayCommand]
+        public void OpenPreviewPackage()
+        {
+            IsPreviewPackageDialogVisible = true;
+        }
+
+        [RelayCommand]
+        public void ClosePreviewPackage()
+        {
+            IsPreviewPackageDialogVisible = false;
         }
 
         // --- Submit Logic ---
