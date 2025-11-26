@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Text.Json;
-using System.Collections.Generic; // Added for List<>
+using System.Collections.Generic;
 using System.Linq;
 
 namespace dbm_select.ViewModels
@@ -29,7 +29,18 @@ namespace dbm_select.ViewModels
 
             if (!LoadSettings())
             {
-                OutputFolderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DBM_Select");
+                // ✅ UPDATED: Default paths logic
+                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string baseFolder = Path.Combine(documentsPath, "DBM_Select");
+                string logsFolder = Path.Combine(baseFolder, "Logs");
+
+                // Ensure folders exist
+                if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
+                if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+
+                OutputFolderPath = baseFolder;
+                ExcelFolderPath = logsFolder;
+                ExcelFileName = "Client_Logs";
             }
 
             UpdateVisibility("Basic");
@@ -48,7 +59,8 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string _excelFolderPath = string.Empty;
         partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
 
-        [ObservableProperty] private string _excelFileName = "Order_Log";
+        // ✅ UPDATED: Default file name
+        [ObservableProperty] private string _excelFileName = "Client_Logs";
         partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
 
         private void CheckSettingsDirty()
@@ -90,15 +102,18 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isErrorDialogVisible;
         [ObservableProperty] private bool _isSettingsDialogVisible;
         [ObservableProperty] private bool _isThankYouDialogVisible;
-
-        // ✅ NEW: Preview Package Dialog Flag
+        [ObservableProperty] private bool _isAboutDialogVisible;
         [ObservableProperty] private bool _isPreviewPackageDialogVisible;
+        [ObservableProperty] private bool _isHelpDialogVisible;
 
         [ObservableProperty] private bool _isImportantNotesDialogVisible;
         [ObservableProperty] private bool _isAcknowledgementDialogVisible;
         [ObservableProperty] private bool _isImportantNotesChecked;
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
+
+        // ✅ NEW: Empty State Flag
+        [ObservableProperty] private bool _hasNoImages = true;
 
         // --- SETTINGS PERSISTENCE ---
 
@@ -249,7 +264,6 @@ namespace dbm_select.ViewModels
         [RelayCommand]
         public void OpenSettings()
         {
-            // Snapshot current values
             _snapOutputFolder = OutputFolderPath;
             _snapExcelFolder = ExcelFolderPath;
             _snapExcelFileName = ExcelFileName;
@@ -273,7 +287,20 @@ namespace dbm_select.ViewModels
             IsSettingsDialogVisible = false;
         }
 
-        // ✅ NEW: Preview Dialog Logic
+        // --- Dialog Commands ---
+
+        [RelayCommand]
+        public void OpenAbout()
+        {
+            IsAboutDialogVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseAbout()
+        {
+            IsAboutDialogVisible = false;
+        }
+
         [RelayCommand]
         public void OpenPreviewPackage()
         {
@@ -284,6 +311,18 @@ namespace dbm_select.ViewModels
         public void ClosePreviewPackage()
         {
             IsPreviewPackageDialogVisible = false;
+        }
+
+        [RelayCommand]
+        public void OpenHelp()
+        {
+            IsHelpDialogVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseHelp()
+        {
+            IsHelpDialogVisible = false;
         }
 
         // --- Submit Logic ---
@@ -322,7 +361,6 @@ namespace dbm_select.ViewModels
             IsSubmitConfirmationVisible = true;
         }
 
-        // Step 1: Confirm Submit -> Open Notes
         [RelayCommand]
         public void ConfirmSubmit()
         {
@@ -330,12 +368,11 @@ namespace dbm_select.ViewModels
             IsImportantNotesDialogVisible = true;
         }
 
-        // ✅ NEW: Step 2: Continue from Notes -> Open Acknowledgement
         [RelayCommand]
         public void ContinueFromNotes()
         {
             IsImportantNotesDialogVisible = false;
-            IsImportantNotesChecked = false; // Reset Checkbox
+            IsImportantNotesChecked = false;
             IsAcknowledgementDialogVisible = true;
         }
 
@@ -345,14 +382,12 @@ namespace dbm_select.ViewModels
             IsImportantNotesDialogVisible = false;
         }
 
-        // ✅ NEW: Cancel Acknowledgement
         [RelayCommand]
         public void CancelAcknowledgement()
         {
             IsAcknowledgementDialogVisible = false;
         }
 
-        // ✅ NEW: Step 3: Proceed from Acknowledgement -> Save Data
         [RelayCommand]
         public void ProceedFromAcknowledgement()
         {
@@ -408,7 +443,6 @@ namespace dbm_select.ViewModels
 
                 System.Diagnostics.Debug.WriteLine($"Saved images to {outputFolder} and log to {excelPath}");
 
-                // Show Thank You Dialog
                 IsThankYouDialogVisible = true;
             }
             catch (Exception ex)
@@ -516,6 +550,9 @@ namespace dbm_select.ViewModels
                     catch { }
                 }
             }
+
+            // ✅ NEW: Update Empty State Flag
+            HasNoImages = Images.Count == 0;
         }
     }
 }
