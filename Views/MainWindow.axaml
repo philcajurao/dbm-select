@@ -211,6 +211,7 @@
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
                                                Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
                                     <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"
                                            IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     <Button Classes="delete-overlay"
@@ -234,6 +235,7 @@
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
                                                TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana"
                                                IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
                                     <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"
                                            IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     <Button Classes="delete-overlay"
@@ -258,6 +260,7 @@
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
                                                Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
                                     <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"
                                            IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     <Button Classes="delete-overlay"
@@ -280,6 +283,7 @@
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
                                                Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
                                     <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"
                                            IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     <Button Classes="delete-overlay"
@@ -304,6 +308,7 @@
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
                                                Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
                                     <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"
                                            IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     <Button Classes="delete-overlay"
@@ -396,25 +401,25 @@
                                          CommandParameter="Basic"
                                          Cursor="Hand"/>
                             <RadioButton GroupName="Package Group"
-                                         Content="A"
+                                         Content="A" 
                                          IsChecked="{Binding IsPkgASelected}"
                                          Command="{Binding UpdatePackageCommand}"
                                          CommandParameter="A"
                                          Cursor="Hand"/>
                             <RadioButton GroupName="Package Group"
-                                         Content="B"
+                                         Content="B" 
                                          IsChecked="{Binding IsPkgBSelected}"
                                          Command="{Binding UpdatePackageCommand}"
                                          CommandParameter="B"
                                          Cursor="Hand"/>
                             <RadioButton GroupName="Package Group"
-                                         Content="C"
+                                         Content="C" 
                                          IsChecked="{Binding IsPkgCSelected}"
                                          Command="{Binding UpdatePackageCommand}"
                                          CommandParameter="C"
                                          Cursor="Hand"/>
                             <RadioButton GroupName="Package Group"
-                                         Content="D"
+                                         Content="D" 
                                          IsChecked="{Binding IsPkgDSelected}"
                                          Command="{Binding UpdatePackageCommand}"
                                          CommandParameter="D"
@@ -460,7 +465,7 @@
                                     FontSize="10"/>
                         </Grid>
 
-                        <!-- ✅ UPDATED: Added Placeholder Text for Empty State -->
+                        <!-- Placeholder Text for Empty State -->
                         <StackPanel Grid.Row="1" 
                                     VerticalAlignment="Center" 
                                     HorizontalAlignment="Center"
@@ -491,9 +496,9 @@
                             </ListBox.Styles>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Classes="image-tile" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
+                                    <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
                                         <StackPanel Margin="12" Width="100">
-                                            <Image Source="{Binding Bitmap}" Width="80" Height="80" Stretch="UniformToFill" HorizontalAlignment="Center"/>
+                                            <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center"/>
                                             <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
                                         </StackPanel>
                                     </Border>
@@ -551,7 +556,7 @@
                     <!-- Right Side: Action Buttons -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
 
-                        <!-- ✅ UPDATED: Button Name -->
+                        <!-- View Package Inclusions Button -->
                         <Button Command="{Binding OpenPreviewPackageCommand}"
                                 Classes="dialog-btn secondary"
                                 Padding="15,8"
@@ -574,7 +579,6 @@
               Background="#99000000"
               IsVisible="{Binding IsClearConfirmationVisible}"
               ZIndex="200">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -588,7 +592,7 @@
                         MaterialOpacity="0.5" />
                     </ExperimentalAcrylicBorder.Material>
                     <StackPanel Spacing="20">
-                        <TextBlock Text="Are you sure you want to clear all data?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Are you sure you want to clear all data?" FontSize="14" Foreground="#f0f0f0" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
                             <Button Content="Yes, Clear" Classes="dialog-btn danger" Command="{Binding ConfirmClearCommand}"/>
                             <Button Content="Cancel" Classes="dialog-btn secondary" Command="{Binding CancelClearCommand}"/>
@@ -603,7 +607,6 @@
               Background="#99000000"
               IsVisible="{Binding IsSubmitConfirmationVisible}"
               ZIndex="200">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -617,7 +620,7 @@
                         MaterialOpacity="0.5" />
                     </ExperimentalAcrylicBorder.Material>
                     <StackPanel Spacing="20">
-                        <TextBlock Text="Are you sure you want to save and submit this images?" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Are you sure you want to save and submit this images?" FontSize="14" Foreground="#f0f0f0" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
                             <Button Content="Yes, Submit" Classes="dialog-btn success" Command="{Binding ConfirmSubmitCommand}"/>
                             <Button Content="Cancel" Classes="dialog-btn secondary" Command="{Binding CancelSubmitCommand}"/>
@@ -632,7 +635,6 @@
               Background="#99000000"
               IsVisible="{Binding IsErrorDialogVisible}"
               ZIndex="200">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -649,6 +651,7 @@
                         <TextBlock Text="Action Required" FontWeight="Bold" FontSize="16" Foreground="#d9534f" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding ErrorMessage}"
                                    FontSize="14"
+                                   Foreground="#f0f0f0"
                                    TextWrapping="Wrap"
                                    TextAlignment="Center"
                                    HorizontalAlignment="Center"/>
@@ -667,7 +670,6 @@
               Background="#99000000"
               IsVisible="{Binding IsSettingsDialogVisible}"
               ZIndex="250">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -756,7 +758,6 @@
               Background="#99000000"
               IsVisible="{Binding IsAboutDialogVisible}"
               ZIndex="250">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -793,7 +794,6 @@
               Background="#99000000"
               IsVisible="{Binding IsHelpDialogVisible}"
               ZIndex="250">
-            <!-- ✅ UPDATED: Added Border Wrapper for consistency -->
             <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
                     BoxShadow="0 10 40 10 #000000"
@@ -816,7 +816,7 @@
                             <TextBlock Text="1. Enter your Name and Email Address." Foreground="#d3d3d3" TextWrapping="Wrap"/>
                             <TextBlock Text="2. Select your Package." Foreground="#d3d3d3" TextWrapping="Wrap"/>
                             <TextBlock Text="3. Click 'Open Folder' to load your photos." Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <!-- ✅ UPDATED: Long instructional text here -->
+                            <!-- Updated instructional text -->
                             <TextBlock Text="4. Drag and Drop the photos in the slots that you want to print accordingly on the sizes. You can preview the packages's inclusions by clicking the sample preview button on the lower right side of the window." 
                                        Foreground="#d3d3d3" 
                                        TextWrapping="Wrap"/>
@@ -834,22 +834,173 @@
             </Border>
         </Grid>
 
-        <!-- Preview Package Dialog -->
+        <!-- Important Notes -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
               Background="#99000000"
-              IsVisible="{Binding IsPreviewPackageDialogVisible}"
-              ZIndex="300">
-            <!-- Wrapper Border for Shadow and Edge -->
-            <Border Margin="30" CornerRadius="8" 
+              IsVisible="{Binding IsImportantNotesDialogVisible}"
+              ZIndex="250">
+            <Border CornerRadius="8" 
                     BorderBrush="#555555" BorderThickness="1"
-                    BoxShadow="0 10 40 10 #000000">
-                <ExperimentalAcrylicBorder CornerRadius="8">
+                    BoxShadow="0 10 40 10 #000000"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial
                         BackgroundSource="Digger"
                         TintColor="Black"
-                        TintOpacity="0.95"
+                        TintOpacity="0.9"
                         MaterialOpacity="0.95" />
+                    </ExperimentalAcrylicBorder.Material>
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="IMPORTANT NOTES"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="#d9534f"
+                                   HorizontalAlignment="Center"/>
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="• Please double check all your chosen photos." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• STRICTLY NO CANCELLATION OF ORDERS once submitted." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• Ensure your Name and Email are correct." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• CLAIMING OF PHOTOS WILL BE AFTER 6-8 WEEKS" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR YOUR SOFT COPIES: It will only be available on Google Drive for 10 days. Please ensure to download them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR RE-UPLOADING SOFT COPIES: After the 10-day period, re-uploading soft copies will incur a cost of 300 per student. We encourage you to save your soft copies to avoid any fees." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR PRINT AND FRAME STORAGE: Unclaimed prints and frames will only be stored for 45 days. After this period, we will discard them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR RE-PRINT AND FRAME: If you need a re-print and frame after the original has been discarded, it will cost 500." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button Content="Continue"
+                                    Command="{Binding ContinueFromNotesCommand}"
+                                    Classes="dialog-btn success"
+                                    Width="100"/>
+                            <Button Content="Cancel"
+                                    Command="{Binding CancelNotesCommand}"
+                                    Classes="dialog-btn secondary"
+                                    Width="100"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <!-- Acknowledgement -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+              Background="#99000000"
+              IsVisible="{Binding IsAcknowledgementDialogVisible}"
+              ZIndex="250">
+            <Border CornerRadius="8" 
+                    BorderBrush="#555555" BorderThickness="1"
+                    BoxShadow="0 10 40 10 #000000"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial
+                        BackgroundSource="Digger"
+                        TintColor="Black"
+                        TintOpacity="0.9"
+                        MaterialOpacity="0.95" />
+                    </ExperimentalAcrylicBorder.Material>
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="ACKNOWLEDGEMENT"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="#f0f0f0"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="I hereby acknowledge and agree with the information provided by DBM ESTUDYO. I have thoroughly reviewed and understood the details, guidelines, and policies presented by DBM ESTUDYO and willingly consent to the terms outlined therein."
+                                   FontSize="12"
+                                   Foreground="#d3d3d3"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                        <TextBlock Text="DBM ESTUDYO has provided me with comprehensive information regarding the photography session, scheduled to take place at Brgy. Sta Cruz Antipolo City. This includes a detailed description of the session, the intended use of the photographs, and any available packages or services."
+                                   FontSize="12"
+                                   Foreground="#d3d3d3"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                        <StackPanel>
+                            <TextBlock Text="Note:" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="📌 DBM ESTUDYO does not accept self-edited photos for final printing." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                            <TextBlock Text="📌 8x10 and 9x12 printed photos will include studio watermarks." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <TextBlock Text="In addition to the details about the photography session, I also acknowledge and agree to adhere to the guidelines and policies set forth by DBM ESTUDYO. These guidelines may cover various aspects, including conduct during the session, usage of the studio facilities, and any other pertinent information."
+                                   FontSize="12"
+                                   Foreground="#d3d3d3"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                        <TextBlock Text="By providing this acknowledgment, I affirm that I have had the opportunity to ask questions and seek clarification on any aspects of the information provided by DBM ESTUDYO. I enter into this agreement willingly and understand that my consent is valid indefinitely unless revoked in writing by either party."
+                                   FontSize="12"
+                                   Foreground="#d3d3d3"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                        <CheckBox IsChecked="{Binding IsImportantNotesChecked}"
+                                  Content="I Agree and Proceed"
+                                  Foreground="White"
+                                  HorizontalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                            <Button Content="Proceed"
+                                    Command="{Binding ProceedFromAcknowledgementCommand}"
+                                    IsEnabled="{Binding IsImportantNotesChecked}"
+                                    Classes="dialog-btn success"
+                                    Width="100"/>
+                            <Button Content="Cancel"
+                                    Command="{Binding CancelAcknowledgementCommand}"
+                                    Classes="dialog-btn secondary"
+                                    Width="100"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <!-- Thank You -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+              Background="#99000000"
+              IsVisible="{Binding IsThankYouDialogVisible}"
+              ZIndex="250">
+            <Border CornerRadius="8" 
+                    BorderBrush="#555555" BorderThickness="1"
+                    BoxShadow="0 10 40 10 #000000"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial
+                        BackgroundSource="Digger"
+                        TintColor="Black"
+                        TintOpacity="0.8"
+                        MaterialOpacity="0.5" />
+                    </ExperimentalAcrylicBorder.Material>
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <PathIcon Data="{StaticResource CheckIcon}"
+                                  Foreground="#5cb85c"
+                                  Width="48"
+                                  Height="48"
+                                  HorizontalAlignment="Center"/>
+                        <!-- ✅ UPDATED: Title Text -->
+                        <TextBlock Text="Thank you for choosing us!"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Your photos are now being carefully processed to ensure premium quality. This takes time and proper care, so we appreciate your patience. We will contact you as soon as your order is ready."
+                                   FontSize="14"
+                                   Foreground="#d3d3d3"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+                        <Button Content="OK"
+                                Command="{Binding CloseThankYouDialogCommand}"
+                                Classes="dialog-btn success"
+                                HorizontalAlignment="Center"
+                                Width="100"/>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <!-- Preview -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsPreviewPackageDialogVisible}" ZIndex="300">
+            <Border Margin="30" CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000">
+                <ExperimentalAcrylicBorder CornerRadius="8">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.95" MaterialOpacity="0.95" />
                     </ExperimentalAcrylicBorder.Material>
                     <Grid RowDefinitions="Auto, *, Auto" Margin="20">
                         <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
@@ -859,10 +1010,11 @@
                             <Panel>
                                 <!-- Package D -->
                                 <Grid ColumnDefinitions="Auto, 20, Auto" Height="850" IsVisible="{Binding IsPkgDSelected}">
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+                                    <!-- ... (Same grid content as before for Pkg D) ... -->
+                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                                         <StackPanel VerticalAlignment="Center" Spacing="10">
                                             <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="25" BoxShadow="0 0 25 5 black">
-                                                <!-- ✅ UPDATED: Matting background to dark gray #1F1F1F to match modal style -->
+                                                <!-- Matting background to dark gray #1F1F1F to match modal style -->
                                                 <Border Background="#1F1F1F" Padding="20">
                                                     <Border BorderBrush="Transparent" BorderThickness="0">
                                                         <Panel Width="350" Height="450" Background="#050505">
@@ -876,7 +1028,7 @@
                                         </StackPanel>
                                         <StackPanel VerticalAlignment="Center" Spacing="10">
                                             <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="20" BoxShadow="0 0 20 5 black">
-                                                <!-- ✅ UPDATED: Matting background to dark gray #1F1F1F to match modal style -->
+                                                <!-- Matting background to dark gray #1F1F1F to match modal style -->
                                                 <Border Background="#1F1F1F" Padding="15">
                                                     <Border BorderBrush="Transparent" BorderThickness="0">
                                                         <Panel Width="280" Height="350" Background="#050505">
@@ -969,7 +1121,7 @@
                                 <Grid ColumnDefinitions="Auto, 25, Auto" Height="550" IsVisible="{Binding IsPkgCSelected}">
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
                                         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="15" BoxShadow="0 0 15 4 black">
-                                            <!-- ✅ UPDATED: Matting background to dark gray #1F1F1F to match modal style -->
+                                            <!-- Matting background to dark gray #1F1F1F to match modal style -->
                                             <Border Background="#1F1F1F" Padding="12">
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="240" Height="300" Background="#151515">
@@ -1020,7 +1172,7 @@
                                 <Grid ColumnDefinitions="Auto, 40, Auto" Height="450" IsVisible="{Binding IsPkgBSelected}">
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
                                         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="15" BoxShadow="0 0 15 4 black">
-                                            <!-- ✅ UPDATED: Matting background to dark gray #1F1F1F to match modal style -->
+                                            <!-- Matting background to dark gray #1F1F1F to match modal style -->
                                             <Border Background="#1F1F1F" Padding="12">
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="260" Height="325" Background="#151515">
@@ -1069,7 +1221,7 @@
                                 <Grid ColumnDefinitions="Auto, 40, Auto" Height="450" IsVisible="{Binding IsPkgASelected}">
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
                                         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="15" BoxShadow="0 0 15 4 black">
-                                            <!-- ✅ UPDATED: Matting background to dark gray #1F1F1F to match modal style -->
+                                            <!-- Matting background to dark gray #1F1F1F to match modal style -->
                                             <Border Background="#1F1F1F" Padding="12">
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="260" Height="325" Background="#151515">
@@ -1112,6 +1264,7 @@
 
                                 <!-- Basic Package -->
                                 <StackPanel Spacing="10" IsVisible="{Binding IsBasicSelected}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <!-- ✅ UPDATED: Changed BorderBrush to #333 and Thickness to 1 -->
                                     <Border Background="#151515" BorderBrush="#333" BorderThickness="1" BoxShadow="0 0 15 2 #000000">
                                         <Panel Width="260" Height="325">
                                             <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>

@@ -29,10 +29,10 @@ namespace dbm_select.ViewModels
 
             if (!LoadSettings())
             {
-                // ✅ UPDATED: Default paths logic
+                // ✅ FIX: Set default path to Documents/DBM_Select
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string baseFolder = Path.Combine(documentsPath, "DBM_Select");
-                string logsFolder = Path.Combine(baseFolder, "Logs");
+                string logsFolder = Path.Combine(baseFolder, "Logs"); // ✅ Separate folder for Excel
 
                 // Ensure folders exist
                 if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
@@ -40,7 +40,7 @@ namespace dbm_select.ViewModels
 
                 OutputFolderPath = baseFolder;
                 ExcelFolderPath = logsFolder;
-                ExcelFileName = "Client_Logs";
+                ExcelFileName = "Client_Logs"; // ✅ Renamed default filename
             }
 
             UpdateVisibility("Basic");
@@ -59,7 +59,6 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string _excelFolderPath = string.Empty;
         partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
 
-        // ✅ UPDATED: Default file name
         [ObservableProperty] private string _excelFileName = "Client_Logs";
         partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
 
@@ -112,7 +111,7 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
-        // ✅ NEW: Empty State Flag
+        // Empty State Flag
         [ObservableProperty] private bool _hasNoImages = true;
 
         // --- SETTINGS PERSISTENCE ---
@@ -540,10 +539,13 @@ namespace dbm_select.ViewModels
                 {
                     try
                     {
+                        // ✅ REVERTED: No manual rotation, just load raw
+                        var rawBitmap = new Bitmap(file);
+
                         Images.Add(new ImageItem
                         {
-                            Bitmap = new Bitmap(file),
-                            FileName = Path.GetFileName(file),
+                            Bitmap = rawBitmap,
+                            FileName = Path.GetFileName(file) ?? "Unknown",
                             FullPath = file
                         });
                     }
@@ -551,7 +553,7 @@ namespace dbm_select.ViewModels
                 }
             }
 
-            // ✅ NEW: Update Empty State Flag
+            // Update Empty State Flag
             HasNoImages = Images.Count == 0;
         }
     }

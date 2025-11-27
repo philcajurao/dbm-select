@@ -21,10 +21,14 @@ namespace dbm_select.Views
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
         {
+            // ✅ FIX: Force start in Pictures folder to prevent lag from invalid paths
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures);
+
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = "Select Folder with Photos",
-                AllowMultiple = false
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
             });
 
             if (folders.Count >= 1)
@@ -40,10 +44,14 @@ namespace dbm_select.Views
         // Set Output Folder Button Handler
         private async void SetOutputFolder_Click(object? sender, RoutedEventArgs e)
         {
+            // ✅ FIX: Force start in Documents
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = "Select Where to Save Images",
-                AllowMultiple = false
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
             });
 
             if (folders.Count >= 1)
@@ -55,13 +63,17 @@ namespace dbm_select.Views
             }
         }
 
-        // ✅ NEW: Set Excel Folder Button Handler
+        // Set Excel Folder Button Handler
         private async void SetExcelFolder_Click(object? sender, RoutedEventArgs e)
         {
+            // ✅ FIX: Force start in Documents
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = "Select Where to Save Excel Log",
-                AllowMultiple = false
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
             });
 
             if (folders.Count >= 1)
@@ -73,7 +85,7 @@ namespace dbm_select.Views
             }
         }
 
-        // --- Existing Drag & Drop Logic ---
+        // --- Drag & Drop Logic ---
         private Point _dragStartPoint;
         private bool _isDragging = false;
         private ImageItem? _draggedItem;
@@ -106,6 +118,9 @@ namespace dbm_select.Views
                     _isDragging = true;
                     GhostImage.Source = _draggedItem.Bitmap;
                     DragCanvas.IsVisible = true;
+
+                    // Apply cursor directly to the control being dragged
+                    control.Cursor = new Cursor(StandardCursorType.SizeAll);
                 }
             }
 
@@ -142,6 +157,12 @@ namespace dbm_select.Views
             _draggedItem = null;
             DragCanvas.IsVisible = false;
             e.Pointer?.Capture(null);
+
+            // Reset cursor back to Hand
+            if (sender is Control control)
+            {
+                control.Cursor = Cursor.Parse("Hand");
+            }
         }
     }
 }
