@@ -194,7 +194,10 @@ namespace dbm_select.Views
                     _isDragging = true;
                     GhostImage.Source = _draggedItem.Bitmap;
 
-                    // ✅ NEW: Apply rotation to the Ghost Image
+                    // ✅ Debug: Verify rotation detection
+                    System.Diagnostics.Debug.WriteLine($"Start Drag: Angle detected is {_draggedItem.RotationAngle}");
+
+                    // Apply rotation to the Ghost Image
                     if (GhostImage.RenderTransform is RotateTransform rotateTransform)
                     {
                         rotateTransform.Angle = _draggedItem.RotationAngle;

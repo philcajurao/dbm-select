@@ -14,141 +14,112 @@ namespace dbm_select.Utils
                 {
                     using (var reader = new BinaryReader(stream))
                     {
-                        // 1. Verify JPEG Marker (FF D8)
-                        if (stream.Length < 64) return 0; // Too small
+                        // Check for JPEG Header
+                        if (stream.Length < 32) return 0;
                         if (reader.ReadByte() != 0xFF || reader.ReadByte() != 0xD8) return 0;
 
                         while (stream.Position < stream.Length)
                         {
-                            // 2. Scan for 0xFF byte indicating start of marker
+                            // Find next marker (0xFF followed by non-0xFF)
                             if (reader.ReadByte() != 0xFF) continue;
-
-                            // 3. Skip padding 0xFF bytes
                             byte marker = reader.ReadByte();
-                            while (marker == 0xFF && stream.Position < stream.Length)
-                            {
-                                marker = reader.ReadByte();
-                            }
 
-                            // 4. Valid markers are 0xE1 (APP1) through 0xEF (APP15)
-                            // 0x00 is escaped FF, 0xD0-D7 are restart markers (no length), 0xD8/D9 are ROI/EOI
+                            // Skip padding
+                            while (marker == 0xFF) marker = reader.ReadByte();
+
+                            // Markers with no data
                             if (marker == 0x00 || (marker >= 0xD0 && marker <= 0xD7)) continue;
-                            if (marker == 0xD9) break; // EOI (End of Image)
+                            if (marker == 0xD9) break; // EOI
 
-                            // Read segment length
-                            long segmentLength = ReadBigEndianUInt16(reader);
-                            long nextSegmentStart = stream.Position + segmentLength - 2;
+                            // Read Length
+                            byte[] lenBytes = reader.ReadBytes(2);
+                            if (lenBytes.Length < 2) break;
+                            Array.Reverse(lenBytes); // JPEG markers are Big Endian
+                            ushort length = BitConverter.ToUInt16(lenBytes, 0);
 
-                            // 5. Handle APP1 (Exif)
-                            if (marker == 0xE1)
+                            long nextSegment = stream.Position + length - 2;
+
+                            // APP1 Marker (Exif)
+                            if (marker == 0xE1 && length >= 8)
                             {
-                                // Minimum header size check (Exif\0\0)
-                                if (segmentLength >= 8)
+                                // Check "Exif\0\0"
+                                byte[] header = reader.ReadBytes(6);
+                                if (header[0] == 'E' && header[1] == 'x' && header[2] == 'i' && header[3] == 'f')
                                 {
-                                    // Check for "Exif\0\0"
-                                    if (reader.ReadByte() == 0x45 && reader.ReadByte() == 0x78 &&
-                                        reader.ReadByte() == 0x69 && reader.ReadByte() == 0x66 &&
-                                        reader.ReadByte() == 0x00 && reader.ReadByte() == 0x00)
+                                    // TIFF Header Start
+                                    long tiffStart = stream.Position;
+
+                                    // Byte Order
+                                    byte[] order = reader.ReadBytes(2);
+                                    bool isLittleEndian = order[0] == 0x49 && order[1] == 0x49;
+
+                                    // Magic 42
+                                    reader.ReadBytes(2);
+
+                                    // Offset to IFD
+                                    uint offsetToIFD = ReadUInt32(reader, isLittleEndian);
+
+                                    // Jump to IFD
+                                    stream.Position = tiffStart + offsetToIFD;
+
+                                    // Count
+                                    ushort entries = ReadUInt16(reader, isLittleEndian);
+
+                                    for (int i = 0; i < entries; i++)
                                     {
-                                        return ReadOrientationFromTiff(reader, stream.Position);
+                                        ushort tag = ReadUInt16(reader, isLittleEndian);
+                                        ushort type = ReadUInt16(reader, isLittleEndian);
+                                        uint count = ReadUInt32(reader, isLittleEndian);
+
+                                        // Orientation Tag = 0x0112
+                                        if (tag == 0x0112)
+                                        {
+                                            ushort orientation = ReadUInt16(reader, isLittleEndian);
+                                            switch (orientation)
+                                            {
+                                                case 3: return 180;
+                                                case 6: return 90;
+                                                case 8: return 270;
+                                                default: return 0;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Skip value offset (4 bytes total, we read 2 bytes of tag + 2 type + 4 count = 8. Need to read 4 more to finish entry = 12)
+                                            // Actually standard is 12 bytes: Tag(2), Type(2), Count(4), Value/Offset(4).
+                                            // We read Tag, Type, Count. Need to skip 4 bytes.
+                                            reader.ReadBytes(4);
+                                        }
                                     }
                                 }
                             }
 
-                            // Skip to next segment
-                            if (nextSegmentStart > stream.Length) break;
-                            stream.Position = nextSegmentStart;
+                            stream.Position = nextSegment;
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Exif Parsing Error for {filePath}: {ex.Message}");
+                Debug.WriteLine($"Exif Error: {ex.Message}");
             }
             return 0;
         }
 
-        private static double ReadOrientationFromTiff(BinaryReader reader, long tiffStart)
+        private static ushort ReadUInt16(BinaryReader reader, bool isLittleEndian)
         {
-            // Byte Order
-            ushort byteOrder = ReadBigEndianUInt16(reader);
-            bool isLittleEndian = byteOrder == 0x4949; // "II"
-
-            // Magic Number (42)
-            ushort magic = isLittleEndian ? ReadLittleEndianUInt16(reader) : ReadBigEndianUInt16(reader);
-
-            // Offset to 0th IFD
-            uint offsetToIFD = isLittleEndian ? ReadLittleEndianUInt32(reader) : ReadBigEndianUInt32(reader);
-
-            if (offsetToIFD > 0)
-            {
-                reader.BaseStream.Position = tiffStart + offsetToIFD;
-
-                // Entry Count
-                ushort entries = isLittleEndian ? ReadLittleEndianUInt16(reader) : ReadBigEndianUInt16(reader);
-
-                for (int i = 0; i < entries; i++)
-                {
-                    // Tag (2), Type (2), Count (4), Value/Offset (4)
-                    ushort tag = isLittleEndian ? ReadLittleEndianUInt16(reader) : ReadBigEndianUInt16(reader);
-
-                    // Skip Type (2) and Count (4)
-                    reader.ReadBytes(6);
-
-                    // Value/Offset (4 bytes)
-                    // For Orientation (Short, Type 3), the value is stored in the first 2 bytes of this field.
-                    if (tag == 0x0112)
-                    {
-                        ushort orientation = isLittleEndian ? ReadLittleEndianUInt16(reader) : ReadBigEndianUInt16(reader);
-
-                        // Consume the remaining 2 bytes of the 4-byte field to maintain stream alignment if we were reading consecutively,
-                        // but since we return immediately, it doesn't matter.
-
-                        switch (orientation)
-                        {
-                            case 3: return 180;
-                            case 6: return 90;
-                            case 8: return 270; // 90 CCW
-                            default: return 0;
-                        }
-                    }
-                    else
-                    {
-                        // Skip Value/Offset bytes
-                        reader.ReadBytes(4);
-                    }
-                }
-            }
-            return 0;
+            byte[] data = reader.ReadBytes(2);
+            if (data.Length < 2) return 0;
+            if (!isLittleEndian) Array.Reverse(data);
+            return BitConverter.ToUInt16(data, 0);
         }
 
-        private static ushort ReadBigEndianUInt16(BinaryReader reader)
+        private static uint ReadUInt32(BinaryReader reader, bool isLittleEndian)
         {
-            byte[] bytes = reader.ReadBytes(2);
-            if (bytes.Length < 2) return 0;
-            return (ushort)((bytes[0] << 8) | bytes[1]);
-        }
-
-        private static ushort ReadLittleEndianUInt16(BinaryReader reader)
-        {
-            byte[] bytes = reader.ReadBytes(2);
-            if (bytes.Length < 2) return 0;
-            return (ushort)((bytes[1] << 8) | bytes[0]);
-        }
-
-        private static uint ReadBigEndianUInt32(BinaryReader reader)
-        {
-            byte[] bytes = reader.ReadBytes(4);
-            if (bytes.Length < 4) return 0;
-            return (uint)((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]);
-        }
-
-        private static uint ReadLittleEndianUInt32(BinaryReader reader)
-        {
-            byte[] bytes = reader.ReadBytes(4);
-            if (bytes.Length < 4) return 0;
-            return (uint)((bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0]);
+            byte[] data = reader.ReadBytes(4);
+            if (data.Length < 4) return 0;
+            if (!isLittleEndian) Array.Reverse(data);
+            return BitConverter.ToUInt32(data, 0);
         }
     }
 }
