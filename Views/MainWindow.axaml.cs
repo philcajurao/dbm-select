@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media; // ✅ For RotateTransform
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using dbm_select.Models;
@@ -18,22 +19,16 @@ namespace dbm_select.Views
             InitializeComponent();
         }
 
-        // ✅ NEW: Handle Arrow Key Navigation for Grid Layout (Windows Explorer Style)
+        // Handle Arrow Key Navigation
         private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
         {
-            // Only proceed if sender is a populated ListBox and we have a selected item
-    if (sender is not ListBox listBox || listBox.ItemCount == 0 || listBox.SelectedItem == null) return; // Added null check
+            if (sender is not ListBox listBox || listBox.ItemCount == 0 || listBox.SelectedItem == null) return;
 
-    if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return;
-    
-            // 1. Determine how many columns are in the WrapPanel
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return;
+
             double listWidth = listBox.Bounds.Width;
-
-            // Default width estimate based on XAML:
-            // StackPanel (100) + Margin (12*2) + ListBoxItem Padding (4*2) ≈ 132
             double itemWidth = 132;
 
-            // Try to get actual container width from selected index
             int currentIndex = listBox.SelectedIndex;
             if (currentIndex < 0) currentIndex = 0;
 
@@ -43,7 +38,6 @@ namespace dbm_select.Views
                 itemWidth = container.Bounds.Width;
             }
 
-            // Prevent division by zero or tiny widths
             if (itemWidth < 50) itemWidth = 132;
 
             int columns = (int)(listWidth / itemWidth);
@@ -55,7 +49,6 @@ namespace dbm_select.Views
             switch (e.Key)
             {
                 case Key.Left:
-                    // Move left (previous item)
                     if (currentIndex > 0)
                     {
                         newIndex = currentIndex - 1;
@@ -64,7 +57,6 @@ namespace dbm_select.Views
                     break;
 
                 case Key.Right:
-                    // Move right (next item)
                     if (currentIndex < listBox.ItemCount - 1)
                     {
                         newIndex = currentIndex + 1;
@@ -73,7 +65,6 @@ namespace dbm_select.Views
                     break;
 
                 case Key.Up:
-                    // Move up by subtracting the column count
                     if (currentIndex - columns >= 0)
                     {
                         newIndex = currentIndex - columns;
@@ -82,7 +73,6 @@ namespace dbm_select.Views
                     break;
 
                 case Key.Down:
-                    // Move down by adding the column count
                     if (currentIndex + columns < listBox.ItemCount)
                     {
                         newIndex = currentIndex + columns;
@@ -91,92 +81,85 @@ namespace dbm_select.Views
                     break;
             }
 
-            // 3. Apply the new selection if changed
             if (handled)
             {
-                e.Handled = true; // Prevent default navigation
-        if (newIndex != currentIndex)
-        {
-            listBox.SelectedIndex = newIndex;
-            
-            // FIX CS8604: Null check for Items[newIndex] is implicitly handled 
-            // by the check (currentIndex + columns < listBox.ItemCount) 
-            // but we add a check for safety.
-            var itemToScroll = listBox.Items[newIndex];
-            if (itemToScroll != null)
-            {
-                listBox.ScrollIntoView(itemToScroll);
-            }
-        }
+                e.Handled = true;
+                if (newIndex != currentIndex)
+                {
+                    listBox.SelectedIndex = newIndex;
+                    var itemToScroll = listBox.Items[newIndex];
+                    if (itemToScroll != null)
+                    {
+                        listBox.ScrollIntoView(itemToScroll);
+                    }
+                }
             }
         }
 
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
-{
-    var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures);
-
-    var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-    {
-        Title = "Select Folder with Photos",
-        AllowMultiple = false,
-        SuggestedStartLocation = startLocation
-    });
-
-    if (folders.Count >= 1)
-    {
-        var folderPath = folders[0].Path.LocalPath;
-        if (DataContext is MainWindowViewModel vm)
         {
-            // FIX CS4014: Await the async LoadImages call
-            await vm.LoadImages(folderPath); 
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures);
 
-            PhotosListBox.Focus();
+            var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Folder with Photos",
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
+            });
+
+            if (folders.Count >= 1)
+            {
+                var folderPath = folders[0].Path.LocalPath;
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    await vm.LoadImages(folderPath);
+                    PhotosListBox.Focus();
+                }
+            }
         }
-    }
-}
 
         // Set Output Folder Button Handler
         private async void SetOutputFolder_Click(object? sender, RoutedEventArgs e)
-{
-    var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
-
-    var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-    {
-        Title = "Select Where to Save Images",
-        AllowMultiple = false,
-        SuggestedStartLocation = startLocation
-    });
-
-    if (folders.Count >= 1)
-    {
-        if (DataContext is MainWindowViewModel vm)
         {
-            vm.OutputFolderPath = folders[0].Path.LocalPath;
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+
+            var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Where to Save Images",
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
+            });
+
+            if (folders.Count >= 1)
+            {
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    vm.OutputFolderPath = folders[0].Path.LocalPath;
+                }
+            }
         }
-    }
-}
 
         // Set Excel Folder Button Handler
         private async void SetExcelFolder_Click(object? sender, RoutedEventArgs e)
-{
-    var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
-
-    var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-    {
-        Title = "Select Where to Save Excel Log",
-        AllowMultiple = false,
-        SuggestedStartLocation = startLocation
-    });
-
-    if (folders.Count >= 1)
-    {
-        if (DataContext is MainWindowViewModel vm)
         {
-            vm.ExcelFolderPath = folders[0].Path.LocalPath;
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+
+            var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Where to Save Excel Log",
+                AllowMultiple = false,
+                SuggestedStartLocation = startLocation
+            });
+
+            if (folders.Count >= 1)
+            {
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    vm.ExcelFolderPath = folders[0].Path.LocalPath;
+                }
+            }
         }
-    }
-}
 
         // --- Drag & Drop Logic ---
         private Point _dragStartPoint;
@@ -210,9 +193,18 @@ namespace dbm_select.Views
                 {
                     _isDragging = true;
                     GhostImage.Source = _draggedItem.Bitmap;
-                    DragCanvas.IsVisible = true;
 
-                    // Apply cursor directly to the control being dragged
+                    // ✅ NEW: Apply rotation to the Ghost Image
+                    if (GhostImage.RenderTransform is RotateTransform rotateTransform)
+                    {
+                        rotateTransform.Angle = _draggedItem.RotationAngle;
+                    }
+                    else
+                    {
+                        GhostImage.RenderTransform = new RotateTransform(_draggedItem.RotationAngle);
+                    }
+
+                    DragCanvas.IsVisible = true;
                     control.Cursor = new Cursor(StandardCursorType.SizeAll);
                 }
             }
@@ -228,37 +220,34 @@ namespace dbm_select.Views
         }
 
         private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-{
-    if (_isDragging && _draggedItem != null)
-    {
-        var currentPosition = e.GetPosition(MainGrid);
-        var visuals = MainGrid.GetVisualsAt(currentPosition);
-        
-        // Find the target Border that has a Tag (The slot)
-        var targetBorder = visuals.OfType<Border>().FirstOrDefault(b => b.Tag != null); 
-
-        if (targetBorder != null)
         {
-            // We ensure targetBorder.Tag is not null before attempting ToString()
-            if (targetBorder.Tag is string categoryTag && DataContext is MainWindowViewModel vm)
+            if (_isDragging && _draggedItem != null)
             {
-                // FIX CS8602: The check above ensures targetBorder.Tag is a non-null string
-                // We use the already safe variable categoryTag
-                vm.SetPackageImage(categoryTag, _draggedItem); 
-                System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {categoryTag}");
+                var currentPosition = e.GetPosition(MainGrid);
+                var visuals = MainGrid.GetVisualsAt(currentPosition);
+
+                // Find the target Border that has a Tag (The slot)
+                var targetBorder = visuals.OfType<Border>().FirstOrDefault(b => b.Tag != null);
+
+                if (targetBorder != null)
+                {
+                    if (targetBorder.Tag is string categoryTag && DataContext is MainWindowViewModel vm)
+                    {
+                        vm.SetPackageImage(categoryTag, _draggedItem);
+                        System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {categoryTag}");
+                    }
+                }
+            }
+
+            _isDragging = false;
+            _draggedItem = null;
+            DragCanvas.IsVisible = false;
+            e.Pointer?.Capture(null);
+
+            if (sender is Control control)
+            {
+                control.Cursor = Cursor.Parse("Hand");
             }
         }
-    }
-
-    _isDragging = false;
-    _draggedItem = null;
-    DragCanvas.IsVisible = false;
-    e.Pointer?.Capture(null);
-
-    if (sender is Control control)
-    {
-        control.Cursor = Cursor.Parse("Hand");
-    }
-}
     }
 }

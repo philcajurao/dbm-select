@@ -270,47 +270,57 @@
                 <Button Grid.Column="1" Content="Open Folder" Click="BrowseFolder_Click" Classes="dialog-btn secondary" Padding="8,4" FontSize="10"/>
             </Grid>
 
-            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding HasNoImages}" Spacing="10">
-                <PathIcon Data="{StaticResource FolderIcon}" Width="40" Height="40" Foreground="#444444" HorizontalAlignment="Center"/>
-                <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
-            </StackPanel>
+            <!-- ✅ UPDATED: Stacked content using Grid to ensure clean mutually exclusive visibility -->
+            <Grid Grid.Row="1">
+                
+                <!-- 1. Loading Indicator (ZIndex 10 ensures it's on top if visible) -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingImages}" Spacing="15" ZIndex="10">
+                    <ProgressBar IsIndeterminate="True" Width="150" Height="6" Foreground="#ff8800" Background="#333333"/>
+                    <TextBlock Text="Loading photos..." Foreground="#ccc" FontSize="12" HorizontalAlignment="Center"/>
+                </StackPanel>
 
-            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingImages}" Spacing="15" ZIndex="10">
-                <ProgressBar IsIndeterminate="True" Width="150" Height="6" Foreground="#ff8800" Background="#333333"/>
-                <TextBlock Text="Loading photos..." Foreground="#ccc" FontSize="12" HorizontalAlignment="Center"/>
-            </StackPanel>
+                <!-- 2. Content Area (Hidden while loading) -->
+                <Panel IsVisible="{Binding !IsLoadingImages}">
+                    
+                    <!-- No Images Message (Visible when Count is 0) -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding !Images.Count}" Spacing="10">
+                        <PathIcon Data="{StaticResource FolderIcon}" Width="40" Height="40" Foreground="#444444" HorizontalAlignment="Center"/>
+                        <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
 
-            <ListBox Grid.Row="1" 
-                     x:Name="PhotosListBox" 
-                     KeyDown="PhotosListBox_KeyDown"
-                     ItemsSource="{Binding Images}" 
-                     SelectedItem="{Binding SelectedImage}" 
-                     Background="Transparent"
-                     SelectionMode="Single"
-                     IsVisible="{Binding !IsLoadingImages}"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.Styles>
-                    <Style Selector="ListBoxItem">
-                        <Setter Property="Padding" Value="4"/>
-                        <Setter Property="CornerRadius" Value="4"/>
-                    </Style>
-                </ListBox.Styles>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
-                            <StackPanel Margin="12" Width="100">
-                                <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                    <!-- Photo List (Visible when Count > 0) -->
+                    <ListBox x:Name="PhotosListBox" 
+                             KeyDown="PhotosListBox_KeyDown"
+                             ItemsSource="{Binding Images}" 
+                             SelectedItem="{Binding SelectedImage}" 
+                             Background="Transparent"
+                             SelectionMode="Single"
+                             IsVisible="{Binding !!Images.Count}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="4"/>
+                                <Setter Property="CornerRadius" Value="4"/>
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
+                                    <StackPanel Margin="12" Width="100">
+                                        <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Panel>
+            </Grid>
         </Grid>
     </Border>
 </Border>
@@ -856,11 +866,11 @@
                         </StackPanel>
                     </Panel>
                 </Viewbox>
-                <Button Grid.Row="2"
-                        Content="Close Preview"
-                        Command="{Binding ClosePreviewPackageCommand}"
-                        Classes="dialog-btn secondary"
-                        HorizontalAlignment="Right"
+                <Button Grid.Row="2" 
+                        Content="Close Preview" 
+                        Command="{Binding ClosePreviewPackageCommand}" 
+                        Classes="dialog-btn secondary" 
+                        HorizontalAlignment="Right" 
                         Padding="20,10"/>
             </Grid>
         </ExperimentalAcrylicBorder>
