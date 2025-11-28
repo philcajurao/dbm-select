@@ -29,10 +29,10 @@ namespace dbm_select.ViewModels
 
             if (!LoadSettings())
             {
-                // ✅ FIX: Set default path to Documents/DBM_Select
+                // Set default path to Documents/DBM_Select
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string baseFolder = Path.Combine(documentsPath, "DBM_Select");
-                string logsFolder = Path.Combine(baseFolder, "Logs"); // ✅ Separate folder for Excel
+                string logsFolder = Path.Combine(baseFolder, "Logs");
 
                 // Ensure folders exist
                 if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
@@ -40,7 +40,7 @@ namespace dbm_select.ViewModels
 
                 OutputFolderPath = baseFolder;
                 ExcelFolderPath = logsFolder;
-                ExcelFileName = "Client_Logs"; // ✅ Renamed default filename
+                ExcelFileName = "Client_Logs";
             }
 
             UpdateVisibility("Basic");
@@ -74,7 +74,12 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
-        [ObservableProperty] private string _selectedPackage = "Basic";
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
+        private string _selectedPackage = "Basic";
+
+        public string SelectedPackageDisplayName => SelectedPackage == "Basic" ? "Basic Package" : $"Package {SelectedPackage}";
 
         [ObservableProperty] private bool _isBasicSelected = true;
         [ObservableProperty] private bool _isPkgASelected;
@@ -539,7 +544,6 @@ namespace dbm_select.ViewModels
                 {
                     try
                     {
-                        // ✅ REVERTED: No manual rotation, just load raw
                         var rawBitmap = new Bitmap(file);
 
                         Images.Add(new ImageItem
@@ -553,7 +557,6 @@ namespace dbm_select.ViewModels
                 }
             }
 
-            // Update Empty State Flag
             HasNoImages = Images.Count == 0;
         }
     }

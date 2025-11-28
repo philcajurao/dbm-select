@@ -21,7 +21,6 @@ namespace dbm_select.Views
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
         {
-            // ✅ FIX: Force start in Pictures folder to prevent lag from invalid paths
             var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -44,7 +43,6 @@ namespace dbm_select.Views
         // Set Output Folder Button Handler
         private async void SetOutputFolder_Click(object? sender, RoutedEventArgs e)
         {
-            // ✅ FIX: Force start in Documents
             var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -66,7 +64,6 @@ namespace dbm_select.Views
         // Set Excel Folder Button Handler
         private async void SetExcelFolder_Click(object? sender, RoutedEventArgs e)
         {
-            // ✅ FIX: Force start in Documents
             var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
