@@ -18,9 +18,96 @@ namespace dbm_select.Views
             InitializeComponent();
         }
 
+        // ✅ NEW: Handle Arrow Key Navigation for Grid Layout (Windows Explorer Style)
+        private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
+        {
+            // Only proceed if sender is a populated ListBox
+            if (sender is not ListBox listBox || listBox.ItemCount == 0) return;
+
+            // Check for navigation keys
+            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return;
+
+            // 1. Determine how many columns are in the WrapPanel
+            double listWidth = listBox.Bounds.Width;
+
+            // Default width estimate based on XAML:
+            // StackPanel (100) + Margin (12*2) + ListBoxItem Padding (4*2) ≈ 132
+            double itemWidth = 132;
+
+            // Try to get actual container width from selected index
+            int currentIndex = listBox.SelectedIndex;
+            if (currentIndex < 0) currentIndex = 0;
+
+            var container = listBox.ContainerFromIndex(currentIndex) as Control;
+            if (container != null)
+            {
+                itemWidth = container.Bounds.Width;
+            }
+
+            // Prevent division by zero or tiny widths
+            if (itemWidth < 50) itemWidth = 132;
+
+            int columns = (int)(listWidth / itemWidth);
+            if (columns < 1) columns = 1;
+
+            int newIndex = currentIndex;
+            bool handled = false;
+
+            switch (e.Key)
+            {
+                case Key.Left:
+                    // Move left (previous item)
+                    if (currentIndex > 0)
+                    {
+                        newIndex = currentIndex - 1;
+                        handled = true;
+                    }
+                    break;
+
+                case Key.Right:
+                    // Move right (next item)
+                    if (currentIndex < listBox.ItemCount - 1)
+                    {
+                        newIndex = currentIndex + 1;
+                        handled = true;
+                    }
+                    break;
+
+                case Key.Up:
+                    // Move up by subtracting the column count
+                    if (currentIndex - columns >= 0)
+                    {
+                        newIndex = currentIndex - columns;
+                        handled = true;
+                    }
+                    break;
+
+                case Key.Down:
+                    // Move down by adding the column count
+                    if (currentIndex + columns < listBox.ItemCount)
+                    {
+                        newIndex = currentIndex + columns;
+                        handled = true;
+                    }
+                    break;
+            }
+
+            // 3. Apply the new selection if changed
+            if (handled)
+            {
+                e.Handled = true; // Prevent default navigation
+                if (newIndex != currentIndex)
+                {
+                    listBox.SelectedIndex = newIndex;
+                    listBox.ScrollIntoView(listBox.Items[newIndex]);
+                }
+            }
+        }
+
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
         {
+            // Fix: Force the dialog to start in the local Pictures folder
             var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -36,6 +123,9 @@ namespace dbm_select.Views
                 if (DataContext is MainWindowViewModel vm)
                 {
                     vm.LoadImages(folderPath);
+
+                    // Focus the listbox so arrow keys work immediately after loading
+                    PhotosListBox.Focus();
                 }
             }
         }

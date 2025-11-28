@@ -27,6 +27,7 @@
     </Window.Resources>
 
     <Window.Styles>
+        <!-- Styles remain unchanged -->
         <Style Selector="Button.delete-overlay">
             <Setter Property="Background" Value="#99000000"/>
             <Setter Property="Opacity" Value="0"/>
@@ -46,7 +47,6 @@
             <Setter Property="Opacity" Value="1"/>
         </Style>
 
-        <!-- Base properties shared by all dialog buttons -->
         <Style Selector="Button.dialog-btn">
             <Setter Property="Padding" Value="15,8"/>
             <Setter Property="CornerRadius" Value="4"/>
@@ -55,7 +55,6 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
-        <!-- Menu Button Style (Top Bar) -->
         <Style Selector="Button.menu-btn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#aaa"/>
@@ -65,13 +64,11 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <!-- Removed pointerover background change to remove hover effect, just slightly brighten text -->
         <Style Selector="Button.menu-btn:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
 
-        <!-- Danger Button (Red) -->
         <Style Selector="Button.danger">
             <Setter Property="Background" Value="#d9534f"/>
             <Setter Property="Foreground" Value="White"/>
@@ -81,7 +78,6 @@
             <Setter Property="Opacity" Value="0.8"/>
         </Style>
 
-        <!-- Success Button (Green) -->
         <Style Selector="Button.success">
             <Setter Property="Background" Value="#5cb85c"/>
             <Setter Property="Foreground" Value="White"/>
@@ -91,7 +87,6 @@
             <Setter Property="Opacity" Value="0.8"/>
         </Style>
 
-        <!-- Secondary Button (Gray) -->
         <Style Selector="Button.secondary">
             <Setter Property="Background" Value="#f0f0f0"/>
             <Setter Property="Foreground" Value="Black"/>
@@ -101,29 +96,24 @@
             <Setter Property="Opacity" Value="0.8"/>
         </Style>
 
-        <!-- RadioButton Styles -->
         <Style Selector="RadioButton">
             <Setter Property="Foreground" Value="#d3d3d3"/>
         </Style>
         <Style Selector="RadioButton:pointerover">
             <Setter Property="Foreground" Value="White"/>
         </Style>
-        <!-- Checked State - The Dot -->
         <Style Selector="RadioButton:checked /template/ Ellipse#CheckGlyph">
             <Setter Property="Fill" Value="#ff8800"/>
         </Style>
-        <!-- Checked State - The Outer Circle -->
         <Style Selector="RadioButton:checked /template/ Ellipse#OuterEllipse">
             <Setter Property="Stroke" Value="#ff8800"/>
             <Setter Property="StrokeThickness" Value="2"/>
             <Setter Property="Fill" Value="Black"/>
         </Style>
-        <!-- Unchecked State - The Outer Circle -->
         <Style Selector="RadioButton /template/ Ellipse#OuterEllipse">
             <Setter Property="Stroke" Value="#888888"/>
             <Setter Property="Fill" Value="Black"/>
         </Style>
-        <!-- Hover State - The Outer Circle -->
         <Style Selector="RadioButton:pointerover /template/ Ellipse#OuterEllipse">
             <Setter Property="Stroke" Value="#ff8800"/>
         </Style>
@@ -131,300 +121,114 @@
 
     <Grid RowDefinitions="Auto, *" ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
-        <!-- Top Toolbar -->
+        <!-- Top Toolbar (Same as before) -->
         <ExperimentalAcrylicBorder Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="30">
             <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial
-                BackgroundSource="Digger"
-                TintColor="Black"
-                TintOpacity="0.85"
-                MaterialOpacity="0.85" />
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.85" MaterialOpacity="0.85" />
             </ExperimentalAcrylicBorder.Material>
-
             <Grid ColumnDefinitions="*, Auto" Margin="10,0">
                 <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                    <Button Content="Settings"
-                            Command="{Binding OpenSettingsCommand}"
-                            Classes="menu-btn"/>
-                    <Button Content="About"
-                            Command="{Binding OpenAboutCommand}"
-                            Classes="menu-btn"/>
-                    <Button Content="Help"
-                            Command="{Binding OpenHelpCommand}"
-                            Classes="menu-btn"/>
+                    <Button Content="Settings" Command="{Binding OpenSettingsCommand}" Classes="menu-btn"/>
+                    <Button Content="About" Command="{Binding OpenAboutCommand}" Classes="menu-btn"/>
+                    <Button Content="Help" Command="{Binding OpenHelpCommand}" Classes="menu-btn"/>
                 </StackPanel>
             </Grid>
         </ExperimentalAcrylicBorder>
 
-        <!-- Side Dropping Area -->
-        <ExperimentalAcrylicBorder Grid.Row="1" Grid.Column="0"
-                                   Padding="8,16"
-                                   MinWidth="350">
+        <!-- Side Dropping Area (Same as before) -->
+        <ExperimentalAcrylicBorder Grid.Row="1" Grid.Column="0" Padding="8,16" MinWidth="350">
             <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial
-                BackgroundSource="Digger"
-                TintColor="Black"
-                TintOpacity="0.8"
-                MaterialOpacity="0.5" />
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
             </ExperimentalAcrylicBorder.Material>
 
-            <Grid RowSpacing="8"
-                  RowDefinitions="Auto, Auto, *, Auto">
-
-                <Image Grid.Row="0"
-                       Source="avares://dbm-select/Assets/LOGO.png"
-                       Height="100"
-                       Width="200"
-                       Stretch="Uniform"
-                       UseLayoutRounding="True"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Top"
-                       Margin="0,0,0,5"/>
-                
-                <!-- Concise instructional text -->
-                <TextBlock Grid.Row="1"
-                           Text="Drag photos to their matching size slots"
-                           FontSize="11"
-                           Foreground="#888"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,10"/>
-
-                <!-- Drop Targets Container (Wrapped in ScrollViewer) -->
-                <ScrollViewer Grid.Row="2" 
-                              VerticalScrollBarVisibility="Auto" 
-                              HorizontalScrollBarVisibility="Disabled">
-                    <!-- Using StackPanels for Rows to ensure perfect centering of odd items -->
-                    <StackPanel Orientation="Vertical" 
-                                HorizontalAlignment="Center" 
-                                VerticalAlignment="Center" 
-                                Spacing="12">
-
-                        <!-- Row 1: 8x10 & Barong -->
-                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-                            <!-- 8x10 Box -->
-                            <Border BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    Width="120"
-                                    Height="160"
-                                    Tag="8x10"
-                                    Background="Transparent">
+            <Grid RowSpacing="8" RowDefinitions="Auto, Auto, *, Auto">
+                <Image Grid.Row="0" Source="avares://dbm-select/Assets/LOGO.png" Height="100" Width="200" Stretch="Uniform" UseLayoutRounding="True" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="1" Text="Drag photos to their matching size slots" FontSize="11" Foreground="#888" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                         <!-- Side Panel content ... -->
+                         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                            <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="8x10" Background="Transparent">
                                 <Panel>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
-                                               Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
-                                    <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"
-                                           IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Button Classes="delete-overlay"
-                                            Command="{Binding ClearSlotCommand}"
-                                            CommandParameter="8x10"
-                                            IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                    </Button>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
-
-                            <!-- Barong Box -->
-                            <Border BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    Width="120"
-                                    Height="160"
-                                    Tag="Barong"
-                                    Background="Transparent"
-                                    IsVisible="{Binding IsBarongVisible}">
+                            <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Barong" Background="Transparent" IsVisible="{Binding IsBarongVisible}">
                                 <Panel>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
-                                               TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana"
-                                               IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
-                                    <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"
-                                           IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Button Classes="delete-overlay"
-                                            Command="{Binding ClearSlotCommand}"
-                                            CommandParameter="Barong"
-                                            IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                    </Button>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
                         </StackPanel>
 
-                        <!-- Row 2: Creative & Any (Visible only if Creative is visible) -->
                         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsCreativeVisible}">
-                            <!-- Creative Box -->
-                            <Border BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    Width="120"
-                                    Height="160"
-                                    Tag="Creative"
-                                    Background="Transparent">
+                            <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Creative" Background="Transparent">
                                 <Panel>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
-                                               Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
-                                    <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"
-                                           IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Button Classes="delete-overlay"
-                                            Command="{Binding ClearSlotCommand}"
-                                            CommandParameter="Creative"
-                                            IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                    </Button>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
-
-                            <!-- Any Box -->
-                            <Border BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    Width="120"
-                                    Height="160"
-                                    Tag="Any"
-                                    Background="Transparent"
-                                    IsVisible="{Binding IsAnyVisible}">
+                            <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Any" Background="Transparent" IsVisible="{Binding IsAnyVisible}">
                                 <Panel>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
-                                               Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
-                                    <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"
-                                           IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Button Classes="delete-overlay"
-                                            Command="{Binding ClearSlotCommand}"
-                                            CommandParameter="Any"
-                                            IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                    </Button>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
                         </StackPanel>
 
-                        <!-- Row 3: Instax (Visible only if Instax is visible) -->
                         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsInstaxVisible}">
-                            <!-- INSTAX Box -->
-                            <Border BorderBrush="Gray"
-                                    BorderThickness="1"
-                                    Width="120"
-                                    Height="160"
-                                    Tag="Instax"
-                                    Background="Transparent">
+                            <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Instax" Background="Transparent">
                                 <Panel>
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc"
-                                               Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- ✅ UPDATED: Stretch="UniformToFill" to cover the box -->
-                                    <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"
-                                           IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Button Classes="delete-overlay"
-                                            Command="{Binding ClearSlotCommand}"
-                                            CommandParameter="Instax"
-                                            IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                    </Button>
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
                         </StackPanel>
-
                     </StackPanel>
                 </ScrollViewer>
 
-                <Grid Grid.Row="3"
-                      ColumnDefinitions="*, *"
-                      HorizontalAlignment="Center"
-                      ColumnSpacing="10">
-                    <Button Grid.Column="0"
-                            Command="{Binding SubmitCommand}"
-                            Padding="12, 8"
-                            HorizontalContentAlignment="Center"
-                            Cursor="Hand"
-                            Classes="secondary"
-                            >Submit</Button>
-
-                    <Button Grid.Column="1"
-                            Command="{Binding ClearAllCommand}"
-                            Padding="12, 8"
-                            HorizontalContentAlignment="Center"
-                            Cursor="Hand"
-                            Classes="secondary"
-                            >Clear All</Button>
+                <Grid Grid.Row="3" ColumnDefinitions="*, *" HorizontalAlignment="Center" ColumnSpacing="10">
+                    <Button Grid.Column="0" Command="{Binding SubmitCommand}" Padding="12, 8" HorizontalContentAlignment="Center" Cursor="Hand" Classes="secondary">Submit</Button>
+                    <Button Grid.Column="1" Command="{Binding ClearAllCommand}" Padding="12, 8" HorizontalContentAlignment="Center" Cursor="Hand" Classes="secondary">Clear All</Button>
                 </Grid>
             </Grid>
         </ExperimentalAcrylicBorder>
 
         <!-- Main Content Area -->
-        <Grid RowDefinitions="Auto, *"
-              ColumnDefinitions="*, *"
-              Grid.Row="1"
-              Grid.Column="1"
-              ColumnSpacing="16"
-              RowSpacing="16"
-              Margin="16">
+        <Grid RowDefinitions="Auto, *" ColumnDefinitions="*, *" Grid.Row="1" Grid.Column="1" ColumnSpacing="16" RowSpacing="16" Margin="16">
 
             <!--Top Input Data Area-->
-            <ExperimentalAcrylicBorder CornerRadius="8"
-                                       Padding="24"
-                                       Grid.Row="0"
-                                       Grid.Column="0"
-                                       Grid.ColumnSpan="2">
-
+            <ExperimentalAcrylicBorder CornerRadius="8" Padding="24" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
                 <ExperimentalAcrylicBorder.Material>
-                    <ExperimentalAcrylicMaterial
-                    BackgroundSource="Digger"
-                    TintColor="Black"
-                    TintOpacity="0.8"
-                    MaterialOpacity="0.5" />
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                 </ExperimentalAcrylicBorder.Material>
 
                 <Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
-                    <!-- Text Inputs -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                         <StackPanel Spacing="5">
                             <TextBlock Text="Email Address" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Width="200"
-                                     Text="{Binding ClientEmail}"
-                                     Watermark="e.g. client@email.com"
-                                     Cursor="IBeam"/>
+                            <TextBox Width="200" Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam"/>
                         </StackPanel>
                         <StackPanel Spacing="5">
                             <TextBlock Text="Client Name" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Width="200"
-                                     Text="{Binding ClientName}"
-                                     Watermark="e.g. John Doe"
-                                     Cursor="IBeam"/>
+                            <TextBox Width="200" Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Package Selection -->
                     <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
                         <TextBlock Text="Select Package" FontSize="10" Foreground="#ccc" HorizontalAlignment="Right"/>
                         <StackPanel Orientation="Horizontal" Spacing="15">
-                            <RadioButton GroupName="Package Group"
-                                         Content="Basic"
-                                         IsChecked="{Binding IsBasicSelected}"
-                                         Command="{Binding UpdatePackageCommand}"
-                                         CommandParameter="Basic"
-                                         Cursor="Hand"/>
-                            <!-- ✅ UPDATED: Renamed to A, B, C, D -->
-                            <RadioButton GroupName="Package Group"
-                                         Content="A" 
-                                         IsChecked="{Binding IsPkgASelected}"
-                                         Command="{Binding UpdatePackageCommand}"
-                                         CommandParameter="A"
-                                         Cursor="Hand"/>
-                            <RadioButton GroupName="Package Group"
-                                         Content="B" 
-                                         IsChecked="{Binding IsPkgBSelected}"
-                                         Command="{Binding UpdatePackageCommand}"
-                                         CommandParameter="B"
-                                         Cursor="Hand"/>
-                            <RadioButton GroupName="Package Group"
-                                         Content="C" 
-                                         IsChecked="{Binding IsPkgCSelected}"
-                                         Command="{Binding UpdatePackageCommand}"
-                                         CommandParameter="C"
-                                         Cursor="Hand"/>
-                            <RadioButton GroupName="Package Group"
-                                         Content="D" 
-                                         IsChecked="{Binding IsPkgDSelected}"
-                                         Command="{Binding UpdatePackageCommand}"
-                                         CommandParameter="D"
-                                         Cursor="Hand"/>
+                            <RadioButton GroupName="Package Group" Content="Basic" IsChecked="{Binding IsBasicSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="Basic" Cursor="Hand"/>
+                            <RadioButton GroupName="Package Group" Content="A" IsChecked="{Binding IsPkgASelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="A" Cursor="Hand"/>
+                            <RadioButton GroupName="Package Group" Content="B" IsChecked="{Binding IsPkgBSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="B" Cursor="Hand"/>
+                            <RadioButton GroupName="Package Group" Content="C" IsChecked="{Binding IsPkgCSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="C" Cursor="Hand"/>
+                            <RadioButton GroupName="Package Group" Content="D" IsChecked="{Binding IsPkgDSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="D" Cursor="Hand"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -454,10 +258,20 @@
                                     <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
                                 </StackPanel>
 
-                                <!-- ✅ FIX: Disabled Horizontal Scrollbar enforces wrapping to multiple rows, allowing Up/Down arrow keys to work -->
-                                <!-- ✅ ADDED: SelectionMode="Single" (No DirectionalNavigation attached property needed) -->
-                                <ListBox Grid.Row="1" ItemsSource="{Binding Images}" SelectedItem="{Binding SelectedImage}" Background="Transparent"
+                                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingImages}" Spacing="15" ZIndex="10">
+                                    <ProgressBar IsIndeterminate="True" Width="150" Height="6" Foreground="#ff8800" Background="#333333"/>
+                                    <TextBlock Text="Loading photos..." Foreground="#ccc" FontSize="12" HorizontalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- ✅ ADDED: x:Name and KeyDown Event -->
+                                <ListBox Grid.Row="1" 
+                                         x:Name="PhotosListBox" 
+                                         KeyDown="PhotosListBox_KeyDown"
+                                         ItemsSource="{Binding Images}" 
+                                         SelectedItem="{Binding SelectedImage}" 
+                                         Background="Transparent"
                                          SelectionMode="Single"
+                                         IsVisible="{Binding !IsLoadingImages}"
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                     <ListBox.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -474,7 +288,6 @@
                                         <DataTemplate>
                                             <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
                                                 <StackPanel Margin="12" Width="100">
-                                                    <!-- Removed explicit Height, let it auto-size based on width -->
                                                     <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center"/>
                                                     <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
                                                 </StackPanel>
@@ -493,7 +306,6 @@
                         </ExperimentalAcrylicBorder.Material>
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Sample Preview Package" FontSize="8" Foreground="#f0f0f0" VerticalAlignment="Center"/>
-                            <!-- ✅ UPDATED: Button Text -->
                             <Button Grid.Column="1" Command="{Binding OpenPreviewPackageCommand}" Classes="dialog-btn secondary" Padding="15,8" CornerRadius="8" ToolTip.Tip="Preview Package Inclusions">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <PathIcon Data="{StaticResource EyeIcon}" Width="16" Height="16" Foreground="Black"/>
@@ -512,9 +324,17 @@
 
                     <Grid RowDefinitions="Auto, *, Auto">
                         <TextBlock Grid.Row="0" Text="Quick Preview" FontSize="8" Foreground="#f0f0f0"/>
-                        <TextBlock Grid.Row="1" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Grid.Row="1" Source="{Binding SelectedImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <TextBlock Grid.Row="2" Text="{Binding SelectedImage.FileName}" Foreground="#f0f0f0" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding SelectedImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        
+                        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoadingPreview}" Spacing="15" ZIndex="10">
+                            <ProgressBar IsIndeterminate="True" Width="150" Height="6" Foreground="#ff8800" Background="#333333"/>
+                            <TextBlock Text="Loading preview..." Foreground="#ccc" FontSize="12" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <Grid Grid.Row="1" RowDefinitions="*, Auto" IsVisible="{Binding !IsLoadingPreview}">
+                            <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNull}}"/>
+                            <Image Grid.Row="0" Source="{Binding PreviewImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        </Grid>
                     </Grid>
                 </ExperimentalAcrylicBorder>
             </Grid>
@@ -522,17 +342,10 @@
         </Grid>
 
         <!-- Dialog Overlays -->
-        <!-- (Keeping previous Dialogs) -->
         
-        <!-- ... [Clear, Submit, Error, Settings, About, Help dialogs here] ... -->
-         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-              Background="#99000000"
-              IsVisible="{Binding IsClearConfirmationVisible}"
-              ZIndex="200">
-            <Border CornerRadius="8" 
-                    BorderBrush="#555555" BorderThickness="1"
-                    BoxShadow="0 10 40 10 #000000"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+        <!-- Clear Confirmation -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsClearConfirmationVisible}" ZIndex="200">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
@@ -549,14 +362,8 @@
         </Grid>
 
         <!-- Submit Confirmation -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-              Background="#99000000"
-              IsVisible="{Binding IsSubmitConfirmationVisible}"
-              ZIndex="200">
-            <Border CornerRadius="8" 
-                    BorderBrush="#555555" BorderThickness="1"
-                    BoxShadow="0 10 40 10 #000000"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSubmitConfirmationVisible}" ZIndex="200">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
@@ -573,14 +380,8 @@
         </Grid>
 
         <!-- Validation Error -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-              Background="#99000000"
-              IsVisible="{Binding IsErrorDialogVisible}"
-              ZIndex="200">
-            <Border CornerRadius="8" 
-                    BorderBrush="#555555" BorderThickness="1"
-                    BoxShadow="0 10 40 10 #000000"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsErrorDialogVisible}" ZIndex="200">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
@@ -595,14 +396,8 @@
         </Grid>
 
         <!-- Settings Dialog -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
-              Background="#99000000"
-              IsVisible="{Binding IsSettingsDialogVisible}"
-              ZIndex="250">
-            <Border CornerRadius="8" 
-                    BorderBrush="#555555" BorderThickness="1"
-                    BoxShadow="0 10 40 10 #000000"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="450">
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSettingsDialogVisible}" ZIndex="250">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="450">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.9" MaterialOpacity="0.95" />
