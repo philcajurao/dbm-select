@@ -490,91 +490,84 @@ public void ClosePreviewPackage()
         [RelayCommand] public void ContinueFromNotes() { IsImportantNotesDialogVisible = false; IsImportantNotesChecked = false; IsAcknowledgementDialogVisible = true; }
         [RelayCommand] public void CancelNotes() { IsImportantNotesDialogVisible = false; }
         [RelayCommand] public void CancelAcknowledgement() { IsAcknowledgementDialogVisible = false; }
-        // In MainWindowViewModel.cs
+        
+
+        private void ClearBrowserImages()
+{
+    // Dispose all remaining low-res bitmaps in the browsing list.
+    foreach (var item in Images)
+    {
+        item.Bitmap?.Dispose();
+    }
+    Images.Clear();
+    
+    // Explicitly ask the garbage collector to reclaim the freed unmanaged memory immediately.
+    GC.Collect();
+    
+    // We already clear SelectedImage and PreviewImage in ResetData, 
+    // but ensure HasNoImages is set correctly.
+    HasNoImages = true; 
+}
 
 [RelayCommand]
 public async Task ProceedFromAcknowledgement()
 {
-    // 1. Hide the Ack Dialog immediately
     IsAcknowledgementDialogVisible = false;
-    
-    // 2. Show the Loading Overlay
     IsLoadingSubmit = true;
-
-    // Small delay to ensure UI renders the loader before heavy lifting starts
-    await Task.Delay(3000);
+    await Task.Delay(50); 
 
     try
     {
-        // 3. Run heavy file operations in the background
+        // 1. Run heavy file operations in the background
         await Task.Run(() =>
         {
             // --- FOLDER SETUP ---
             string baseFolder = OutputFolderPath;
+            // Sanitize client name and set specific folder path
             string safeClientName = (ClientName ?? "Unknown").ToUpper();
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 safeClientName = safeClientName.Replace(c, '_');
             }
-            string subFolderName = $"{SelectedPackage}-{safeClientName}";
-            string specificSubmissionFolder = Path.Combine(baseFolder, subFolderName);
+            string specificSubmissionFolder = Path.Combine(baseFolder, $"{SelectedPackage}-{safeClientName}");
 
             if (!Directory.Exists(specificSubmissionFolder))
                 Directory.CreateDirectory(specificSubmissionFolder);
 
-            // --- SAVE IMAGES ---
-            // Note: Accessing ViewModel properties (like Image8x10) from this background thread 
-            // is generally safe for reading, provided they aren't changing concurrently.
+            // --- SAVE IMAGES & LOGGING ---
+            // These calls remain the same, saving the high-res images and updating the Excel log
             SaveImageToFile(Image8x10, " 8x10 ", specificSubmissionFolder);
-            
             if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", specificSubmissionFolder);
             if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificSubmissionFolder);
             if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificSubmissionFolder);
             if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", specificSubmissionFolder);
 
-            // --- EXCEL LOGGING ---
+            // ... (Your Excel logging logic remains here) ...
             string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName);
             if (!excelPath.EndsWith(".xlsx")) excelPath += ".xlsx";
-
             string? excelDir = Path.GetDirectoryName(excelPath);
-            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
-            {
-                Directory.CreateDirectory(excelDir);
-            }
-
-            var newItem = new OrderLogItem
-            {
-                Status = "DONE CHOOSING",
-                Name = ClientName?.ToUpper() ?? "UNKNOWN",
-                Email = ClientEmail ?? "",
-                Package = SelectedPackage,
-                Box_8x10 = Image8x10?.FileName ?? "Empty",
-                Box_Barong = IsBarongVisible ? (ImageBarong?.FileName ?? "Empty") : "N/A",
-                Box_Creative = IsCreativeVisible ? (ImageCreative?.FileName ?? "Empty") : "N/A",
-                Box_Any = IsAnyVisible ? (ImageAny?.FileName ?? "Empty") : "N/A",
-                Box_Instax = IsInstaxVisible ? (ImageInstax?.FileName ?? "Empty") : "N/A",
-                TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-
+            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir)) { Directory.CreateDirectory(excelDir); }
+            var newItem = new OrderLogItem { Status = "DONE CHOOSING", Name = ClientName?.ToUpper() ?? "UNKNOWN", Email = ClientEmail ?? "", Package = SelectedPackage, Box_8x10 = Image8x10?.FileName ?? "Empty", Box_Barong = IsBarongVisible ? (ImageBarong?.FileName ?? "Empty") : "N/A", Box_Creative = IsCreativeVisible ? (ImageCreative?.FileName ?? "Empty") : "N/A", Box_Any = IsAnyVisible ? (ImageAny?.FileName ?? "Empty") : "N/A", Box_Instax = IsInstaxVisible ? (ImageInstax?.FileName ?? "Empty") : "N/A", TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") };
             var allRows = new List<OrderLogItem>();
-            
-            // Need a lock or try-catch here usually, but for single user app it's fine
-            if (File.Exists(excelPath))
-            {
-                try { allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); } catch { }
-            }
-
+            if (File.Exists(excelPath)) { try { allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); } catch { } }
             allRows.Add(newItem);
-
-            if (File.Exists(excelPath)) File.Delete(excelPath);
-            MiniExcel.SaveAs(excelPath, allRows);
-
-            System.Diagnostics.Debug.WriteLine($"Saved to: {specificSubmissionFolder}");
+            if (File.Exists(excelPath)) File.Delete(excelPath); MiniExcel.SaveAs(excelPath, allRows);
+            System.Diagnostics.Debug.WriteLine($"Saved images to {specificSubmissionFolder} and log to {excelPath}");
         });
 
-        // 4. Hide Loading and Show Thank You (Back on UI Thread)
+        // 2. Clear all form data, selected images, and free high-res memory.
+        ResetData(); 
+        
+        // 3. Clear and dispose of all browser thumbnails.
+        ClearBrowserImages(); 
+
+        // 4. Show Thank You modal.
         IsLoadingSubmit = false;
         IsThankYouDialogVisible = true;
+
+        // 5. Immediately trigger the reload of the browser content using the last folder path.
+        // We await this to ensure we don't get CS4014 warnings.
+        await LoadImages(_currentBrowseFolderPath);
     }
     catch (Exception ex)
     {
@@ -606,14 +599,14 @@ public async Task LoadImages(string folderPath)
     _currentBrowseFolderPath = folderPath;
     SaveSettings();
 
-    IsLoadingImages = true;
+    // IsLoadingImages is handled by the loading logic inside the method
     HasNoImages = false;
 
     try
     {
         var supportedExtensions = new[] { ".jpg", ".jpeg", ".png" };
         
-        // 1. Get ALL file paths first (This is extremely fast)
+        // 1. Get ALL file paths first (Instantaneous)
         var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                              .Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower()))
                              .ToList();
@@ -621,21 +614,17 @@ public async Task LoadImages(string folderPath)
         if (files.Count == 0)
         {
             HasNoImages = true;
-            IsLoadingImages = false;
             return;
         }
 
-        // 2. Hide loading spinner immediately so user sees the list start populating
-        IsLoadingImages = false;
+        // We skip setting IsLoadingImages = true at the start for perceived speed, 
+        // but we'll manage the loading state if we want to add a visible spinner again later.
+        // For now, let's keep the fast 'pop-in' approach.
 
-        // 3. Process images in background
+        // 2. Process images in background
         await Task.Run(() =>
         {
-            // Process in chunks to avoid freezing UI (e.g., 20 images at a time)
             int batchSize = 20;
-            
-            // Use Parallel.ForEach for faster decoding on multi-core Intel CPUs
-            // We partition the list into chunks first
             var chunks = files.Chunk(batchSize);
 
             foreach (var chunk in chunks)
@@ -649,8 +638,9 @@ public async Task LoadImages(string folderPath)
                     {
                         using (var stream = File.OpenRead(file))
                         {
-                            // Keep Quality Low (90px) for thumbnails
-                            var thumbBitmap = Bitmap.DecodeToWidth(stream, 90);
+                            // Thumbnail Quality: 90px wide
+                            const int THUMBNAIL_WIDTH = 90; 
+                            var thumbBitmap = Bitmap.DecodeToWidth(stream, THUMBNAIL_WIDTH);
                             
                             processedBatch.Add(new ImageItem
                             {
@@ -663,27 +653,31 @@ public async Task LoadImages(string folderPath)
                     catch { /* Skip corrupted files */ }
                 });
 
-                // 4. Update UI Thread in batches
+                // 3. Update UI Thread in batches using low priority
                 if (!processedBatch.IsEmpty)
                 {
-                    // Sort to maintain order (since Parallel might scramble them slightly)
                     var sortedBatch = processedBatch.OrderBy(x => x.FileName).ToList();
 
+                    // ✅ FIX: Use DispatcherPriority.Background to prevent UI stutter/freeze
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
                         foreach (var item in sortedBatch)
                         {
                             Images.Add(item);
                         }
-                    });
+                    }, Avalonia.Threading.DispatcherPriority.Background);
                 }
             }
         });
     }
     catch (Exception ex)
     {
-        IsLoadingImages = false;
         System.Diagnostics.Debug.WriteLine($"Error loading images: {ex.Message}");
+    }
+    finally
+    {
+        // Ensure HasNoImages flag is correct once background processing is done
+        if (Images.Count == 0 && !HasNoImages) HasNoImages = true;
     }
 }
     
