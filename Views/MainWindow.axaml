@@ -18,7 +18,7 @@
     </Design.DataContext>
 
     <Window.Resources>
-        <!-- Icons remain unchanged -->
+        <!-- Resources unchanged -->
         <StreamGeometry x:Key="TrashIcon">M10,2 L9,3 L5,3 L5,4 L15,4 L15,3 L11,3 L10,2 Z M5,5 L5,16 C5,17.1045695 5.8954305,18 7,18 L13,18 C14.1045695 18 15,17.1045695 15,16 L15,5 L5,5 Z</StreamGeometry>
         <StreamGeometry x:Key="FolderIcon">M19,20H5C3.89,20 3,19.1 3,18V6C3,4.89 3.89,4 5,4H9L11,6H19C20.1,6 21,6.89 21,8V18C21,19.1 20.1,20 19,20Z</StreamGeometry>
         <StreamGeometry x:Key="SettingsIcon">M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.35 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,13L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z</StreamGeometry>
@@ -28,6 +28,7 @@
     </Window.Resources>
 
     <Window.Styles>
+        <!-- Styles unchanged -->
         <Style Selector="Button.delete-overlay">
             <Setter Property="Background" Value="#99000000"/>
             <Setter Property="Opacity" Value="0"/>
@@ -121,6 +122,7 @@
 
     <Grid RowDefinitions="Auto, *" ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
+        <!-- Top Toolbar -->
         <ExperimentalAcrylicBorder Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="30">
             <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.85" MaterialOpacity="0.85" />
@@ -134,6 +136,7 @@
             </Grid>
         </ExperimentalAcrylicBorder>
 
+        <!-- Side Dropping Area -->
         <ExperimentalAcrylicBorder Grid.Row="1" Grid.Column="0" Padding="8,16" MinWidth="350">
             <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
@@ -150,21 +153,28 @@
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                            <!-- ✅ Fixed: Used LayoutTransformControl -->
                             <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="8x10" Background="Transparent" ClipToBounds="True">
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                        <Image.RenderTransform><RotateTransform Angle="{Binding Image8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                    </Image>
+                                    <LayoutTransformControl IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <LayoutTransformControl.LayoutTransform>
+                                            <RotateTransform Angle="{Binding Image8x10.RotationAngle, FallbackValue=0}"/>
+                                        </LayoutTransformControl.LayoutTransform>
+                                        <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill"/>
+                                    </LayoutTransformControl>
                                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
                             <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Barong" Background="Transparent" IsVisible="{Binding IsBarongVisible}" ClipToBounds="True">
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" TextWrapping="Wrap" TextAlignment="Center" Text="Barong / Filipiniana" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                        <Image.RenderTransform><RotateTransform Angle="{Binding ImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                    </Image>
+                                    <LayoutTransformControl IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <LayoutTransformControl.LayoutTransform>
+                                            <RotateTransform Angle="{Binding ImageBarong.RotationAngle, FallbackValue=0}"/>
+                                        </LayoutTransformControl.LayoutTransform>
+                                        <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill"/>
+                                    </LayoutTransformControl>
                                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
@@ -174,18 +184,24 @@
                             <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Creative" Background="Transparent" ClipToBounds="True">
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                        <Image.RenderTransform><RotateTransform Angle="{Binding ImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                    </Image>
+                                    <LayoutTransformControl IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <LayoutTransformControl.LayoutTransform>
+                                            <RotateTransform Angle="{Binding ImageCreative.RotationAngle, FallbackValue=0}"/>
+                                        </LayoutTransformControl.LayoutTransform>
+                                        <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill"/>
+                                    </LayoutTransformControl>
                                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
                             <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Any" Background="Transparent" IsVisible="{Binding IsAnyVisible}" ClipToBounds="True">
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                        <Image.RenderTransform><RotateTransform Angle="{Binding ImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                    </Image>
+                                    <LayoutTransformControl IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <LayoutTransformControl.LayoutTransform>
+                                            <RotateTransform Angle="{Binding ImageAny.RotationAngle, FallbackValue=0}"/>
+                                        </LayoutTransformControl.LayoutTransform>
+                                        <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill"/>
+                                    </LayoutTransformControl>
                                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
@@ -195,9 +211,12 @@
                             <Border BorderBrush="Gray" BorderThickness="1" Width="120" Height="160" Tag="Instax" Background="Transparent" ClipToBounds="True">
                                 <Panel>
                                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="#ccc" Text="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                        <Image.RenderTransform><RotateTransform Angle="{Binding ImageInstax.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                    </Image>
+                                    <LayoutTransformControl IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <LayoutTransformControl.LayoutTransform>
+                                            <RotateTransform Angle="{Binding ImageInstax.RotationAngle, FallbackValue=0}"/>
+                                        </LayoutTransformControl.LayoutTransform>
+                                        <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill"/>
+                                    </LayoutTransformControl>
                                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                                 </Panel>
                             </Border>
@@ -212,12 +231,13 @@
             </Grid>
         </ExperimentalAcrylicBorder>
 
+        <!-- Main Content Area -->
         <Grid RowDefinitions="Auto, *" ColumnDefinitions="*, *" Grid.Row="1" Grid.Column="1" ColumnSpacing="16" RowSpacing="16" Margin="16">
+            <!-- (Input Fields - Unchanged) -->
             <ExperimentalAcrylicBorder CornerRadius="8" Padding="24" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
                 <ExperimentalAcrylicBorder.Material>
                     <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                 </ExperimentalAcrylicBorder.Material>
-
                 <Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                         <StackPanel Spacing="5">
@@ -229,7 +249,6 @@
                             <TextBox Width="200" Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam"/>
                         </StackPanel>
                     </StackPanel>
-
                     <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" Spacing="5">
                         <TextBlock Text="Select Package" FontSize="10" Foreground="#ccc" HorizontalAlignment="Right"/>
                         <StackPanel Orientation="Horizontal" Spacing="15">
@@ -243,6 +262,7 @@
                 </Grid>
             </ExperimentalAcrylicBorder>
 
+            <!-- Browse & Preview -->
             <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="*, *">
                 <Grid Grid.Column="0" RowDefinitions="*, Auto" Margin="0,0,8,0">
                     <Border Grid.Row="0" BorderBrush="#666666" BorderThickness="1" CornerRadius="8" ClipToBounds="True" Background="#1a1a1a"> 
@@ -265,6 +285,7 @@
                                             <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
                                         </StackPanel>
 
+                                        <!-- ✅ Fixed: Used LayoutTransformControl for browser items -->
                                         <ListBox x:Name="PhotosListBox" 
                                                  KeyDown="PhotosListBox_KeyDown"
                                                  ItemsSource="{Binding Images}" 
@@ -288,9 +309,12 @@
                                                 <DataTemplate>
                                                     <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent" ClipToBounds="True">
                                                         <StackPanel Margin="12" Width="100">
-                                                            <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                                                                <Image.RenderTransform><RotateTransform Angle="{Binding RotationAngle}"/></Image.RenderTransform>
-                                                            </Image>
+                                                            <LayoutTransformControl>
+                                                                <LayoutTransformControl.LayoutTransform>
+                                                                    <RotateTransform Angle="{Binding RotationAngle}"/>
+                                                                </LayoutTransformControl.LayoutTransform>
+                                                                <Image Source="{Binding Bitmap}" Width="80" Stretch="Uniform" HorizontalAlignment="Center"/>
+                                                            </LayoutTransformControl>
                                                             <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
                                                         </StackPanel>
                                                     </Border>
@@ -334,9 +358,13 @@
                         
                         <Grid Grid.Row="1" RowDefinitions="*, Auto" IsVisible="{Binding !IsLoadingPreview}">
                             <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNull}}"/>
-                            <Image Grid.Row="0" Source="{Binding PreviewImage.Bitmap}" Stretch="Uniform" Margin="0,10" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                <Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                            </Image>
+                            <!-- ✅ Fixed: LayoutTransformControl for Quick Preview -->
+                            <LayoutTransformControl IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,10">
+                                <LayoutTransformControl.LayoutTransform>
+                                    <RotateTransform Angle="{Binding PreviewImage.RotationAngle, FallbackValue=0}"/>
+                                </LayoutTransformControl.LayoutTransform>
+                                <Image Source="{Binding PreviewImage.Bitmap}" Stretch="Uniform"/>
+                            </LayoutTransformControl>
                             <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                         </Grid>
                     </Grid>
@@ -344,6 +372,10 @@
             </Grid>
         </Grid>
 
+        <!-- (Overlays - Unchanged, except Modal Preview rotation) -->
+        <!-- ... Clear/Submit/Error/Settings/About/Help/Notes/Ack/Loading Overlays ... -->
+        
+        <!-- Clear Confirmation -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsClearConfirmationVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -361,6 +393,7 @@
             </Border>
         </Grid>
 
+        <!-- Submit Confirmation -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSubmitConfirmationVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -378,6 +411,7 @@
             </Border>
         </Grid>
 
+        <!-- Validation Error -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsErrorDialogVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -393,6 +427,7 @@
             </Border>
         </Grid>
 
+        <!-- Settings Dialog -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSettingsDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="450">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -575,6 +610,7 @@
 
                         <Viewbox Grid.Row="1" Stretch="Uniform" Margin="0,20" IsVisible="{Binding !IsModalLoading}">
                             <Panel>
+                                <!-- Modal Content: Apply LayoutTransformControl to ALL Images in the modal grids -->
                                 <Grid ColumnDefinitions="Auto, 20, Auto" Height="850" IsVisible="{Binding IsPkgDSelected}">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                                         <StackPanel VerticalAlignment="Center" Spacing="10">
@@ -583,9 +619,13 @@
                                                     <Border BorderBrush="Transparent" BorderThickness="0">
                                                         <Panel Width="350" Height="450" Background="#050505">
                                                             <TextBlock Text="9x12 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                                            <Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                                                <Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                                            </Image>
+                                                            <!-- ✅ Fixed: LayoutTransformControl -->
+                                                            <LayoutTransformControl IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                                <LayoutTransformControl.LayoutTransform>
+                                                                    <RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/>
+                                                                </LayoutTransformControl.LayoutTransform>
+                                                                <Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/>
+                                                            </LayoutTransformControl>
                                                         </Panel>
                                                     </Border>
                                                 </Border>
@@ -598,9 +638,12 @@
                                                     <Border BorderBrush="Transparent" BorderThickness="0">
                                                         <Panel Width="280" Height="350" Background="#050505">
                                                             <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                                            <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                                                <Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                                            </Image>
+                                                            <LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                                <LayoutTransformControl.LayoutTransform>
+                                                                    <RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/>
+                                                                </LayoutTransformControl.LayoutTransform>
+                                                                <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/>
+                                                            </LayoutTransformControl>
                                                         </Panel>
                                                     </Border>
                                                 </Border>
@@ -608,32 +651,33 @@
                                             <TextBlock Text="8x10 PRINT with 10x12 FRAME" FontSize="14" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
                                         </StackPanel>
                                     </StackPanel>
+                                    
                                     <Grid Grid.Column="2" RowDefinitions="Auto, 15, Auto, 15, Auto, 15, Auto">
                                         <StackPanel Grid.Row="0" Spacing="5">
                                             <UniformGrid Rows="2" Columns="2" Width="400" Height="320">
                                                 <Grid Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </Grid>
                                                 <Grid Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </Grid>
                                                 <Grid Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </Grid>
                                                 <Grid Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="0,0,45,45" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="15,15,30,30" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="30,30,15,15" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Width="80" Height="100" Margin="45,45,0,0" BoxShadow="2 2 5 0 #88000000"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </Grid>
                                             </UniformGrid>
                                             <TextBlock Text="16 PCS WALLET SIZE PRINT (Mixed Groups)" FontSize="12" Foreground="#cc8800" HorizontalAlignment="Center"/>
@@ -645,9 +689,7 @@
                                                         <Border Background="#151515" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsVisible="{Binding PreviewImageInstax, Converter={x:Static ObjectConverters.IsNull}}">
                                                             <TextBlock Text="Empty" Foreground="#444" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
-                                                        <Image Source="{Binding PreviewImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5">
-                                                            <Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageInstax.RotationAngle, FallbackValue=0}"/></Image.RenderTransform>
-                                                        </Image>
+                                                        <LayoutTransformControl IsVisible="{Binding PreviewImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageInstax.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageInstax.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl>
                                                     </Panel>
                                                 </Border>
                                                 <TextBlock Text="FUJI INSTAX" FontSize="8" Foreground="#cc8800" HorizontalAlignment="Center"/>
@@ -655,10 +697,10 @@
                                         </StackPanel>
                                         <StackPanel Grid.Row="4" Spacing="5">
                                             <UniformGrid Rows="1" Columns="4" Width="450" Height="150">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Panel></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Panel></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Panel></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNull}}"/><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Panel></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/><LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Panel></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/><LayoutTransformControl IsVisible="{Binding PreviewImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Panel></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/><LayoutTransformControl IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Panel></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Panel><TextBlock Text="5R" Foreground="#333" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNull}}"/><LayoutTransformControl IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Panel></Border>
                                             </UniformGrid>
                                             <TextBlock Text="4 PCS 5R PRINT (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
@@ -672,7 +714,7 @@
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="240" Height="300" Background="#151515">
                                                         <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                                        <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image>
+                                                        <LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl>
                                                     </Panel>
                                                 </Border>
                                             </Border>
@@ -682,32 +724,32 @@
                                     <Grid Grid.Column="2" RowDefinitions="*, 15, *" ColumnDefinitions="*, 15, *">
                                         <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" Spacing="5">
                                             <UniformGrid Rows="2" Columns="4" Width="240" Height="160">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                             </UniformGrid>
                                             <TextBlock Text="8 PCS WALLET SIZE PRINT (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Row="2" Grid.Column="0" VerticalAlignment="Top" Spacing="5">
                                             <UniformGrid Rows="2" Columns="2" Width="160" Height="200">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                             </UniformGrid>
                                             <TextBlock Text="4 PCS 4x6 (4R) SIZE PRINT (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Grid.Row="1" Grid.Column="2" VerticalAlignment="Top" Spacing="5">
                                             <UniformGrid Rows="1" Columns="4" Width="320" Height="100">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageCreative.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageAny.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                             </UniformGrid>
                                             <TextBlock Text="4 PCS 5x7 (5R) SIZE PRINT (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
@@ -721,7 +763,7 @@
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="260" Height="325" Background="#151515">
                                                         <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                                        <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image>
+                                                        <LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl>
                                                     </Panel>
                                                 </Border>
                                             </Border>
@@ -731,29 +773,29 @@
                                     <Grid Grid.Column="2" RowDefinitions="*, 15, *">
                                         <StackPanel Grid.Row="0" VerticalAlignment="Bottom" Spacing="5">
                                             <UniformGrid Rows="2" Columns="4" Width="270" Height="180">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                             </UniformGrid>
                                             <TextBlock Text="8 PCS WALLET SIZE PRINT (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                         <Grid Grid.Row="2" ColumnDefinitions="Auto, 15, Auto" VerticalAlignment="Top">
                                             <StackPanel Grid.Column="0" Spacing="5">
                                                 <UniformGrid Rows="1" Columns="2" Width="150" Height="105">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </UniformGrid>
                                                 <TextBlock Text="2 PCS 4x6 (4R) TOGA" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Spacing="5">
                                                 <UniformGrid Rows="1" Columns="2" Width="150" Height="105">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </UniformGrid>
                                                 <TextBlock Text="2 PCS 4x6 (4R) BARONG" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                             </StackPanel>
@@ -768,7 +810,7 @@
                                                 <Border BorderBrush="Transparent" BorderThickness="0">
                                                     <Panel Width="260" Height="325" Background="#151515">
                                                         <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                                        <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image>
+                                                        <LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl>
                                                     </Panel>
                                                 </Border>
                                             </Border>
@@ -778,25 +820,25 @@
                                     <Grid Grid.Column="2" RowDefinitions="*, 15, *">
                                         <StackPanel Grid.Row="0" VerticalAlignment="Bottom" Spacing="5">
                                             <UniformGrid Rows="1" Columns="4" Width="270" Height="90">
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                             </UniformGrid>
                                             <TextBlock Text="4 PCS WALLET SIZE PRINT (2 Toga, 2 Barong)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                         <Grid Grid.Row="2" ColumnDefinitions="Auto, 15, Auto" VerticalAlignment="Top">
                                             <StackPanel Grid.Column="0" Spacing="5">
                                                 <UniformGrid Rows="1" Columns="2" Width="150" Height="105">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </UniformGrid>
                                                 <TextBlock Text="2 PCS 4x6 (4R) TOGA" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Spacing="5">
                                                 <UniformGrid Rows="1" Columns="2" Width="150" Height="105">
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
-                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
+                                                    <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><LayoutTransformControl><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImageBarong.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl></Border>
                                                 </UniformGrid>
                                                 <TextBlock Text="2 PCS 4x6 (4R) BARONG" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                             </StackPanel>
@@ -808,7 +850,7 @@
                                     <Border Background="#151515" BorderBrush="#333" BorderThickness="1" BoxShadow="0 0 15 2 #000000">
                                         <Panel Width="260" Height="325">
                                             <TextBlock Text="8x10 Empty" Foreground="#444" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                            <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></Image.RenderTransform></Image>
+                                            <LayoutTransformControl IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><LayoutTransformControl.LayoutTransform><RotateTransform Angle="{Binding PreviewImage8x10.RotationAngle, FallbackValue=0}"/></LayoutTransformControl.LayoutTransform><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></LayoutTransformControl>
                                         </Panel>
                                     </Border>
                                     <TextBlock Text="8x10 PRINT ONLY (NO FRAME)" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" FontWeight="Bold"/>
@@ -821,8 +863,11 @@
             </Border>
         </Grid>
 
+        <!-- ✅ Fixed: Ghost Image uses RenderTransform explicitly (which is valid for Image) -->
         <Canvas x:Name="DragCanvas" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" IsHitTestVisible="False" IsVisible="False" ZIndex="100">
-            <Image x:Name="GhostImage" Width="80" Height="80" Opacity="0.7" Stretch="UniformToFill"/>
+            <Image x:Name="GhostImage" Width="80" Height="80" Opacity="0.7" Stretch="UniformToFill">
+                <Image.RenderTransform><RotateTransform Angle="0" /></Image.RenderTransform>
+            </Image>
         </Canvas>
 
     </Grid>
