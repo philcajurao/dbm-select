@@ -23,44 +23,44 @@ namespace dbm_select.ViewModels
             "settings.json");
 
         public MainWindowViewModel()
-{
-    if (Design.IsDesignMode) return;
+        {
+            if (Design.IsDesignMode) return;
 
-    // 1. Load Settings FIRST to get the saved paths
-    if (!LoadSettings())
-    {
-        // First run defaults
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string baseFolder = Path.Combine(documentsPath, "DBM_Select");
-        string logsFolder = Path.Combine(baseFolder, "Logs");
+            // 1. Load Settings FIRST to get the saved paths
+            if (!LoadSettings())
+            {
+                // First run defaults
+                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string baseFolder = Path.Combine(documentsPath, "DBM_Select");
+                string logsFolder = Path.Combine(baseFolder, "Logs");
 
-        if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
-        if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+                if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
+                if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
 
-        OutputFolderPath = baseFolder;
-        ExcelFolderPath = logsFolder;
-        ExcelFileName = "Client_Logs";
-    }
+                OutputFolderPath = baseFolder;
+                ExcelFolderPath = logsFolder;
+                ExcelFileName = "Client_Logs";
+            }
 
-    // 2. Decide which folder to load
-    string folderToLoad;
+            // 2. Decide which folder to load
+            string folderToLoad;
 
-    if (!string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath))
-    {
-        // Use the saved folder from last session
-        folderToLoad = _currentBrowseFolderPath;
-    }
-    else
-    {
-        // Fallback to Pictures folder
-        folderToLoad = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
-    }
+            if (!string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath))
+            {
+                // Use the saved folder from last session
+                folderToLoad = _currentBrowseFolderPath;
+            }
+            else
+            {
+                // Fallback to Pictures folder
+                folderToLoad = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+            }
 
-    // 3. Load the images
-    _ = LoadImages(folderToLoad);
+            // 3. Load the images
+            _ = LoadImages(folderToLoad);
 
-    UpdateVisibility("Basic");
-}
+            UpdateVisibility("Basic");
+        }
 
         // --- PATH PROPERTIES ---
         private string _snapOutputFolder = string.Empty;
@@ -118,14 +118,14 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isLoadingPreview;
 
         // High-Resolution copies specifically for the Package Preview Modal
-[ObservableProperty] private ImageItem? _previewImage8x10;
-[ObservableProperty] private ImageItem? _previewImageBarong;
-[ObservableProperty] private ImageItem? _previewImageCreative;
-[ObservableProperty] private ImageItem? _previewImageAny;
-[ObservableProperty] private ImageItem? _previewImageInstax;
+        [ObservableProperty] private ImageItem? _previewImage8x10;
+        [ObservableProperty] private ImageItem? _previewImageBarong;
+        [ObservableProperty] private ImageItem? _previewImageCreative;
+        [ObservableProperty] private ImageItem? _previewImageAny;
+        [ObservableProperty] private ImageItem? _previewImageInstax;
 
-// Property to manage the loading state of the modal's images
-[ObservableProperty] private bool _isModalLoading;
+        // Property to manage the loading state of the modal's images
+        [ObservableProperty] private bool _isModalLoading;
 
         // ✅ UPDATED: Load High Quality Image on Demand
         private async Task UpdatePreviewAsync(ImageItem? thumbnailItem)
@@ -139,9 +139,6 @@ namespace dbm_select.ViewModels
 
             // Show loading indicator immediately
             IsLoadingPreview = true;
-
-            // Optional: Keep showing the thumbnail while loading the HD version? 
-            // Or clear it? Let's clear it to show the spinner clearly.
             PreviewImage = null;
 
             try
@@ -151,7 +148,6 @@ namespace dbm_select.ViewModels
                 {
                     try
                     {
-                        // Load full quality
                         var bitmap = new Bitmap(thumbnailItem.FullPath);
                         return new ImageItem
                         {
@@ -207,67 +203,67 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
 
+        // ✅ UPDATED: Browsing State Flags
         [ObservableProperty] private bool _hasNoImages = true;
         [ObservableProperty] private bool _isLoadingImages;
 
         // --- SETTINGS PERSISTENCE ---
         private bool LoadSettings()
-{
-    try
-    {
-        if (File.Exists(_settingsFilePath))
         {
-            string json = File.ReadAllText(_settingsFilePath);
-            var settings = JsonSerializer.Deserialize<AppSettings>(json);
-
-            if (settings != null)
+            try
             {
-                if (!string.IsNullOrEmpty(settings.LastOutputFolder)) OutputFolderPath = settings.LastOutputFolder;
-                
-                if (!string.IsNullOrEmpty(settings.LastExcelFolder)) ExcelFolderPath = settings.LastExcelFolder;
-                else ExcelFolderPath = OutputFolderPath;
-                
-                if (!string.IsNullOrEmpty(settings.LastExcelFileName)) ExcelFileName = settings.LastExcelFileName;
+                if (File.Exists(_settingsFilePath))
+                {
+                    string json = File.ReadAllText(_settingsFilePath);
+                    var settings = JsonSerializer.Deserialize<AppSettings>(json);
 
-                // ✅ NEW: Load the browse folder
-                if (!string.IsNullOrEmpty(settings.LastBrowseFolder)) _currentBrowseFolderPath = settings.LastBrowseFolder;
+                    if (settings != null)
+                    {
+                        if (!string.IsNullOrEmpty(settings.LastOutputFolder)) OutputFolderPath = settings.LastOutputFolder;
 
-                return true;
+                        if (!string.IsNullOrEmpty(settings.LastExcelFolder)) ExcelFolderPath = settings.LastExcelFolder;
+                        else ExcelFolderPath = OutputFolderPath;
+
+                        if (!string.IsNullOrEmpty(settings.LastExcelFileName)) ExcelFileName = settings.LastExcelFileName;
+
+                        if (!string.IsNullOrEmpty(settings.LastBrowseFolder)) _currentBrowseFolderPath = settings.LastBrowseFolder;
+
+                        return true;
+                    }
+                }
             }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to load settings: {ex.Message}"); }
+            return false;
         }
-    }
-    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to load settings: {ex.Message}"); }
-    return false;
-}
 
-private void SaveSettings()
-{
-    try
-    {
-        string? dir = Path.GetDirectoryName(_settingsFilePath);
-        if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        private void SaveSettings()
+        {
+            try
+            {
+                string? dir = Path.GetDirectoryName(_settingsFilePath);
+                if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-        var settings = new AppSettings 
-        { 
-            LastOutputFolder = OutputFolderPath, 
-            LastExcelFolder = ExcelFolderPath, 
-            LastExcelFileName = ExcelFileName,
-            LastBrowseFolder = _currentBrowseFolderPath // ✅ NEW: Save the browse folder
-        };
+                var settings = new AppSettings
+                {
+                    LastOutputFolder = OutputFolderPath,
+                    LastExcelFolder = ExcelFolderPath,
+                    LastExcelFileName = ExcelFileName,
+                    LastBrowseFolder = _currentBrowseFolderPath
+                };
 
-        string json = JsonSerializer.Serialize(settings);
-        File.WriteAllText(_settingsFilePath, json);
-    }
-    catch (Exception) { }
-}
+                string json = JsonSerializer.Serialize(settings);
+                File.WriteAllText(_settingsFilePath, json);
+            }
+            catch (Exception) { }
+        }
 
-        public class AppSettings 
-{ 
-    public string? LastOutputFolder { get; set; } 
-    public string? LastExcelFolder { get; set; } 
-    public string? LastExcelFileName { get; set; }
-    public string? LastBrowseFolder { get; set; } // ✅ NEW
-}
+        public class AppSettings
+        {
+            public string? LastOutputFolder { get; set; }
+            public string? LastExcelFolder { get; set; }
+            public string? LastExcelFileName { get; set; }
+            public string? LastBrowseFolder { get; set; }
+        }
 
         // --- LOGIC COMMANDS ---
         [RelayCommand] public void UpdatePackage(string packageName) { SelectedPackage = packageName; UpdateVisibility(packageName); }
@@ -279,84 +275,63 @@ private void SaveSettings()
             else if (pkg == "D") { IsBarongVisible = true; IsCreativeVisible = true; IsAnyVisible = true; IsInstaxVisible = true; }
         }
 
-
-// In MainWindowViewModel.cs
-
-public void SetPackageImage(string category, ImageItem sourceItem)
-{
-    // 1. Dispose OLD IMAGE: Always dispose the image currently in the slot first.
-    switch (category)
-    {
-        case "8x10": Image8x10?.Bitmap?.Dispose(); break;
-        case "Barong": ImageBarong?.Bitmap?.Dispose(); break;
-        case "Creative": ImageCreative?.Bitmap?.Dispose(); break;
-        case "Any": ImageAny?.Bitmap?.Dispose(); break;
-        case "Instax": ImageInstax?.Bitmap?.Dispose(); break;
-    }
-
-    // Default to the low-res thumbnail as a resilient fallback.
-    ImageItem newSlotItem = sourceItem;
-
-    // ✅ UPDATED: Set the target decoding width to 300 pixels. 
-    // This is still high quality for the UI but significantly lowers memory usage.
-    const int MEDIUM_PREVIEW_WIDTH = 300; 
-
-    try
-    {
-        // 2. LOAD MEDIUM QUALITY: Attempt to load the image capped at 300px width.
-        Bitmap mediumQualityBitmap;
-        using (var stream = File.OpenRead(sourceItem.FullPath))
+        public void SetPackageImage(string category, ImageItem sourceItem)
         {
-            // Use DecodeToWidth to cap the resolution.
-            mediumQualityBitmap = Bitmap.DecodeToWidth(stream, MEDIUM_PREVIEW_WIDTH);
+            switch (category)
+            {
+                case "8x10": Image8x10?.Bitmap?.Dispose(); break;
+                case "Barong": ImageBarong?.Bitmap?.Dispose(); break;
+                case "Creative": ImageCreative?.Bitmap?.Dispose(); break;
+                case "Any": ImageAny?.Bitmap?.Dispose(); break;
+                case "Instax": ImageInstax?.Bitmap?.Dispose(); break;
+            }
+
+            ImageItem newSlotItem = sourceItem;
+            const int MEDIUM_PREVIEW_WIDTH = 300;
+
+            try
+            {
+                Bitmap mediumQualityBitmap;
+                using (var stream = File.OpenRead(sourceItem.FullPath))
+                {
+                    mediumQualityBitmap = Bitmap.DecodeToWidth(stream, MEDIUM_PREVIEW_WIDTH);
+                }
+
+                newSlotItem = new ImageItem
+                {
+                    FileName = sourceItem.FileName,
+                    FullPath = sourceItem.FullPath,
+                    Bitmap = mediumQualityBitmap
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading medium quality image for slot: {ex.Message}");
+            }
+
+            switch (category)
+            {
+                case "8x10": Image8x10 = newSlotItem; break;
+                case "Barong": ImageBarong = newSlotItem; break;
+                case "Creative": ImageCreative = newSlotItem; break;
+                case "Any": ImageAny = newSlotItem; break;
+                case "Instax": ImageInstax = newSlotItem; break;
+            }
         }
 
-        // 3. SUCCESS: Create the new medium-res item.
-        newSlotItem = new ImageItem
-        {
-            FileName = sourceItem.FileName,
-            FullPath = sourceItem.FullPath,
-            Bitmap = mediumQualityBitmap
-        };
-    }
-    catch (Exception ex)
-    {
-        // 4. FAILURE: If any file operation fails, the newSlotItem remains the low-res thumbnail.
-        System.Diagnostics.Debug.WriteLine($"Error loading medium quality image for slot: {ex.Message}");
-    }
-
-    // 5. ASSIGNMENT: Assign the resulting item.
-    switch (category)
-    {
-        case "8x10": Image8x10 = newSlotItem; break;
-        case "Barong": ImageBarong = newSlotItem; break;
-        case "Creative": ImageCreative = newSlotItem; break;
-        case "Any": ImageAny = newSlotItem; break;
-        case "Instax": ImageInstax = newSlotItem; break;
-    }
-}
-
         [RelayCommand]
-public void ClearSlot(string category)
-{
-    // 1. Explicitly dispose the Bitmap object before setting the property to null.
-    //    This immediately frees the large image memory from the RAM.
-    switch (category) 
-    { 
-        case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break; 
-        case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break; 
-        case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break; 
-        case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break; 
-        case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break; 
-    }
-
-    // 2. Force garbage collection.
-    //    While usually unnecessary, forcing GC helps reclaim the unmanaged memory (from Dispose)
-    //    faster on lower-spec machines or during long sessions with large images.
-    GC.Collect();
-}
-
-
+        public void ClearSlot(string category)
+        {
+            switch (category)
+            {
+                case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
+                case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
+                case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
+                case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
+                case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
+            }
+            GC.Collect();
+        }
 
         [RelayCommand] public void ClearAll() { IsClearConfirmationVisible = true; }
         [RelayCommand] public void ConfirmClear() { ResetData(); IsClearConfirmationVisible = false; }
@@ -367,112 +342,89 @@ public void ClearSlot(string category)
         [RelayCommand] public void OpenAbout() { IsAboutDialogVisible = true; }
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
 
-private ImageItem? LoadHighResImageFromFile(ImageItem? source)
-{
-    if (source == null || string.IsNullOrEmpty(source.FullPath))
-    {
-        return null;
-    }
-
-    try
-    {
-        // Loads the image at its ORIGINAL, full quality
-        Bitmap originalQualityBitmap;
-        using (var stream = File.OpenRead(source.FullPath))
+        private ImageItem? LoadHighResImageFromFile(ImageItem? source)
         {
-            // Note: No DecodeToWidth() is used here for the preview modal.
-            originalQualityBitmap = new Bitmap(stream);
+            if (source == null || string.IsNullOrEmpty(source.FullPath)) return null;
+
+            try
+            {
+                Bitmap originalQualityBitmap;
+                using (var stream = File.OpenRead(source.FullPath))
+                {
+                    originalQualityBitmap = new Bitmap(stream);
+                }
+
+                return new ImageItem
+                {
+                    FileName = source.FileName,
+                    FullPath = source.FullPath,
+                    Bitmap = originalQualityBitmap
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR loading ORIGINAL image for preview: {ex.Message}");
+                return source;
+            }
         }
 
-        // Create the new high-res item
-        return new ImageItem
+        [RelayCommand]
+        public async Task OpenPreviewPackage()
         {
-            FileName = source.FileName,
-            FullPath = source.FullPath,
-            Bitmap = originalQualityBitmap
-        };
-    }
-    catch (Exception ex)
-    {
-        // Debug output is crucial here to find file lock/permission errors!
-        System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR loading ORIGINAL image for preview: {ex.Message}");
-        // Fallback to the optimized (300px) slot image if original load fails
-        return source; 
-    }
-}
+            IsPreviewPackageDialogVisible = true;
+            IsModalLoading = true;
+
+            await Task.Delay(50);
+
+            DisposePreviewImages();
+
+            try
+            {
+                var results = await Task.Run(() =>
+                {
+                    return new Dictionary<string, ImageItem?>
+                    {
+                        { "8x10", LoadHighResImageFromFile(Image8x10) },
+                        { "Barong", IsBarongVisible ? LoadHighResImageFromFile(ImageBarong) : null },
+                        { "Creative", IsCreativeVisible ? LoadHighResImageFromFile(ImageCreative) : null },
+                        { "Any", IsAnyVisible ? LoadHighResImageFromFile(ImageAny) : null },
+                        { "Instax", IsInstaxVisible ? LoadHighResImageFromFile(ImageInstax) : null }
+                    };
+                });
+
+                PreviewImage8x10 = results["8x10"];
+                PreviewImageBarong = results["Barong"];
+                PreviewImageCreative = results["Creative"];
+                PreviewImageAny = results["Any"];
+                PreviewImageInstax = results["Instax"];
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Fatal error in OpenPreviewPackage command: {ex.Message}");
+                IsPreviewPackageDialogVisible = false;
+            }
+            finally
+            {
+                IsModalLoading = false;
+            }
+        }
+
+        private void DisposePreviewImages()
+        {
+            PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
+            PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
+            PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
+            PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
+            PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
+            GC.Collect();
+        }
 
         [RelayCommand]
-public async Task OpenPreviewPackage()
-{
-    // CRITICAL: We set the visibility and loading state FIRST.
-    IsPreviewPackageDialogVisible = true;
-    IsModalLoading = true;
-    
-    // Allows the UI thread to acknowledge the visibility change before blocking.
-    await Task.Delay(50); 
-    
-    // Clear previous high-res images and memory (We call ClosePreviewPackage without setting IsPreviewPackageDialogVisible=false)
-    // We modify the close method to prevent it from hiding the dialog early.
-    DisposePreviewImages(); 
-
-    try
-    {
-        // ... (Task.Run block remains the same as before to load images) ...
-        var results = await Task.Run(() =>
+        public void ClosePreviewPackage()
         {
-            return new Dictionary<string, ImageItem?>
-            {
-                { "8x10", LoadHighResImageFromFile(Image8x10) },
-                { "Barong", IsBarongVisible ? LoadHighResImageFromFile(ImageBarong) : null },
-                { "Creative", IsCreativeVisible ? LoadHighResImageFromFile(ImageCreative) : null },
-                { "Any", IsAnyVisible ? LoadHighResImageFromFile(ImageAny) : null },
-                { "Instax", IsInstaxVisible ? LoadHighResImageFromFile(ImageInstax) : null }
-            };
-        });
-
-        // Assign results back on the UI Thread
-        PreviewImage8x10 = results["8x10"];
-        PreviewImageBarong = results["Barong"];
-        PreviewImageCreative = results["Creative"];
-        PreviewImageAny = results["Any"];
-        PreviewImageInstax = results["Instax"];
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine($"Fatal error in OpenPreviewPackage command: {ex.Message}");
-        // If loading fails completely, ensure the modal is dismissed
-        IsPreviewPackageDialogVisible = false;
-    }
-    finally
-    {
-        // Always hide the loading spinner
-        IsModalLoading = false;
-    }
-}
-
-// Resets high-res images when closing the modal
-private void DisposePreviewImages()
-{
-    // FIX MVVMTK0034: Use public properties (PreviewImage8x10, etc.) instead of private fields (_previewImage8x10).
-    PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
-    PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
-    PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
-    PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
-    PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
-    
-    GC.Collect();
-}
-
-
-// In MainWindowViewModel.cs (Replace existing ClosePreviewPackage command)
-
-[RelayCommand] 
-public void ClosePreviewPackage() 
-{ 
-    IsPreviewPackageDialogVisible = false; 
-    DisposePreviewImages();
-}
-
+            IsPreviewPackageDialogVisible = false;
+            DisposePreviewImages();
+        }
 
         [RelayCommand] public void OpenHelp() { IsHelpDialogVisible = true; }
         [RelayCommand] public void CloseHelp() { IsHelpDialogVisible = false; }
@@ -490,94 +442,73 @@ public void ClosePreviewPackage()
         [RelayCommand] public void ContinueFromNotes() { IsImportantNotesDialogVisible = false; IsImportantNotesChecked = false; IsAcknowledgementDialogVisible = true; }
         [RelayCommand] public void CancelNotes() { IsImportantNotesDialogVisible = false; }
         [RelayCommand] public void CancelAcknowledgement() { IsAcknowledgementDialogVisible = false; }
-        
 
         private void ClearBrowserImages()
-{
-    // Dispose all remaining low-res bitmaps in the browsing list.
-    foreach (var item in Images)
-    {
-        item.Bitmap?.Dispose();
-    }
-    Images.Clear();
-    
-    // Explicitly ask the garbage collector to reclaim the freed unmanaged memory immediately.
-    GC.Collect();
-    
-    // We already clear SelectedImage and PreviewImage in ResetData, 
-    // but ensure HasNoImages is set correctly.
-    HasNoImages = true; 
-}
-
-[RelayCommand]
-public async Task ProceedFromAcknowledgement()
-{
-    IsAcknowledgementDialogVisible = false;
-    IsLoadingSubmit = true;
-    await Task.Delay(50); 
-
-    try
-    {
-        // 1. Run heavy file operations in the background
-        await Task.Run(() =>
         {
-            // --- FOLDER SETUP ---
-            string baseFolder = OutputFolderPath;
-            // Sanitize client name and set specific folder path
-            string safeClientName = (ClientName ?? "Unknown").ToUpper();
-            foreach (char c in Path.GetInvalidFileNameChars())
+            foreach (var item in Images)
             {
-                safeClientName = safeClientName.Replace(c, '_');
+                item.Bitmap?.Dispose();
             }
-            string specificSubmissionFolder = Path.Combine(baseFolder, $"{SelectedPackage}-{safeClientName}");
+            Images.Clear();
+            GC.Collect();
+            HasNoImages = true;
+        }
 
-            if (!Directory.Exists(specificSubmissionFolder))
-                Directory.CreateDirectory(specificSubmissionFolder);
+        [RelayCommand]
+        public async Task ProceedFromAcknowledgement()
+        {
+            IsAcknowledgementDialogVisible = false;
+            IsLoadingSubmit = true;
+            await Task.Delay(3000);
 
-            // --- SAVE IMAGES & LOGGING ---
-            // These calls remain the same, saving the high-res images and updating the Excel log
-            SaveImageToFile(Image8x10, " 8x10 ", specificSubmissionFolder);
-            if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", specificSubmissionFolder);
-            if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificSubmissionFolder);
-            if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificSubmissionFolder);
-            if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", specificSubmissionFolder);
+            try
+            {
+                await Task.Run(() =>
+                {
+                    string baseFolder = OutputFolderPath;
+                    string safeClientName = (ClientName ?? "Unknown").ToUpper();
+                    foreach (char c in Path.GetInvalidFileNameChars())
+                    {
+                        safeClientName = safeClientName.Replace(c, '_');
+                    }
+                    string specificSubmissionFolder = Path.Combine(baseFolder, $"{SelectedPackage}-{safeClientName}");
 
-            // ... (Your Excel logging logic remains here) ...
-            string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName);
-            if (!excelPath.EndsWith(".xlsx")) excelPath += ".xlsx";
-            string? excelDir = Path.GetDirectoryName(excelPath);
-            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir)) { Directory.CreateDirectory(excelDir); }
-            var newItem = new OrderLogItem { Status = "DONE CHOOSING", Name = ClientName?.ToUpper() ?? "UNKNOWN", Email = ClientEmail ?? "", Package = SelectedPackage, Box_8x10 = Image8x10?.FileName ?? "Empty", Box_Barong = IsBarongVisible ? (ImageBarong?.FileName ?? "Empty") : "N/A", Box_Creative = IsCreativeVisible ? (ImageCreative?.FileName ?? "Empty") : "N/A", Box_Any = IsAnyVisible ? (ImageAny?.FileName ?? "Empty") : "N/A", Box_Instax = IsInstaxVisible ? (ImageInstax?.FileName ?? "Empty") : "N/A", TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") };
-            var allRows = new List<OrderLogItem>();
-            if (File.Exists(excelPath)) { try { allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); } catch { } }
-            allRows.Add(newItem);
-            if (File.Exists(excelPath)) File.Delete(excelPath); MiniExcel.SaveAs(excelPath, allRows);
-            System.Diagnostics.Debug.WriteLine($"Saved images to {specificSubmissionFolder} and log to {excelPath}");
-        });
+                    if (!Directory.Exists(specificSubmissionFolder))
+                        Directory.CreateDirectory(specificSubmissionFolder);
 
-        // 2. Clear all form data, selected images, and free high-res memory.
-        ResetData(); 
-        
-        // 3. Clear and dispose of all browser thumbnails.
-        ClearBrowserImages(); 
+                    SaveImageToFile(Image8x10, " 8x10 ", specificSubmissionFolder);
+                    if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", specificSubmissionFolder);
+                    if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificSubmissionFolder);
+                    if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificSubmissionFolder);
+                    if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", specificSubmissionFolder);
 
-        // 4. Show Thank You modal.
-        IsLoadingSubmit = false;
-        IsThankYouDialogVisible = true;
+                    string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName);
+                    if (!excelPath.EndsWith(".xlsx")) excelPath += ".xlsx";
+                    string? excelDir = Path.GetDirectoryName(excelPath);
+                    if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir)) { Directory.CreateDirectory(excelDir); }
+                    var newItem = new OrderLogItem { Status = "DONE CHOOSING", Name = ClientName?.ToUpper() ?? "UNKNOWN", Email = ClientEmail ?? "", Package = SelectedPackage, Box_8x10 = Image8x10?.FileName ?? "Empty", Box_Barong = IsBarongVisible ? (ImageBarong?.FileName ?? "Empty") : "N/A", Box_Creative = IsCreativeVisible ? (ImageCreative?.FileName ?? "Empty") : "N/A", Box_Any = IsAnyVisible ? (ImageAny?.FileName ?? "Empty") : "N/A", Box_Instax = IsInstaxVisible ? (ImageInstax?.FileName ?? "Empty") : "N/A", TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") };
+                    var allRows = new List<OrderLogItem>();
+                    if (File.Exists(excelPath)) { try { allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); } catch { } }
+                    allRows.Add(newItem);
+                    if (File.Exists(excelPath)) File.Delete(excelPath); MiniExcel.SaveAs(excelPath, allRows);
+                });
 
-        // 5. Immediately trigger the reload of the browser content using the last folder path.
-        // We await this to ensure we don't get CS4014 warnings.
-        await LoadImages(_currentBrowseFolderPath);
-    }
-    catch (Exception ex)
-    {
-        IsLoadingSubmit = false;
-        System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
-        ErrorMessage = $"An error occurred while saving.\n\nDetails: {ex.Message}";
-        IsErrorDialogVisible = true;
-    }
-}
-        
+                ResetData();
+                ClearBrowserImages();
+
+                IsLoadingSubmit = false;
+                IsThankYouDialogVisible = true;
+
+                await LoadImages(_currentBrowseFolderPath);
+            }
+            catch (Exception ex)
+            {
+                IsLoadingSubmit = false;
+                ErrorMessage = $"An error occurred while saving.\n\nDetails: {ex.Message}";
+                IsErrorDialogVisible = true;
+            }
+        }
+
         [RelayCommand] public void CloseThankYouDialog() { IsThankYouDialogVisible = false; ResetData(); }
         [RelayCommand] public void CloseSettings() { CancelSettings(); }
         [RelayCommand] public void CancelSubmit() { IsSubmitConfirmationVisible = false; }
@@ -588,98 +519,88 @@ public async Task ProceedFromAcknowledgement()
 
         public ObservableCollection<ImageItem> Images { get; } = new();
 
-        // ✅ UPDATED: Load Thumbnails only for browsing area
-        // In MainWindowViewModel.cs
-
-public async Task LoadImages(string folderPath)
-{
-    Images.Clear();
-    if (!Directory.Exists(folderPath)) return;
-
-    _currentBrowseFolderPath = folderPath;
-    SaveSettings();
-
-    // IsLoadingImages is handled by the loading logic inside the method
-    HasNoImages = false;
-
-    try
-    {
-        var supportedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-        
-        // 1. Get ALL file paths first (Instantaneous)
-        var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
-                             .Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower()))
-                             .ToList();
-
-        if (files.Count == 0)
+        // ✅ UPDATED: Clean Loading Logic
+        public async Task LoadImages(string folderPath)
         {
-            HasNoImages = true;
-            return;
-        }
+            Images.Clear();
+            if (!Directory.Exists(folderPath)) return;
 
-        // We skip setting IsLoadingImages = true at the start for perceived speed, 
-        // but we'll manage the loading state if we want to add a visible spinner again later.
-        // For now, let's keep the fast 'pop-in' approach.
+            _currentBrowseFolderPath = folderPath;
+            SaveSettings();
 
-        // 2. Process images in background
-        await Task.Run(() =>
-        {
-            int batchSize = 20;
-            var chunks = files.Chunk(batchSize);
+            // 1. Explicitly start loading state: Loading=True, NoImages=False
+            IsLoadingImages = true;
+            HasNoImages = false;
 
-            foreach (var chunk in chunks)
+            try
             {
-                var processedBatch = new System.Collections.Concurrent.ConcurrentBag<ImageItem>();
+                var supportedExtensions = new[] { ".jpg", ".jpeg", ".png" };
 
-                // Decode this chunk in parallel
-                Parallel.ForEach(chunk, file =>
+                var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                                     .Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower()))
+                                     .ToList();
+
+                if (files.Count == 0)
                 {
-                    try
+                    // Logic handles 'no images' in finally block
+                    return;
+                }
+
+                await Task.Run(() =>
+                {
+                    int batchSize = 20;
+                    var chunks = files.Chunk(batchSize);
+
+                    foreach (var chunk in chunks)
                     {
-                        using (var stream = File.OpenRead(file))
+                        var processedBatch = new System.Collections.Concurrent.ConcurrentBag<ImageItem>();
+
+                        Parallel.ForEach(chunk, file =>
                         {
-                            // Thumbnail Quality: 90px wide
-                            const int THUMBNAIL_WIDTH = 90; 
-                            var thumbBitmap = Bitmap.DecodeToWidth(stream, THUMBNAIL_WIDTH);
-                            
-                            processedBatch.Add(new ImageItem
+                            try
                             {
-                                Bitmap = thumbBitmap,
-                                FileName = Path.GetFileName(file),
-                                FullPath = file
-                            });
+                                using (var stream = File.OpenRead(file))
+                                {
+                                    const int THUMBNAIL_WIDTH = 90;
+                                    var thumbBitmap = Bitmap.DecodeToWidth(stream, THUMBNAIL_WIDTH);
+
+                                    processedBatch.Add(new ImageItem
+                                    {
+                                        Bitmap = thumbBitmap,
+                                        FileName = Path.GetFileName(file),
+                                        FullPath = file
+                                    });
+                                }
+                            }
+                            catch { }
+                        });
+
+                        if (!processedBatch.IsEmpty)
+                        {
+                            var sortedBatch = processedBatch.OrderBy(x => x.FileName).ToList();
+                            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                            {
+                                foreach (var item in sortedBatch)
+                                {
+                                    Images.Add(item);
+                                }
+                            }, Avalonia.Threading.DispatcherPriority.Background);
                         }
                     }
-                    catch { /* Skip corrupted files */ }
                 });
-
-                // 3. Update UI Thread in batches using low priority
-                if (!processedBatch.IsEmpty)
-                {
-                    var sortedBatch = processedBatch.OrderBy(x => x.FileName).ToList();
-
-                    // ✅ FIX: Use DispatcherPriority.Background to prevent UI stutter/freeze
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        foreach (var item in sortedBatch)
-                        {
-                            Images.Add(item);
-                        }
-                    }, Avalonia.Threading.DispatcherPriority.Background);
-                }
             }
-        });
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine($"Error loading images: {ex.Message}");
-    }
-    finally
-    {
-        // Ensure HasNoImages flag is correct once background processing is done
-        if (Images.Count == 0 && !HasNoImages) HasNoImages = true;
-    }
-}
-    
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading images: {ex.Message}");
+            }
+            finally
+            {
+                // 2. Explicitly end loading state
+                IsLoadingImages = false;
+
+                // 3. Set 'HasNoImages' only if count is truly 0
+                HasNoImages = Images.Count == 0;
+            }
+        }
     }
 }
