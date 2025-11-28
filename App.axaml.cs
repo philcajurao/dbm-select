@@ -19,50 +19,51 @@ namespace dbm_select
         }
 
         public override void OnFrameworkInitializationCompleted()
+{
+    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        // Avoid duplicate validations
+        DisableAvaloniaDataAnnotationValidation();
+
+        var splashScreen = new SplashWindow();
+        desktop.MainWindow = splashScreen;
+        splashScreen.Show();
+
+        // Use Task.Run(async () => ...) to manage the background tasks,
+        // and await the Dispatcher call to ensure the UI change happens correctly.
+        Task.Run(async () =>
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            await Task.Delay(3000);
+
+            await Dispatcher.UIThread.InvokeAsync(async () => // Make this async and await the LoadImages call
             {
-                // Avoid duplicate validations
-                DisableAvaloniaDataAnnotationValidation();
+                var vm = new MainWindowViewModel();
+                
+                // 1. FIX CS4014: Await the call to LoadImages
+                // We're loading the path found in the ViewModel's constructor logic now, 
+                // so we call the loading logic here. 
+                // Note: The path "C:\Users\Phil\Pictures" is obsolete here, 
+                // as the VM constructor now decides the correct path using saved settings.
+                
+                // Since the VM constructor already starts the loading process based on settings,
+                // we'll rely on that. We remove the redundant LoadImages call here.
+                
+                // Original redundant call was: vm.LoadImages(@"C:\Users\Phil\Pictures");
 
-                // 1. Create and Show Splash Screen FIRST
-                var splashScreen = new SplashWindow();
-                desktop.MainWindow = splashScreen;
-                splashScreen.Show();
-
-                // 2. Run the Loading Logic in the background
-                Task.Run(async () =>
+                var mainWindow = new MainWindow
                 {
-                    // Simulate heavy loading work (e.g., 3 seconds)
-                    await Task.Delay(3000);
+                    DataContext = vm,
+                };
 
-                    // 3. Switch to Main Window (Must be done on UI Thread)
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        // Initialize ViewModel
-                        var vm = new MainWindowViewModel();
-                        // Note: The ViewModel constructor likely loads images by default, 
-                        // but we keep your specific path here to be safe.
-                        vm.LoadImages(@"C:\Users\Phil\Pictures");
+                desktop.MainWindow = mainWindow;
+                mainWindow.Show();
+                splashScreen.Close();
+            });
+        });
+    }
 
-                        // Create the real Main Window
-                        var mainWindow = new MainWindow
-                        {
-                            DataContext = vm,
-                        };
-
-                        // Swap the main window reference
-                        desktop.MainWindow = mainWindow;
-                        mainWindow.Show();
-
-                        // Close the splash screen
-                        splashScreen.Close();
-                    });
-                });
-            }
-
-            base.OnFrameworkInitializationCompleted();
-        }
+    base.OnFrameworkInitializationCompleted();
+}
 
         private void DisableAvaloniaDataAnnotationValidation()
         {
