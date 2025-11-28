@@ -453,12 +453,12 @@ public async Task OpenPreviewPackage()
 // Resets high-res images when closing the modal
 private void DisposePreviewImages()
 {
-    // Explicitly dispose and clear the high-res properties to free memory
-    _previewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
-    _previewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
-    _previewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
-    _previewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
-    _previewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
+    // FIX MVVMTK0034: Use public properties (PreviewImage8x10, etc.) instead of private fields (_previewImage8x10).
+    PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
+    PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
+    PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
+    PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
+    PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
     
     GC.Collect();
 }
