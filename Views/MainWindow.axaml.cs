@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media; // ✅ For RotateTransform
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using dbm_select.Models;
@@ -19,7 +18,7 @@ namespace dbm_select.Views
             InitializeComponent();
         }
 
-        // Handle Arrow Key Navigation
+        // Handle Arrow Key Navigation for Grid Layout (Windows Explorer Style)
         private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
         {
             if (sender is not ListBox listBox || listBox.ItemCount == 0 || listBox.SelectedItem == null) return;
@@ -114,7 +113,10 @@ namespace dbm_select.Views
                 if (DataContext is MainWindowViewModel vm)
                 {
                     await vm.LoadImages(folderPath);
-                    PhotosListBox.Focus();
+                    
+                    // FIX: Use FindControl to safely access the ListBox
+                    var photosBox = this.FindControl<ListBox>("PhotosListBox");
+                    photosBox?.Focus();
                 }
             }
         }
@@ -193,21 +195,9 @@ namespace dbm_select.Views
                 {
                     _isDragging = true;
                     GhostImage.Source = _draggedItem.Bitmap;
-
-                    // ✅ Debug: Verify rotation detection
-                    System.Diagnostics.Debug.WriteLine($"Start Drag: Angle detected is {_draggedItem.RotationAngle}");
-
-                    // Apply rotation to the Ghost Image
-                    if (GhostImage.RenderTransform is RotateTransform rotateTransform)
-                    {
-                        rotateTransform.Angle = _draggedItem.RotationAngle;
-                    }
-                    else
-                    {
-                        GhostImage.RenderTransform = new RotateTransform(_draggedItem.RotationAngle);
-                    }
-
                     DragCanvas.IsVisible = true;
+
+                    // Apply cursor directly to the control being dragged
                     control.Cursor = new Cursor(StandardCursorType.SizeAll);
                 }
             }
@@ -228,16 +218,15 @@ namespace dbm_select.Views
             {
                 var currentPosition = e.GetPosition(MainGrid);
                 var visuals = MainGrid.GetVisualsAt(currentPosition);
-
-                // Find the target Border that has a Tag (The slot)
                 var targetBorder = visuals.OfType<Border>().FirstOrDefault(b => b.Tag != null);
 
                 if (targetBorder != null)
                 {
-                    if (targetBorder.Tag is string categoryTag && DataContext is MainWindowViewModel vm)
+                    // Safely check for Tag string
+                    if (targetBorder.Tag is string category && DataContext is MainWindowViewModel vm)
                     {
-                        vm.SetPackageImage(categoryTag, _draggedItem);
-                        System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {categoryTag}");
+                         vm.SetPackageImage(category, _draggedItem);
+                         System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {category}");
                     }
                 }
             }
@@ -247,6 +236,7 @@ namespace dbm_select.Views
             DragCanvas.IsVisible = false;
             e.Pointer?.Capture(null);
 
+            // Reset cursor back to Hand
             if (sender is Control control)
             {
                 control.Cursor = Cursor.Parse("Hand");

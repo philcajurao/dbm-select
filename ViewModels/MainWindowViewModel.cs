@@ -141,23 +141,19 @@ namespace dbm_select.ViewModels
         public ObservableCollection<ImageItem> Images { get; } = new();
 
         // --- SKIASHARP HELPER ---
-        // ✅ NEW: Helper to load image, check orientation, rotate, and resize safely
+        // ✅ OPTIMIZED & ROBUST: Handles Orientation, Subsampling, and Fallbacks
         private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth)
         {
             FileStream? stream = null;
             try
             {
-                // 1. Open Stream with ReadWrite share to prevent locking issues (Fixes "Names Only" bug)
+                // 1. Open Stream (ReadWrite share to prevent locking issues)
                 stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 
                 using var codec = SKCodec.Create(stream);
                 
-                // If Skia fails to read header, try standard load
-                if (codec == null) 
-                {
-                    stream.Position = 0;
-                    return new Bitmap(stream);
-                }
+                // If Skia fails to read the header, or codec is null -> Fallback
+                if (codec == null) throw new Exception("Skia Codec failed");
 
                 var orientation = codec.EncodedOrigin;
 
@@ -179,15 +175,13 @@ namespace dbm_select.ViewModels
                 
                 if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
                 {
-                     // Fallback to standard load if Skia decode fails
-                     stream.Position = 0;
-                     return new Bitmap(stream);
+                     throw new Exception("Skia GetPixels failed");
                 }
 
                 SKBitmap finalBitmap = bitmap;
                 bool needsDispose = false;
 
-                // 4. Handle Rotation (Fixes Portrait/Landscape issue)
+                // 4. Handle Rotation
                 if (orientation != SKEncodedOrigin.TopLeft)
                 {
                     finalBitmap = RotateBitmap(bitmap, orientation);
@@ -223,7 +217,6 @@ namespace dbm_select.ViewModels
                 {
                     var dstInfo = new SKImageInfo(finalBitmap.Width, finalBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
                     
-                    // Use SKSurface to ensure safe memory writing
                     using (var surface = SKSurface.Create(dstInfo, buffer.Address, buffer.RowBytes))
                     {
                         if (surface != null)
@@ -232,7 +225,7 @@ namespace dbm_select.ViewModels
                         }
                         else
                         {
-                            throw new Exception("Surface creation failed");
+                            throw new Exception("SKSurface creation failed");
                         }
                     }
                 }
@@ -240,18 +233,20 @@ namespace dbm_select.ViewModels
                 if (needsDispose) finalBitmap.Dispose();
                 return writeableBitmap;
             }
-            catch
+            catch (Exception)
             {
-                // ✅ ULTIMATE FALLBACK: If "Smart Load" fails, force standard load.
-                // This ensures the user never sees just a filename if the file exists.
+                // ✅ ROBUST FALLBACK:
+                // If smart loading fails, close stream and let Avalonia standard load try.
+                stream?.Dispose(); 
+                stream = null;
+
                 try 
                 { 
-                    if(stream != null) stream.Dispose();
                     return new Bitmap(path); 
                 } 
                 catch 
                 { 
-                    return null; 
+                    return null; // File is truly corrupted/unreadable
                 }
             }
             finally
@@ -315,6 +310,7 @@ namespace dbm_select.ViewModels
             {
                 var supportedExtensions = new[] { ".jpg", ".jpeg", ".png" };
 
+                // 1. FAST SCAN
                 var files = await Task.Run(() => 
                     Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                              .Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower()))
@@ -328,66 +324,74 @@ namespace dbm_select.ViewModels
                     return; 
                 }
 
+                // 2. POPULATE PLACEHOLDERS (Removed - Direct Load now for stability)
+                // We will skip placeholders and just load directly as requested to ensure visibility
+                // But to keep UI responsive, we load in batches.
+                
+                IsLoadingImages = false; // Hide spinner immediately
+
+                // 3. BACKGROUND FILL (Sequential Processing Fix)
                 await Task.Run(() =>
                 {
-                    var chunks = files.Chunk(20); 
-                    foreach (var chunk in chunks)
+                    // Use Sequential loop
+                    int processedCount = 0;
+                    foreach (var file in files)
                     {
                         if (token.IsCancellationRequested) break;
 
-                        var batch = new System.Collections.Concurrent.ConcurrentBag<ImageItem>();
-                        
-                        Parallel.ForEach(chunk, new ParallelOptions { CancellationToken = token }, file =>
+                        try
                         {
-                            try
+                            // Load 100px Thumbnail (Robust method)
+                            var bmp = LoadBitmapWithOrientation(file, 100);
+                            
+                            if (bmp != null)
                             {
-                                // ✅ Use Orientation Helper with 100px limit
-                                var bmp = LoadBitmapWithOrientation(file, 100);
-                                if (bmp != null)
-                                {
-                                    batch.Add(new ImageItem 
-                                    { 
-                                        Bitmap = bmp, 
-                                        FileName = Path.GetFileName(file), 
-                                        FullPath = file 
-                                    });
-                                }
-                            }
-                            catch { }
-                        });
+                                // Capture for closure
+                                var item = new ImageItem 
+                                { 
+                                    FileName = Path.GetFileName(file) ?? "Unknown", 
+                                    FullPath = file, 
+                                    Bitmap = bmp 
+                                };
 
-                        if (!batch.IsEmpty && !token.IsCancellationRequested)
-                        {
-                            var sortedBatch = batch.OrderBy(x => x.FileName).ToList();
-                            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                            {
-                                if (!token.IsCancellationRequested)
+                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                                 {
-                                    foreach (var item in sortedBatch) Images.Add(item);
-                                }
-                            }, Avalonia.Threading.DispatcherPriority.Background);
+                                    Images.Add(item);
+                                }, Avalonia.Threading.DispatcherPriority.Background);
+                            }
+
+                            // Aggressive GC
+                            processedCount++;
+                            if (processedCount % 10 == 0)
+                            {
+                                GC.Collect();
+                            }
                         }
+                        catch { }
                     }
+                    GC.Collect();
                 }, token);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}"); }
             finally 
             { 
-                if (!token.IsCancellationRequested)
-                {
-                    IsLoadingImages = false; 
-                    if (Images.Count == 0) HasNoImages = true;
-                }
+                if (!token.IsCancellationRequested && Images.Count == 0) HasNoImages = true;
+                if (IsLoadingImages) IsLoadingImages = false;
             }
         }
 
+        // ✅ UPDATED: Seamless Transition (No Clearing Old Image)
         private async Task UpdatePreviewAsync(ImageItem? thumbnailItem)
         {
-            if (thumbnailItem == null) { PreviewImage = null; IsLoadingPreview = false; return; }
+            if (thumbnailItem == null) 
+            { 
+                PreviewImage = null; 
+                return; 
+            }
             
-            IsLoadingPreview = true;
-            PreviewImage = null;
+            // Note: We do NOT clear PreviewImage here. 
+            // We keep the old one visible while the new one loads.
 
             try
             {
@@ -395,7 +399,7 @@ namespace dbm_select.ViewModels
                 {
                     try
                     {
-                        // ✅ Use Orientation Helper for Preview (Full Quality)
+                        // Load Full Size
                         var bitmap = LoadBitmapWithOrientation(thumbnailItem.FullPath, null);
                         if (bitmap == null) return null;
 
@@ -407,10 +411,20 @@ namespace dbm_select.ViewModels
                     }
                     catch { return null; }
                 });
-                PreviewImage = highResItem;
+
+                // Swap to new image only when ready
+                if (highResItem != null)
+                {
+                    PreviewImage = highResItem;
+                }
+                else 
+                {
+                    // Fallback to low-res if hi-res failed, but only if we don't have a preview yet
+                    // or just show the thumbnail to avoid blank space
+                    PreviewImage = thumbnailItem;
+                }
             }
-            catch { PreviewImage = thumbnailItem; } 
-            finally { IsLoadingPreview = false; }
+            catch { } 
         }
 
         // --- SLOT MANAGEMENT ---
@@ -418,18 +432,13 @@ namespace dbm_select.ViewModels
         {
             ClearSlot(category); 
             ImageItem newSlotItem = sourceItem;
-            
             try
             {
-                // ✅ Use Orientation Helper for Slots (300px)
+                // Load 300px Medium Quality for slots
                 var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
                 if (mediumBitmap != null)
                 {
-                    newSlotItem = new ImageItem { 
-                        FileName = sourceItem.FileName, 
-                        FullPath = sourceItem.FullPath, 
-                        Bitmap = mediumBitmap 
-                    };
+                    newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
                 }
             }
             catch { }
@@ -442,20 +451,6 @@ namespace dbm_select.ViewModels
                 case "Any": ImageAny = newSlotItem; break;
                 case "Instax": ImageInstax = newSlotItem; break;
             }
-        }
-
-        [RelayCommand]
-        public void ClearSlot(string category)
-        {
-            switch (category)
-            {
-                case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
-                case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
-                case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
-                case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
-                case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
-            }
-            GC.Collect();
         }
 
         // --- PREVIEW MODAL ---
@@ -474,15 +469,14 @@ namespace dbm_select.ViewModels
                     ImageItem? Load(ImageItem? src) 
                     {
                          if (src == null) return null;
-                         try {
-                             // ✅ Use Orientation Helper for Modal (Full Quality)
-                             var bmp = LoadBitmapWithOrientation(src.FullPath, null);
-                             return new ImageItem { 
-                                 Bitmap = bmp, 
-                                 FileName = src.FileName ?? string.Empty, 
-                                 FullPath = src.FullPath ?? string.Empty 
-                             };
-                         } catch { return null; }
+                         var bmp = LoadBitmapWithOrientation(src.FullPath, null);
+                         if (bmp == null) return null;
+                         // ✅ FIX CS8601
+                         return new ImageItem { 
+                             Bitmap = bmp, 
+                             FileName = src.FileName ?? string.Empty, 
+                             FullPath = src.FullPath ?? string.Empty
+                         };
                     }
 
                     return new Dictionary<string, ImageItem?>
@@ -536,6 +530,11 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void SaveAndCloseSettings() { SaveSettings(); IsSettingsDialogVisible = false; }
         [RelayCommand] public void OpenAbout() { IsAboutDialogVisible = true; }
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
+        [RelayCommand] public void ClearSlot(string category) 
+        { 
+            switch (category) { case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break; case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break; case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break; case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break; case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break; } 
+            GC.Collect();
+        }
 
         [RelayCommand]
         public async Task ProceedFromAcknowledgement()

@@ -11,6 +11,9 @@
 
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
+		<Content Include="Assets\AppIcon.icns">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     </ItemGroup>
 
     <ItemGroup>
