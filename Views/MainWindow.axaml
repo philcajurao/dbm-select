@@ -995,6 +995,16 @@
                                 </StackPanel>
                             </Panel>
                         </Viewbox>
+
+                        <TextBlock Grid.Row="2"
+                                   Text="* NOTE: This preview is for REFERENCE ONLY. Final layout may be adjusted to ensure the best quality."
+                                   FontSize="13"
+                                   Foreground="#ff8800"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
+                                   Margin="5,0,0,0"/>
+
                         <Button Grid.Row="2"
                                 Content="Close Preview"
                                 Command="{Binding ClosePreviewPackageCommand}"
