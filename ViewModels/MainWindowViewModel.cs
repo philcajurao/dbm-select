@@ -621,7 +621,8 @@ namespace dbm_select.ViewModels
                     if (!Directory.Exists(specificFolder)) Directory.CreateDirectory(specificFolder);
 
                     SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
-                    if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong ", specificFolder);
+                    // ✅ Updated naming convention
+                    if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
                     if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificFolder);
                     if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificFolder);
                     if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", specificFolder);
