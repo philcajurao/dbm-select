@@ -459,7 +459,6 @@ namespace dbm_select.ViewModels
         {
             IsPreviewPackageDialogVisible = true;
             IsModalLoading = true;
-            await Task.Delay(50);
             DisposePreviewImages();
 
             try
@@ -541,7 +540,7 @@ namespace dbm_select.ViewModels
         {
             IsAcknowledgementDialogVisible = false;
             IsLoadingSubmit = true;
-            await Task.Delay(50);
+            await Task.Delay(3000);
             try
             {
                 await Task.Run(() =>
