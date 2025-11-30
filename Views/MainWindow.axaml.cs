@@ -114,7 +114,6 @@ namespace dbm_select.Views
                 {
                     await vm.LoadImages(folderPath);
                     
-                    // FIX: Use FindControl to safely access the ListBox
                     var photosBox = this.FindControl<ListBox>("PhotosListBox");
                     photosBox?.Focus();
                 }
@@ -124,7 +123,8 @@ namespace dbm_select.Views
         // Set Output Folder Button Handler
         private async void SetOutputFolder_Click(object? sender, RoutedEventArgs e)
         {
-            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+            // ✅ UPDATED: Changed to Desktop
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Desktop);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
@@ -145,7 +145,8 @@ namespace dbm_select.Views
         // Set Excel Folder Button Handler
         private async void SetExcelFolder_Click(object? sender, RoutedEventArgs e)
         {
-            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Documents);
+             // ✅ UPDATED: Changed to Desktop
+            var startLocation = await this.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Desktop);
 
             var folders = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
@@ -196,8 +197,6 @@ namespace dbm_select.Views
                     _isDragging = true;
                     GhostImage.Source = _draggedItem.Bitmap;
                     DragCanvas.IsVisible = true;
-
-                    // Apply cursor directly to the control being dragged
                     control.Cursor = new Cursor(StandardCursorType.SizeAll);
                 }
             }
@@ -222,7 +221,6 @@ namespace dbm_select.Views
 
                 if (targetBorder != null)
                 {
-                    // Safely check for Tag string
                     if (targetBorder.Tag is string category && DataContext is MainWindowViewModel vm)
                     {
                          vm.SetPackageImage(category, _draggedItem);
@@ -236,7 +234,6 @@ namespace dbm_select.Views
             DragCanvas.IsVisible = false;
             e.Pointer?.Capture(null);
 
-            // Reset cursor back to Hand
             if (sender is Control control)
             {
                 control.Cursor = Cursor.Parse("Hand");

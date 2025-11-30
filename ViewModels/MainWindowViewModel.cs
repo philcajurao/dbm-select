@@ -31,15 +31,15 @@ namespace dbm_select.ViewModels
             // 1. Load Settings
             if (!LoadSettings())
             {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string baseFolder = Path.Combine(documentsPath, "DBM_Select");
-                string logsFolder = Path.Combine(baseFolder, "Logs");
-
+                // ✅ UPDATED: Default path changed to Desktop
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string baseFolder = Path.Combine(desktopPath, "DBM_Select");
+                
+                // Ensure base folder exists
                 if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
-                if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
 
                 OutputFolderPath = baseFolder;
-                ExcelFolderPath = logsFolder;
+                ExcelFolderPath = desktopPath; // ✅ Excel Log defaults to Desktop directly
                 ExcelFileName = "Client_Logs";
             }
 
@@ -324,21 +324,18 @@ namespace dbm_select.ViewModels
                     return; 
                 }
 
-                // 2. POPULATE PLACEHOLDERS (Removed - Direct Load now for stability)
-                // We will skip placeholders and just load directly as requested to ensure visibility
-                // But to keep UI responsive, we load in batches.
-                
-                IsLoadingImages = false; // Hide spinner immediately
+                IsLoadingImages = false; 
 
                 // 3. BACKGROUND FILL (Sequential Processing Fix)
                 await Task.Run(() =>
                 {
-                    // Use Sequential loop
-                    int processedCount = 0;
-                    foreach (var file in files)
+                    // ✅ FIX: Use Sequential loop instead of Parallel.ForEach
+                    // This prevents disk I/O contention and locking issues which caused images to fail loading.
+                    for (int i = 0; i < files.Count; i++)
                     {
                         if (token.IsCancellationRequested) break;
 
+                        var file = files[i];
                         try
                         {
                             // Load 100px Thumbnail (Robust method)
@@ -346,12 +343,13 @@ namespace dbm_select.ViewModels
                             
                             if (bmp != null)
                             {
-                                // Capture for closure
+                                // Capture strictly for this closure to satisfy compiler flow analysis
+                                var validBmp = bmp; 
                                 var item = new ImageItem 
                                 { 
                                     FileName = Path.GetFileName(file) ?? "Unknown", 
                                     FullPath = file, 
-                                    Bitmap = bmp 
+                                    Bitmap = validBmp
                                 };
 
                                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -360,9 +358,8 @@ namespace dbm_select.ViewModels
                                 }, Avalonia.Threading.DispatcherPriority.Background);
                             }
 
-                            // Aggressive GC
-                            processedCount++;
-                            if (processedCount % 10 == 0)
+                            // Aggressive GC for memory management (similar to OS page file swapping)
+                            if (i % 10 == 0)
                             {
                                 GC.Collect();
                             }
@@ -381,17 +378,12 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // ✅ UPDATED: Seamless Transition (No Clearing Old Image)
         private async Task UpdatePreviewAsync(ImageItem? thumbnailItem)
         {
-            if (thumbnailItem == null) 
-            { 
-                PreviewImage = null; 
-                return; 
-            }
+            if (thumbnailItem == null) { PreviewImage = null; IsLoadingPreview = false; return; }
             
-            // Note: We do NOT clear PreviewImage here. 
-            // We keep the old one visible while the new one loads.
+            IsLoadingPreview = true;
+            // Keep old image visible for seamless transition
 
             try
             {
@@ -405,6 +397,7 @@ namespace dbm_select.ViewModels
 
                         return new ImageItem { 
                             Bitmap = bitmap, 
+                            // ✅ FIX CS8601: Ensure non-null assignment
                             FileName = thumbnailItem.FileName ?? string.Empty, 
                             FullPath = thumbnailItem.FullPath ?? string.Empty
                         };
@@ -412,19 +405,17 @@ namespace dbm_select.ViewModels
                     catch { return null; }
                 });
 
-                // Swap to new image only when ready
                 if (highResItem != null)
                 {
                     PreviewImage = highResItem;
                 }
-                else 
+                else
                 {
-                    // Fallback to low-res if hi-res failed, but only if we don't have a preview yet
-                    // or just show the thumbnail to avoid blank space
                     PreviewImage = thumbnailItem;
                 }
             }
-            catch { } 
+            catch { }
+            finally { IsLoadingPreview = false; }
         }
 
         // --- SLOT MANAGEMENT ---
@@ -432,13 +423,18 @@ namespace dbm_select.ViewModels
         {
             ClearSlot(category); 
             ImageItem newSlotItem = sourceItem;
+            
             try
             {
                 // Load 300px Medium Quality for slots
                 var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
                 if (mediumBitmap != null)
                 {
-                    newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
+                    newSlotItem = new ImageItem { 
+                        FileName = sourceItem.FileName, 
+                        FullPath = sourceItem.FullPath, 
+                        Bitmap = mediumBitmap 
+                    };
                 }
             }
             catch { }
@@ -451,6 +447,20 @@ namespace dbm_select.ViewModels
                 case "Any": ImageAny = newSlotItem; break;
                 case "Instax": ImageInstax = newSlotItem; break;
             }
+        }
+
+        [RelayCommand]
+        public void ClearSlot(string category)
+        {
+            switch (category)
+            {
+                case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
+                case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
+                case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
+                case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
+                case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
+            }
+            GC.Collect();
         }
 
         // --- PREVIEW MODAL ---
@@ -470,7 +480,7 @@ namespace dbm_select.ViewModels
                          if (src == null) return null;
                          var bmp = LoadBitmapWithOrientation(src.FullPath, null);
                          if (bmp == null) return null;
-                         // ✅ FIX CS8601
+                         // ✅ FIX CS8601: Ensure non-null assignment
                          return new ImageItem { 
                              Bitmap = bmp, 
                              FileName = src.FileName ?? string.Empty, 
@@ -529,12 +539,7 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void SaveAndCloseSettings() { SaveSettings(); IsSettingsDialogVisible = false; }
         [RelayCommand] public void OpenAbout() { IsAboutDialogVisible = true; }
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
-        [RelayCommand] public void ClearSlot(string category) 
-        { 
-            switch (category) { case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break; case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break; case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break; case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break; case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break; } 
-            GC.Collect();
-        }
-
+        
         [RelayCommand]
         public async Task ProceedFromAcknowledgement()
         {
