@@ -29,7 +29,6 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
         <PackageReference Include="MiniExcel" Version="1.42.0" />
         <PackageReference Include="MetadataExtractor" Version="2.8.1" />
-        <!-- ✅ FIXED: Updated SkiaSharp to 2.88.9 to prevent downgrade error -->
         <PackageReference Include="SkiaSharp" Version="2.88.9" />
     </ItemGroup>
 </Project>
