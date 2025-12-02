@@ -1022,7 +1022,7 @@
                                                 </Border>
                                             </Border>
                                         </Border>
-                                        <TextBlock Text="8x10 PRINT with GLASS TO GLASS FRAME" FontSize="12" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                        <TextBlock Text="8x10 PRINT with 10x12 FRAME" FontSize="12" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
                                     </StackPanel>
                                     <Grid Grid.Column="2" RowDefinitions="*, 15, *">
                                         <StackPanel Grid.Row="0" VerticalAlignment="Bottom" Spacing="5">
@@ -1067,7 +1067,7 @@
                                                 <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             </Panel>
                                         </Border>
-                                        <TextBlock Text="8x10 PRINT ONLY (NO FRAME)" FontSize="12" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                        <TextBlock Text="8x10 TOGA (PRINT ONLY)" FontSize="12" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
                                     </StackPanel>
                                     <Grid Grid.Column="2" RowDefinitions="*, 15, *">
                                         <StackPanel Grid.Row="0" VerticalAlignment="Bottom" Spacing="5">
@@ -1107,7 +1107,7 @@
                                             <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                         </Panel>
                                     </Border>
-                                    <TextBlock Text="EDIT ONLY" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                    <TextBlock Text="SOFT COPY AND EDIT ONLY" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" FontWeight="Bold"/>
                                 </StackPanel>
                             </Panel>
                         </Viewbox>
