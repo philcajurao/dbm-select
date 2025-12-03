@@ -1,13 +1,13 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Layout; // Required for Orientation
-using Avalonia.Media; // Required for Stretch
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Controls.Primitives; // Required for ScrollBarVisibility
+using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using MiniExcelLibs;
-using SkiaSharp; // Required for Image Manipulation
+using SkiaSharp;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading; // Required for Cancellation
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace dbm_select.ViewModels
@@ -31,7 +31,6 @@ namespace dbm_select.ViewModels
         {
             if (Design.IsDesignMode) return;
 
-            // 1. Load Settings
             if (!LoadSettings())
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -46,12 +45,10 @@ namespace dbm_select.ViewModels
                 ExcelFileName = "Client_Logs";
             }
 
-            // 2. Determine Load Path
             string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
                 ? _currentBrowseFolderPath
                 : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
 
-            // 3. Load Images Async
             _ = LoadImages(folderToLoad);
 
             UpdateVisibility("Basic");
@@ -97,10 +94,13 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private ImageItem? _selectedImage;
 
-        // Trigger async preview loading when selection changes
+        private CancellationTokenSource? _previewCts;
+
         partial void OnSelectedImageChanged(ImageItem? value)
         {
-            _ = UpdatePreviewAsync(value);
+            _previewCts?.Cancel();
+            _previewCts = new CancellationTokenSource();
+            _ = UpdatePreviewAsync(value, _previewCts.Token);
         }
 
         [ObservableProperty] private ImageItem? _previewImage;
@@ -126,14 +126,13 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isInstaxVisible;
 
         // Layout Control Properties
-        [ObservableProperty] private bool _isSingleLargeLayout; // Basic (320x480)
-        [ObservableProperty] private bool _isDoubleLargeLayout; // A & B (210x270)
-        [ObservableProperty] private bool _isQuadLayout;        // C (155x210)
-        [ObservableProperty] private bool _isFiveLayout;        // D (155x210)
+        [ObservableProperty] private bool _isSingleLargeLayout;
+        [ObservableProperty] private bool _isDoubleLargeLayout;
+        [ObservableProperty] private bool _isQuadLayout;
+        [ObservableProperty] private bool _isFiveLayout;
 
         [ObservableProperty] private Orientation _slotsOrientation = Orientation.Vertical;
 
-        // Responsive Scaling Controls
         [ObservableProperty] private Stretch _layoutStretch = Stretch.None;
         [ObservableProperty] private ScrollBarVisibility _scrollVisibility = ScrollBarVisibility.Auto;
 
@@ -156,23 +155,17 @@ namespace dbm_select.ViewModels
         public ObservableCollection<ImageItem> Images { get; } = new();
 
         // --- SKIASHARP HELPER ---
-        // Optimized & Robust: Handles Orientation, Subsampling, and Fallbacks
         private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth)
         {
             FileStream? stream = null;
             try
             {
-                // 1. Open Stream (ReadWrite share to prevent locking issues)
                 stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 using var codec = SKCodec.Create(stream);
-
-                // If Skia fails to read the header, or codec is null -> Fallback
                 if (codec == null) throw new Exception("Skia Codec failed");
 
                 var orientation = codec.EncodedOrigin;
-
-                // 2. Calculate Dimensions
                 SKImageInfo info = codec.Info;
                 SKSizeI supportedDimensions = info.Size;
 
@@ -182,12 +175,18 @@ namespace dbm_select.ViewModels
                     supportedDimensions = codec.GetScaledDimensions(scale);
                 }
 
-                // 3. Decode
-                var bitmapInfo = new SKImageInfo(supportedDimensions.Width, supportedDimensions.Height, SKColorType.Bgra8888);
+                // Color Management & Dithering preserved
+                var bitmapInfo = new SKImageInfo(
+                    supportedDimensions.Width,
+                    supportedDimensions.Height,
+                    SKColorType.Bgra8888,
+                    SKAlphaType.Premul,
+                    SKColorSpace.CreateSrgb()); 
+
                 using var bitmap = new SKBitmap(bitmapInfo);
 
                 var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
-
+                
                 if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
                 {
                     throw new Exception("Skia GetPixels failed");
@@ -196,19 +195,24 @@ namespace dbm_select.ViewModels
                 SKBitmap finalBitmap = bitmap;
                 bool needsDispose = false;
 
-                // 4. Handle Rotation
                 if (orientation != SKEncodedOrigin.TopLeft)
                 {
                     finalBitmap = RotateBitmap(bitmap, orientation);
                     needsDispose = true;
                 }
 
-                // 5. Precise Resize (if needed)
                 if (targetWidth.HasValue && finalBitmap.Width > targetWidth.Value)
                 {
                     int height = (int)((double)targetWidth.Value / finalBitmap.Width * finalBitmap.Height);
-                    var resizeInfo = new SKImageInfo(targetWidth.Value, height, SKColorType.Bgra8888);
-                    var resized = finalBitmap.Resize(resizeInfo, SKFilterQuality.Medium);
+
+                    var resizeInfo = new SKImageInfo(
+                        targetWidth.Value,
+                        height,
+                        SKColorType.Bgra8888,
+                        SKAlphaType.Premul,
+                        SKColorSpace.CreateSrgb());
+
+                    var resized = finalBitmap.Resize(resizeInfo, SKFilterQuality.High);
 
                     if (resized != finalBitmap)
                     {
@@ -218,7 +222,6 @@ namespace dbm_select.ViewModels
                     }
                 }
 
-                // 6. Copy to Avalonia
                 var pixelSize = new Avalonia.PixelSize(finalBitmap.Width, finalBitmap.Height);
                 var vector = new Avalonia.Vector(96, 96);
 
@@ -230,17 +233,21 @@ namespace dbm_select.ViewModels
 
                 using (var buffer = writeableBitmap.Lock())
                 {
-                    var dstInfo = new SKImageInfo(finalBitmap.Width, finalBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                    var dstInfo = new SKImageInfo(
+                        finalBitmap.Width,
+                        finalBitmap.Height,
+                        SKColorType.Bgra8888,
+                        SKAlphaType.Premul,
+                        SKColorSpace.CreateSrgb());
 
                     using (var surface = SKSurface.Create(dstInfo, buffer.Address, buffer.RowBytes))
                     {
                         if (surface != null)
                         {
-                            surface.Canvas.DrawBitmap(finalBitmap, 0, 0);
-                        }
-                        else
-                        {
-                            throw new Exception("SKSurface creation failed");
+                            using (var paint = new SKPaint { FilterQuality = SKFilterQuality.High, IsAntialias = true, IsDither = true })
+                            {
+                                surface.Canvas.DrawBitmap(finalBitmap, 0, 0, paint);
+                            }
                         }
                     }
                 }
@@ -250,33 +257,31 @@ namespace dbm_select.ViewModels
             }
             catch (Exception)
             {
-                // Robust Fallback:
-                // If smart loading fails, close stream and let Avalonia standard load try.
                 stream?.Dispose();
                 stream = null;
-
                 try
                 {
                     return new Bitmap(path);
                 }
-                catch
-                {
-                    return null; // File is truly corrupted/unreadable
-                }
+                catch { return null; }
             }
-            finally
-            {
-                stream?.Dispose();
-            }
+            finally { stream?.Dispose(); }
         }
 
         private SKBitmap RotateBitmap(SKBitmap bitmap, SKEncodedOrigin orientation)
         {
             SKBitmap rotated;
+            var info = new SKImageInfo(
+                orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Height : bitmap.Width,
+                orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Width : bitmap.Height,
+                bitmap.ColorType,
+                bitmap.AlphaType,
+                bitmap.ColorSpace); 
+
             switch (orientation)
             {
                 case SKEncodedOrigin.BottomRight:
-                    rotated = new SKBitmap(bitmap.Width, bitmap.Height, bitmap.ColorType, bitmap.AlphaType);
+                    rotated = new SKBitmap(info);
                     using (var canvas = new SKCanvas(rotated))
                     {
                         canvas.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2);
@@ -284,7 +289,7 @@ namespace dbm_select.ViewModels
                     }
                     break;
                 case SKEncodedOrigin.RightTop:
-                    rotated = new SKBitmap(bitmap.Height, bitmap.Width, bitmap.ColorType, bitmap.AlphaType);
+                    rotated = new SKBitmap(info);
                     using (var canvas = new SKCanvas(rotated))
                     {
                         canvas.Translate(rotated.Width, 0);
@@ -293,7 +298,7 @@ namespace dbm_select.ViewModels
                     }
                     break;
                 case SKEncodedOrigin.LeftBottom:
-                    rotated = new SKBitmap(bitmap.Height, bitmap.Width, bitmap.ColorType, bitmap.AlphaType);
+                    rotated = new SKBitmap(info);
                     using (var canvas = new SKCanvas(rotated))
                     {
                         canvas.Translate(0, rotated.Height);
@@ -306,7 +311,6 @@ namespace dbm_select.ViewModels
             return rotated;
         }
 
-        // --- LOADING METHODS ---
         private CancellationTokenSource? _loadImagesCts;
 
         public async Task LoadImages(string folderPath)
@@ -327,8 +331,6 @@ namespace dbm_select.ViewModels
             try
             {
                 var supportedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-
-                // 1. FAST SCAN
                 var files = await Task.Run(() =>
                     Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                              .Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower()))
@@ -342,42 +344,24 @@ namespace dbm_select.ViewModels
                     return;
                 }
 
-                IsLoadingImages = false; // Hide spinner immediately
+                IsLoadingImages = false;
 
-                // 3. BACKGROUND FILL (Sequential Processing Fix)
                 await Task.Run(() =>
                 {
                     int processedCount = 0;
                     foreach (var file in files)
                     {
                         if (token.IsCancellationRequested) break;
-
                         try
                         {
-                            // Load 100px Thumbnail (Robust method)
                             var bmp = LoadBitmapWithOrientation(file, 100);
-
                             if (bmp != null)
                             {
-                                var item = new ImageItem
-                                {
-                                    FileName = Path.GetFileName(file) ?? "Unknown",
-                                    FullPath = file,
-                                    Bitmap = bmp
-                                };
-
-                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                                {
-                                    Images.Add(item);
-                                }, Avalonia.Threading.DispatcherPriority.Background);
+                                var item = new ImageItem { FileName = Path.GetFileName(file) ?? "Unknown", FullPath = file, Bitmap = bmp };
+                                Avalonia.Threading.Dispatcher.UIThread.Post(() => { Images.Add(item); }, Avalonia.Threading.DispatcherPriority.Background);
                             }
-
-                            // Aggressive GC
                             processedCount++;
-                            if (processedCount % 10 == 0)
-                            {
-                                GC.Collect();
-                            }
+                            if (processedCount % 10 == 0) GC.Collect();
                         }
                         catch { }
                     }
@@ -385,7 +369,6 @@ namespace dbm_select.ViewModels
                 }, token);
             }
             catch (OperationCanceledException) { }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}"); }
             finally
             {
                 if (!token.IsCancellationRequested && Images.Count == 0) HasNoImages = true;
@@ -393,8 +376,7 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // Updated: Seamless Transition (No Clearing Old Image)
-        private async Task UpdatePreviewAsync(ImageItem? thumbnailItem)
+        private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
         {
             if (thumbnailItem == null)
             {
@@ -406,9 +388,10 @@ namespace dbm_select.ViewModels
             {
                 var highResItem = await Task.Run(() =>
                 {
+                    if (token.IsCancellationRequested) return null;
                     try
                     {
-                        // Load Full Size
+                        // Load full resolution with color management
                         var bitmap = LoadBitmapWithOrientation(thumbnailItem.FullPath, null);
                         if (bitmap == null) return null;
 
@@ -420,30 +403,29 @@ namespace dbm_select.ViewModels
                         };
                     }
                     catch { return null; }
-                });
+                }, token);
 
-                // Swap to new image only when ready
+                if (token.IsCancellationRequested) return;
+
                 if (highResItem != null)
                 {
                     PreviewImage = highResItem;
                 }
                 else
                 {
-                    // Fallback to thumbnail to avoid blank space
                     PreviewImage = thumbnailItem;
                 }
             }
             catch { }
         }
 
-        // --- SLOT MANAGEMENT ---
         public void SetPackageImage(string category, ImageItem sourceItem)
         {
             ClearSlot(category);
             ImageItem newSlotItem = sourceItem;
             try
             {
-                // Load 300px Medium Quality for slots
+                // Slots keep using 300px for performance
                 var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
                 if (mediumBitmap != null)
                 {
@@ -462,7 +444,6 @@ namespace dbm_select.ViewModels
             }
         }
 
-        // --- PREVIEW MODAL ---
         [RelayCommand]
         public async Task OpenPreviewPackage()
         {
@@ -621,7 +602,6 @@ namespace dbm_select.ViewModels
                     if (!Directory.Exists(specificFolder)) Directory.CreateDirectory(specificFolder);
 
                     SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
-                    // ✅ Updated naming convention
                     if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
                     if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificFolder);
                     if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificFolder);
@@ -686,8 +666,6 @@ namespace dbm_select.ViewModels
             IsCreativeVisible = false;
             IsAnyVisible = false;
             IsInstaxVisible = false;
-
-            // Default: Scrollable, standard size
             IsSingleLargeLayout = false;
             IsDoubleLargeLayout = false;
             IsQuadLayout = false;
@@ -699,8 +677,6 @@ namespace dbm_select.ViewModels
             {
                 IsSingleLargeLayout = true;
                 SlotsOrientation = Orientation.Vertical;
-
-                // Responsive Scaling On
                 LayoutStretch = Stretch.Uniform;
                 ScrollVisibility = ScrollBarVisibility.Disabled;
             }
@@ -709,8 +685,6 @@ namespace dbm_select.ViewModels
                 IsBarongVisible = true;
                 IsDoubleLargeLayout = true;
                 SlotsOrientation = Orientation.Vertical;
-
-                // Responsive Scaling On
                 LayoutStretch = Stretch.Uniform;
                 ScrollVisibility = ScrollBarVisibility.Disabled;
             }
@@ -719,11 +693,8 @@ namespace dbm_select.ViewModels
                 IsBarongVisible = true;
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
-
-                // Quad Layout: Scaled Up, Responsive
                 IsQuadLayout = true;
                 SlotsOrientation = Orientation.Horizontal;
-
                 LayoutStretch = Stretch.Uniform;
                 ScrollVisibility = ScrollBarVisibility.Disabled;
             }
@@ -733,11 +704,8 @@ namespace dbm_select.ViewModels
                 IsCreativeVisible = true;
                 IsAnyVisible = true;
                 IsInstaxVisible = true;
-
-                // Five Layout: Scaled Up, Responsive
                 IsFiveLayout = true;
                 SlotsOrientation = Orientation.Horizontal;
-
                 LayoutStretch = Stretch.Uniform;
                 ScrollVisibility = ScrollBarVisibility.Disabled;
             }
