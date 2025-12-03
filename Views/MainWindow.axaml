@@ -282,6 +282,14 @@
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="8x10" Background="Transparent" ClipToBounds="True">
                                         <Panel>
+                                            <!-- ✅ ADDED: Placeholder text "Drop photo here" -->
+                                            <TextBlock Text="Drop photo here" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Foreground="#aaa" 
+                                                       FontSize="10" 
+                                                       IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                            
                                             <!-- Image at back -->
                                             <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             
@@ -319,6 +327,14 @@
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Barong" Background="Transparent" ClipToBounds="True">
                                         <Panel>
+                                            <!-- ✅ ADDED: Placeholder text "Drop photo here" -->
+                                            <TextBlock Text="Drop photo here" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Foreground="#aaa" 
+                                                       FontSize="10" 
+                                                       IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+
                                             <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             
                                             <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
@@ -354,6 +370,14 @@
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Creative" Background="Transparent" ClipToBounds="True">
                                         <Panel>
+                                            <!-- ✅ ADDED: Placeholder text "Drop photo here" -->
+                                            <TextBlock Text="Drop photo here" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Foreground="#aaa" 
+                                                       FontSize="10" 
+                                                       IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+
                                             <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             
                                             <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
@@ -384,6 +408,14 @@
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Any" Background="Transparent" ClipToBounds="True">
                                         <Panel>
+                                            <!-- ✅ ADDED: Placeholder text "Drop photo here" -->
+                                            <TextBlock Text="Drop photo here" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Foreground="#aaa" 
+                                                       FontSize="10" 
+                                                       IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+
                                             <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             
                                             <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
@@ -415,6 +447,14 @@
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Instax" Background="Transparent" ClipToBounds="True">
                                         <Panel>
+                                            <!-- ✅ ADDED: Placeholder text "Drop photo here" -->
+                                            <TextBlock Text="Drop photo here" 
+                                                       HorizontalAlignment="Center" 
+                                                       VerticalAlignment="Center" 
+                                                       Foreground="#aaa" 
+                                                       FontSize="10" 
+                                                       IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
+
                                             <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                             
                                             <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
@@ -467,11 +507,13 @@
                     <Grid ColumnDefinitions="*, *" ColumnSpacing="20" VerticalAlignment="Center">
                         <StackPanel Grid.Column="0" Spacing="5">
                             <TextBlock Text="Email Address" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                            <!-- ✅ UPDATED: Reduced width from 200 to 200 (reverted) -->
+                            <TextBox Width="200" Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="5">
                             <TextBlock Text="Client Name" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                            <!-- ✅ UPDATED: Reduced width from 200 to 200 (reverted) -->
+                            <TextBox Width="200" Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                     </Grid>
                 </ExperimentalAcrylicBorder>
@@ -519,9 +561,11 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
-                                                <StackPanel Margin="8" Width="80">
-                                                    <Image Source="{Binding Bitmap}" Width="60" Stretch="Uniform" HorizontalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,5,0,0"/>
+                                                <!-- ✅ UPDATED: Reduced StackPanel and Image size for smaller tiles -->
+                                                <StackPanel Margin="4" Width="60">
+                                                    <!-- ✅ UPDATED: Changed InterpolationMode to 'None' for lowest quality/performance -->
+                                                    <Image Source="{Binding Bitmap}" Width="40" Stretch="Uniform" HorizontalAlignment="Center" RenderOptions.BitmapInterpolationMode="None"/>
+                                                    <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,2,0,0"/>
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>
