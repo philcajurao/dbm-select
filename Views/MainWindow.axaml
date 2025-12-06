@@ -597,12 +597,14 @@
                     <!-- Image Display Grid (Always Visible) -->
                     <Grid Grid.Row="1" RowDefinitions="*, Auto">
                         <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Grid.Row="0" 
-                               Source="{Binding PreviewImage.Bitmap}" 
-                               Stretch="Uniform" 
-                               UseLayoutRounding="True"
-                               RenderOptions.BitmapInterpolationMode="HighQuality"
-                               IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <!-- WRAPPED IN BORDER FOR COLOR ACCURACY -->
+                        <Border Grid.Row="0" Background="Black" CornerRadius="4" ClipToBounds="True" 
+                                IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                             <Image Source="{Binding PreviewImage.Bitmap}" 
+                                   Stretch="Uniform" 
+                                   UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        </Border>
                         <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     </Grid>
                 </Grid>
@@ -1060,11 +1062,10 @@
                                                             <TextBlock Text="2 PCS 4x6 (4R) (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2" Spacing="5">
-                                                            <!-- ✅ FIXED: Closing tag mismatch -->
-                                                            <UniformGrid Rows="1" Columns="2" Width="280" Height="190">
+                                                            <UniformGrid Rows="1" Columns="2" Width="180" Height="127">
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
-                                                            </UniformGrid>
+                                                            </Grid>
                                                             <TextBlock Text="2 PCS 5x7 (5R) (Mixed)" FontSize="10" Foreground="#cc8800" HorizontalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Grid>
@@ -1096,7 +1097,6 @@
                                                     <Grid Grid.Row="2" ColumnDefinitions="*, 15, *" VerticalAlignment="Top">
                                                         <StackPanel Grid.Column="0" Spacing="5">
                                                             <!-- ✅ Reverted 4R Size (Larger) -->
-                                                            <!-- ✅ FIXED: Closing tag mismatch -->
                                                             <UniformGrid Rows="1" Columns="2" Width="220" Height="150">
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
@@ -1105,7 +1105,6 @@
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="2" Spacing="5">
                                                             <!-- ✅ Reverted 4R Size (Larger) -->
-                                                            <!-- ✅ FIXED: Closing tag mismatch -->
                                                             <UniformGrid Rows="1" Columns="2" Width="220" Height="150">
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                                                                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
