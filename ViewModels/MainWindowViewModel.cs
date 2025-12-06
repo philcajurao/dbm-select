@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -378,9 +378,9 @@ namespace dbm_select.ViewModels
             }
         }
 
-      private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
+     private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
 {
-    // 1. Dispose previous image to free memory
+    // 1. Clear old image
     if (PreviewImage != null && PreviewImage != thumbnailItem)
     {
         PreviewImage.Bitmap?.Dispose();
@@ -388,6 +388,9 @@ namespace dbm_select.ViewModels
     }
 
     if (thumbnailItem == null) return;
+
+    // TURN ON LOADING
+    IsLoadingPreview = true;
 
     try
     {
@@ -397,62 +400,40 @@ namespace dbm_select.ViewModels
 
             try
             {
-                // STEP 1: Load the full image
                 using var stream = File.OpenRead(thumbnailItem.FullPath);
                 using var originalBitmap = SKBitmap.Decode(stream);
-
                 if (originalBitmap == null) return null;
 
-                // STEP 2: Calculate High-Res Preview Size
-                // We target ~1500px width. This is large enough to look "Retina" crisp 
-                // on a 4K screen, but small enough to sharpen effectively.
+                // Target ~1500px width for Retina quality
                 int targetWidth = 1500;
                 int targetHeight = (int)((float)originalBitmap.Height / originalBitmap.Width * targetWidth);
-                
                 var info = new SKImageInfo(targetWidth, targetHeight);
 
-                // STEP 3: Resize using LANCZOS (The "Holy Grail" of Resizing)
-                // SKFilterQuality.High = Lanczos3. Much sharper than standard UI scaling.
+                // High Quality Resize
                 using var resizedBitmap = originalBitmap.Resize(info, SKFilterQuality.High);
 
-                // STEP 4: Apply Sharpening Matrix (THE SECRET SAUCE)
+                // Sharpening Matrix
                 using var surface = SKSurface.Create(info);
                 using var canvas = surface.Canvas;
-                
-                // A standard 3x3 Sharpening Kernel
-                var kernel = new float[]
-                {
-                    -0.5f, -0.5f, -0.5f,
-                    -0.5f,  5.0f, -0.5f,
-                    -0.5f, -0.5f, -0.5f
-                };
+                canvas.Clear(SKColors.Transparent);
 
-                // Apply the matrix convolution
+                var kernel = new float[] { -0.5f, -0.5f, -0.5f, -0.5f, 5.0f, -0.5f, -0.5f, -0.5f, -0.5f };
+
                 using var paint = new SKPaint();
-                
-                // FIX: Updated to use SKShaderTileMode and full signature to silence warnings
                 paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(
-                    new SKSizeI(3, 3),          // Kernel Size
-                    kernel,                     // Kernel
-                    1.0f,                       // Gain
-                    0.0f,                       // Bias
-                    new SKPointI(1, 1),         // Offset
-                    SKShaderTileMode.Clamp,     // FIXED: Used SKShaderTileMode instead of obsolete enum
-                    true,                       // Convolve Alpha
-                    null,                       // Input (null uses source)
-                    null                        // CropRect (null uses source)
-                );
+                    new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1),
+                    SKShaderTileMode.Clamp, false, null, null);
 
                 canvas.DrawBitmap(resizedBitmap, 0, 0, paint);
                 canvas.Flush();
 
-                // STEP 5: Convert back to Avalonia Bitmap
+                // Encode to Bitmap
                 using var image = surface.Snapshot();
                 using var data = image.Encode(SKEncodedImageFormat.Png, 100);
                 using var ms = new MemoryStream();
                 data.SaveTo(ms);
                 ms.Seek(0, SeekOrigin.Begin);
-                
+
                 return new ImageItem
                 {
                     Bitmap = new Bitmap(ms),
@@ -460,10 +441,7 @@ namespace dbm_select.ViewModels
                     FullPath = thumbnailItem.FullPath ?? string.Empty
                 };
             }
-            catch (Exception)
-            {
-                return null;
-            }
+            catch { return null; }
         }, token);
 
         if (token.IsCancellationRequested)
@@ -472,19 +450,16 @@ namespace dbm_select.ViewModels
             return;
         }
 
-        if (sharpenedItem != null)
-        {
-            PreviewImage = sharpenedItem;
-        }
+        if (sharpenedItem != null) PreviewImage = sharpenedItem;
     }
     catch { }
-    finally 
+    finally
     {
-        GC.Collect(); 
+        // TURN OFF LOADING (UI Thread)
+        IsLoadingPreview = false;
+        GC.Collect();
     }
 }
-        
-        
         public void SetPackageImage(string category, ImageItem sourceItem)
         {
             ClearSlot(category);
