@@ -153,7 +153,9 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isLoadingImages;
 
         public ObservableCollection<ImageItem> Images { get; } = new();
+        
 
+        
         // --- SKIASHARP HELPER ---
         private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth)
         {
@@ -376,49 +378,113 @@ namespace dbm_select.ViewModels
             }
         }
 
-        private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
+      private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
+{
+    // 1. Dispose previous image to free memory
+    if (PreviewImage != null && PreviewImage != thumbnailItem)
+    {
+        PreviewImage.Bitmap?.Dispose();
+        PreviewImage = null;
+    }
+
+    if (thumbnailItem == null) return;
+
+    try
+    {
+        var sharpenedItem = await Task.Run(() =>
         {
-            if (thumbnailItem == null)
-            {
-                PreviewImage = null;
-                return;
-            }
+            if (token.IsCancellationRequested) return null;
 
             try
             {
-                var highResItem = await Task.Run(() =>
-                {
-                    if (token.IsCancellationRequested) return null;
-                    try
-                    {
-                        // Load full resolution with color management
-                        var bitmap = LoadBitmapWithOrientation(thumbnailItem.FullPath, null);
-                        if (bitmap == null) return null;
+                // STEP 1: Load the full image
+                using var stream = File.OpenRead(thumbnailItem.FullPath);
+                using var originalBitmap = SKBitmap.Decode(stream);
 
-                        return new ImageItem
-                        {
-                            Bitmap = bitmap,
-                            FileName = thumbnailItem.FileName ?? string.Empty,
-                            FullPath = thumbnailItem.FullPath ?? string.Empty
-                        };
-                    }
-                    catch { return null; }
-                }, token);
+                if (originalBitmap == null) return null;
 
-                if (token.IsCancellationRequested) return;
+                // STEP 2: Calculate High-Res Preview Size
+                // We target ~1500px width. This is large enough to look "Retina" crisp 
+                // on a 4K screen, but small enough to sharpen effectively.
+                int targetWidth = 1500;
+                int targetHeight = (int)((float)originalBitmap.Height / originalBitmap.Width * targetWidth);
+                
+                var info = new SKImageInfo(targetWidth, targetHeight);
 
-                if (highResItem != null)
+                // STEP 3: Resize using LANCZOS (The "Holy Grail" of Resizing)
+                // SKFilterQuality.High = Lanczos3. Much sharper than standard UI scaling.
+                using var resizedBitmap = originalBitmap.Resize(info, SKFilterQuality.High);
+
+                // STEP 4: Apply Sharpening Matrix (THE SECRET SAUCE)
+                using var surface = SKSurface.Create(info);
+                using var canvas = surface.Canvas;
+                
+                // A standard 3x3 Sharpening Kernel
+                var kernel = new float[]
                 {
-                    PreviewImage = highResItem;
-                }
-                else
+                    -0.5f, -0.5f, -0.5f,
+                    -0.5f,  5.0f, -0.5f,
+                    -0.5f, -0.5f, -0.5f
+                };
+
+                // Apply the matrix convolution
+                using var paint = new SKPaint();
+                
+                // FIX: Updated to use SKShaderTileMode and full signature to silence warnings
+                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(
+                    new SKSizeI(3, 3),          // Kernel Size
+                    kernel,                     // Kernel
+                    1.0f,                       // Gain
+                    0.0f,                       // Bias
+                    new SKPointI(1, 1),         // Offset
+                    SKShaderTileMode.Clamp,     // FIXED: Used SKShaderTileMode instead of obsolete enum
+                    true,                       // Convolve Alpha
+                    null,                       // Input (null uses source)
+                    null                        // CropRect (null uses source)
+                );
+
+                canvas.DrawBitmap(resizedBitmap, 0, 0, paint);
+                canvas.Flush();
+
+                // STEP 5: Convert back to Avalonia Bitmap
+                using var image = surface.Snapshot();
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                using var ms = new MemoryStream();
+                data.SaveTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                
+                return new ImageItem
                 {
-                    PreviewImage = thumbnailItem;
-                }
+                    Bitmap = new Bitmap(ms),
+                    FileName = thumbnailItem.FileName ?? string.Empty,
+                    FullPath = thumbnailItem.FullPath ?? string.Empty
+                };
             }
-            catch { }
+            catch (Exception)
+            {
+                return null;
+            }
+        }, token);
+
+        if (token.IsCancellationRequested)
+        {
+            sharpenedItem?.Bitmap?.Dispose();
+            return;
         }
 
+        if (sharpenedItem != null)
+        {
+            PreviewImage = sharpenedItem;
+        }
+    }
+    catch { }
+    finally 
+    {
+        GC.Collect(); 
+    }
+}
+        
+        
         public void SetPackageImage(string category, ImageItem sourceItem)
         {
             ClearSlot(category);

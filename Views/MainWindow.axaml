@@ -590,21 +590,24 @@
                 <Grid RowDefinitions="Auto, *, Auto" RowSpacing="10">
                     <TextBlock Grid.Row="0" Text="Quick Preview" FontSize="12" Foreground="#f0f0f0"/>
                     
-                    <!-- Image Display Grid (Always Visible) -->
                     <Grid Grid.Row="1" RowDefinitions="*, Auto">
                         <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding PreviewImage, 
                                    Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <!-- WRAPPED IN BORDER FOR COLOR ACCURACY -->
+                        
                         <Border Grid.Row="0" Background="Black" CornerRadius="4" ClipToBounds="True" 
-                                IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}">
-                             <Image Source="{Binding PreviewImage.Bitmap}" 
-                                   UseLayoutRounding="True"
-                                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
-                        </Border>
+        IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+    
+    <Image Source="{Binding PreviewImage.Bitmap}" 
+           Stretch="Uniform"
+           UseLayoutRounding="True"
+           RenderOptions.BitmapInterpolationMode="MediumQuality"/>
+           
+</Border>
+                        
                         <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" 
                                    FontWeight="Bold" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage, 
-                                   Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                   Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0,10,0,0"/>
                     </Grid>
                 </Grid>
             </Border>
