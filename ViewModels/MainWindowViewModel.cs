@@ -1,26 +1,23 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using MiniExcelLibs;
 using SkiaSharp;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Threading;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-
 
 namespace dbm_select.ViewModels
 {
@@ -30,6 +27,13 @@ namespace dbm_select.ViewModels
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "DBM_Select",
             "settings.json");
+
+        // --- CACHING VARIABLES ---
+        private const int MaxCacheSize = 20;
+        private readonly Dictionary<string, ImageItem> _highResCache = new();
+        private readonly List<string> _cacheOrder = new();
+        private readonly object _cacheLock = new();
+        private ImageItem? _lastHighResPreview; 
 
         public MainWindowViewModel()
         {
@@ -58,20 +62,17 @@ namespace dbm_select.ViewModels
             UpdateVisibility("Basic");
         }
 
-        // --- PATH PROPERTIES ---
+        // --- PROPERTIES ---
         private string _snapOutputFolder = string.Empty;
         private string _snapExcelFolder = string.Empty;
         private string _snapExcelFileName = string.Empty;
         private string _currentBrowseFolderPath = string.Empty;
 
         [ObservableProperty] private bool _isSettingsDirty;
-
         [ObservableProperty] private string _outputFolderPath = string.Empty;
         partial void OnOutputFolderPathChanged(string value) => CheckSettingsDirty();
-
         [ObservableProperty] private string _excelFolderPath = string.Empty;
         partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
-
         [ObservableProperty] private string _excelFileName = "Client_Logs";
         partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
 
@@ -80,14 +81,12 @@ namespace dbm_select.ViewModels
             IsSettingsDirty = OutputFolderPath != _snapOutputFolder || ExcelFolderPath != _snapExcelFolder || ExcelFileName != _snapExcelFileName;
         }
 
-        // --- APP STATE PROPERTIES ---
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
         private string _selectedPackage = "Basic";
-
         public string SelectedPackageDisplayName => SelectedPackage == "Basic" ? "Basic Package" : $"Package {SelectedPackage}";
 
         [ObservableProperty] private bool _isBasicSelected = true;
@@ -110,7 +109,6 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private ImageItem? _previewImage;
         [ObservableProperty] private bool _isLoadingPreview;
 
-        // Modal Preview Images
         [ObservableProperty] private ImageItem? _previewImage8x10;
         [ObservableProperty] private ImageItem? _previewImageBarong;
         [ObservableProperty] private ImageItem? _previewImageCreative;
@@ -129,14 +127,12 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isAnyVisible;
         [ObservableProperty] private bool _isInstaxVisible;
 
-        // Layout Control Properties
         [ObservableProperty] private bool _isSingleLargeLayout;
         [ObservableProperty] private bool _isDoubleLargeLayout;
         [ObservableProperty] private bool _isQuadLayout;
         [ObservableProperty] private bool _isFiveLayout;
 
         [ObservableProperty] private Orientation _slotsOrientation = Orientation.Vertical;
-
         [ObservableProperty] private Stretch _layoutStretch = Stretch.None;
         [ObservableProperty] private ScrollBarVisibility _scrollVisibility = ScrollBarVisibility.Auto;
 
@@ -158,481 +154,437 @@ namespace dbm_select.ViewModels
 
         public ObservableCollection<ImageItem> Images { get; } = new();
 
-        // --- SKIASHARP HELPER (For Thumbnails) ---
-        private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth)
-{
-    try
-    {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        
-        // 1. Peek at the file info without loading pixels yet
-        using var codec = SKCodec.Create(stream);
-        if (codec == null) return null;
+        // ---------------------------------------------------------
+        // IMAGE LOADING LOGIC (Smart Cache-First Strategy)
+        // ---------------------------------------------------------
+        private CancellationTokenSource? _loadImagesCts;
 
-        // 2. Calculate drastic downscaling
-        // If targetWidth is 150, and image is 3000, we scale down by 20x.
-        SKImageInfo info = codec.Info;
-        SKSizeI supportedDimensions = info.Size;
-
-        if (targetWidth.HasValue && info.Width > targetWidth.Value)
+        public async Task LoadImages(string folderPath)
         {
-            float scale = (float)targetWidth.Value / info.Width;
-            supportedDimensions = codec.GetScaledDimensions(scale);
+            _loadImagesCts?.Cancel();
+            _loadImagesCts = new CancellationTokenSource();
+            var token = _loadImagesCts.Token;
+
+            Images.Clear();
+            ClearCache();
+
+            if (!Directory.Exists(folderPath)) return;
+
+            _currentBrowseFolderPath = folderPath;
+            SaveSettings();
+
+            IsLoadingImages = true;
+            HasNoImages = false;
+
+            await Task.Run(async () =>
+            {
+                var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) 
+                    { ".jpg", ".jpeg", ".png" };
+
+                var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                                     .Where(s => supportedExtensions.Contains(Path.GetExtension(s)))
+                                     .OrderBy(f => f)
+                                     .ToList();
+
+                if (files.Count == 0)
+                {
+                    HasNoImages = true;
+                    IsLoadingImages = false;
+                    return;
+                }
+
+                IsLoadingImages = false;
+
+                // --- PHASE 1: FILL THE GRID ---
+                // Strategy: Try loading from Cache (150px) first.
+                // If Cache exists -> We show high quality instantly.
+                // If Cache missing -> We load tiny 50px placeholder instantly.
+                var batch = new List<ImageItem>();
+                int counter = 0;
+
+                foreach (var file in files)
+                {
+                    if (token.IsCancellationRequested) break;
+
+                    try
+                    {
+                        // 1. Try Cached Version (High Quality)
+                        var bmp = LoadBitmapWithOrientation(file, 150, onlyLoadFromCache: true);
+
+                        // 2. If no cache, load Tiny Placeholder (Low Quality)
+                        if (bmp == null)
+                        {
+                            bmp = LoadBitmapWithOrientation(file, 50);
+                        }
+
+                        if (bmp != null)
+                        {
+                            var item = new ImageItem 
+                            { 
+                                FileName = Path.GetFileName(file) ?? "Unknown", 
+                                FullPath = file, 
+                                Bitmap = bmp 
+                            };
+                            batch.Add(item);
+                        }
+                    }
+                    catch { }
+
+                    // Add to UI in batches of 20
+                    if (batch.Count >= 20)
+                    {
+                        var itemsToAdd = batch.ToList();
+                        batch.Clear();
+                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => 
+                        {
+                            foreach (var i in itemsToAdd) Images.Add(i);
+                        }, Avalonia.Threading.DispatcherPriority.Background);
+                        await Task.Delay(1);
+                    }
+                    counter++;
+                    if (counter % 100 == 0) GC.Collect();
+                }
+
+                // Add remaining items
+                if (batch.Count > 0)
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => 
+                    {
+                        foreach (var i in batch) Images.Add(i);
+                    });
+                }
+
+                // --- PHASE 2: UPGRADE PLACEHOLDERS ---
+                // Only upgrade images that are currently small (width <= 50).
+                // If we loaded from cache in Phase 1, they are already 150px, so we skip them.
+                
+                var itemsToUpgrade = Images.ToList(); // Safety copy
+                
+                foreach (var item in itemsToUpgrade)
+                {
+                    if (token.IsCancellationRequested) break;
+
+                    // Skip if already high quality (loaded from cache in Phase 1)
+                    if (item.Bitmap != null && item.Bitmap.PixelSize.Width > 100) continue;
+
+                    try 
+                    {
+                        // Load Standard 150px (This will also save to disk cache for next time)
+                        var betterBmp = LoadBitmapWithOrientation(item.FullPath, 150);
+                        
+                        if (betterBmp != null)
+                        {
+                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                item.Bitmap = betterBmp;
+                            }, Avalonia.Threading.DispatcherPriority.Background);
+                        }
+                    }
+                    catch { }
+                    
+                    await Task.Delay(5); 
+                }
+
+                GC.Collect();
+
+            }, token);
         }
 
-        var bitmapInfo = new SKImageInfo(
-            supportedDimensions.Width,
-            supportedDimensions.Height,
-            SKColorType.Bgra8888, 
-            SKAlphaType.Premul);
-
-        // 3. Decode DIRECTLY into small size (Fastest)
-        using var bitmap = new SKBitmap(bitmapInfo);
-        var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
-
-        if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput) return null;
-
-        // 4. Handle Orientation (if rotated)
-        SKBitmap finalBitmap = bitmap;
-        bool needsDispose = false;
-
-        if (codec.EncodedOrigin != SKEncodedOrigin.TopLeft)
+        // ---------------------------------------------------------
+        // PREVIEW LOGIC
+        // ---------------------------------------------------------
+        private async Task UpdatePreviewAsync(ImageItem? selectedItem, CancellationToken token)
         {
-            finalBitmap = RotateBitmap(bitmap, codec.EncodedOrigin);
-            needsDispose = true;
+            if (_lastHighResPreview != null)
+            {
+                bool isInCache = false;
+                lock(_cacheLock) { isInCache = _highResCache.ContainsValue(_lastHighResPreview); }
+                if (!isInCache) _lastHighResPreview.Bitmap?.Dispose();
+                _lastHighResPreview = null;
+            }
+
+            if (selectedItem == null)
+            {
+                PreviewImage = null;
+                IsLoadingPreview = false;
+                return;
+            }
+
+            var cachedItem = GetFromCache(selectedItem.FullPath);
+            if (cachedItem != null)
+            {
+                PreviewImage = cachedItem;
+                IsLoadingPreview = false;
+                return;
+            }
+
+            PreviewImage = new ImageItem 
+            { 
+                Bitmap = selectedItem.Bitmap, 
+                FileName = selectedItem.FileName,
+                FullPath = selectedItem.FullPath
+            };
+
+            IsLoadingPreview = true;
+
+            try
+            {
+                var highResItem = await Task.Run(() => 
+                    GenerateHighQualityPreview(selectedItem.FullPath, token), token);
+
+                if (token.IsCancellationRequested)
+                {
+                    highResItem?.Bitmap?.Dispose();
+                    return;
+                }
+
+                if (highResItem != null)
+                {
+                    AddToCache(selectedItem.FullPath, highResItem);
+                    _lastHighResPreview = highResItem;
+                    PreviewImage = highResItem;
+                }
+            }
+            catch { }
+            finally
+            {
+                IsLoadingPreview = false;
+            }
         }
 
-        // 5. Convert to Avalonia
-        var pixelSize = new Avalonia.PixelSize(finalBitmap.Width, finalBitmap.Height);
-        var vector = new Avalonia.Vector(96, 96);
-        var writeableBitmap = new Avalonia.Media.Imaging.WriteableBitmap(
-            pixelSize, vector, Avalonia.Platform.PixelFormat.Bgra8888, Avalonia.Platform.AlphaFormat.Premul);
-
-        using (var buffer = writeableBitmap.Lock())
+        // --- CACHE HELPERS ---
+        private void AddToCache(string path, ImageItem item)
         {
-            var dstInfo = new SKImageInfo(finalBitmap.Width, finalBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
-            using var surface = SKSurface.Create(dstInfo, buffer.Address, buffer.RowBytes);
-            surface.Canvas.DrawBitmap(finalBitmap, 0, 0);
+            lock (_cacheLock)
+            {
+                if (_highResCache.ContainsKey(path)) { _cacheOrder.Remove(path); _cacheOrder.Add(path); return; }
+                if (_cacheOrder.Count >= MaxCacheSize)
+                {
+                    string oldest = _cacheOrder[0];
+                    _cacheOrder.RemoveAt(0);
+                    if (_highResCache.TryGetValue(oldest, out var old)) { if (old != PreviewImage) old.Bitmap?.Dispose(); _highResCache.Remove(oldest); }
+                }
+                _highResCache[path] = item; _cacheOrder.Add(path);
+            }
         }
 
-        if (needsDispose) finalBitmap.Dispose();
-        return writeableBitmap;
-    }
-    catch
-    {
-        return null;
-    }
-}
-        
-        
-        
+        private ImageItem? GetFromCache(string path)
+        {
+            lock (_cacheLock)
+            {
+                if (_highResCache.TryGetValue(path, out var item)) { _cacheOrder.Remove(path); _cacheOrder.Add(path); return item; }
+                return null;
+            }
+        }
+
+        private void ClearCache()
+        {
+            lock (_cacheLock) { foreach (var i in _highResCache.Values) i.Bitmap?.Dispose(); _highResCache.Clear(); _cacheOrder.Clear(); }
+            GC.Collect();
+        }
+
+        // ---------------------------------------------------------
+        // BITMAP HELPERS (SkiaSharp Optimized + Disk Cache)
+        // ---------------------------------------------------------
+        private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth, bool onlyLoadFromCache = false)
+        {
+            bool useDiskCache = targetWidth.HasValue && targetWidth.Value >= 100 && targetWidth.Value <= 200;
+            string cachePath = "";
+
+            if (useDiskCache)
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(path);
+                    var name = Path.GetFileNameWithoutExtension(path);
+                    if (dir != null)
+                    {
+                        var cacheDir = Path.Combine(dir, ".dbm_thumbs");
+                        cachePath = Path.Combine(cacheDir, name + ".dbm");
+                        
+                        // IF CACHE HIT: Return it immediately
+                        if (File.Exists(cachePath)) return new Bitmap(cachePath);
+                    }
+                }
+                catch { }
+            }
+
+            // IF ONLY CACHE WAS REQUESTED AND WE MISSED: Return null (don't load raw)
+            if (onlyLoadFromCache) return null;
+
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var codec = SKCodec.Create(stream);
+                if (codec == null) return null;
+
+                SKImageInfo info = codec.Info;
+                SKSizeI supportedDimensions = info.Size;
+
+                if (targetWidth.HasValue && info.Width > targetWidth.Value)
+                {
+                    float scale = (float)targetWidth.Value / info.Width;
+                    supportedDimensions = codec.GetScaledDimensions(scale);
+                }
+
+                var bitmapInfo = new SKImageInfo(supportedDimensions.Width, supportedDimensions.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                using var bitmap = new SKBitmap(bitmapInfo);
+                
+                var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
+                if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput) return null;
+
+                SKBitmap finalBitmap = bitmap;
+                bool needsDispose = false;
+
+                if (codec.EncodedOrigin != SKEncodedOrigin.TopLeft)
+                {
+                    finalBitmap = RotateBitmap(bitmap, codec.EncodedOrigin);
+                    needsDispose = true;
+                }
+
+                // SAVE TO DISK CACHE (Only for 150px size)
+                if (useDiskCache && !string.IsNullOrEmpty(cachePath))
+                {
+                    try
+                    {
+                        var dir = Path.GetDirectoryName(cachePath);
+                        if (dir != null && !Directory.Exists(dir))
+                        {
+                            var di = Directory.CreateDirectory(dir);
+                            di.Attributes |= FileAttributes.Hidden;
+                        }
+                        
+                        using var image = SKImage.FromBitmap(finalBitmap);
+                        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 80);
+                        using var cacheStream = File.OpenWrite(cachePath);
+                        data.SaveTo(cacheStream);
+                    }
+                    catch { }
+                }
+
+                var writeableBitmap = CreateAvaloniaBitmap(finalBitmap);
+                if (needsDispose) finalBitmap.Dispose();
+                
+                return writeableBitmap;
+            }
+            catch { return null; }
+        }
+
+        private ImageItem? GenerateHighQualityPreview(string path, CancellationToken token)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var codec = SKCodec.Create(stream);
+                if (codec == null) return null;
+
+                int targetWidth = 1500; 
+                SKSizeI supportedDimensions = codec.Info.Size;
+                if (codec.Info.Width > targetWidth)
+                {
+                    float scale = (float)targetWidth / codec.Info.Width;
+                    supportedDimensions = codec.GetScaledDimensions(scale);
+                }
+
+                var info = new SKImageInfo(supportedDimensions.Width, supportedDimensions.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                using var rawBitmap = new SKBitmap(info);
+                
+                if (codec.GetPixels(info, rawBitmap.GetPixels()) != SKCodecResult.Success) return null;
+                if (token.IsCancellationRequested) return null;
+
+                SKBitmap workingBitmap = rawBitmap;
+                bool needsDispose = false;
+
+                double angle = dbm_select.Utils.ExifHelper.GetOrientationAngle(path);
+                if (angle != 0)
+                {
+                    workingBitmap = RotateSkBitmap(rawBitmap, angle);
+                    needsDispose = true;
+                }
+
+                var finalInfo = new SKImageInfo(workingBitmap.Width, workingBitmap.Height);
+                using var surface = SKSurface.Create(finalInfo);
+                using var canvas = surface.Canvas;
+                
+                var kernel = new float[] { -0.5f, -0.5f, -0.5f, -0.5f, 5.0f, -0.5f, -0.5f, -0.5f, -0.5f };
+                using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
+                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1), SKShaderTileMode.Clamp, false, null, null);
+
+                canvas.DrawBitmap(workingBitmap, 0, 0, paint);
+                canvas.Flush();
+
+                if (needsDispose) workingBitmap.Dispose();
+
+                using var image = surface.Snapshot();
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                using var ms = new MemoryStream();
+                data.SaveTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+
+                return new ImageItem { Bitmap = new Bitmap(ms), FileName = Path.GetFileName(path), FullPath = path };
+            }
+            catch { return null; }
+        }
+
+        // --- SKIASHARP HELPERS ---
         private SKBitmap RotateBitmap(SKBitmap bitmap, SKEncodedOrigin orientation)
         {
             SKBitmap rotated;
             var info = new SKImageInfo(
                 orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Height : bitmap.Width,
                 orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Width : bitmap.Height,
-                bitmap.ColorType, bitmap.AlphaType, bitmap.ColorSpace);
+                bitmap.ColorType, bitmap.AlphaType);
 
             switch (orientation)
             {
                 case SKEncodedOrigin.BottomRight:
-                    rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated)) { canvas.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2); canvas.DrawBitmap(bitmap, 0, 0); }
-                    break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.RotateDegrees(180, bitmap.Width/2, bitmap.Height/2); c.DrawBitmap(bitmap, 0, 0); } break;
                 case SKEncodedOrigin.RightTop:
-                    rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated)) { canvas.Translate(rotated.Width, 0); canvas.RotateDegrees(90); canvas.DrawBitmap(bitmap, 0, 0); }
-                    break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(rotated.Width, 0); c.RotateDegrees(90); c.DrawBitmap(bitmap, 0, 0); } break;
                 case SKEncodedOrigin.LeftBottom:
-                    rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated)) { canvas.Translate(0, rotated.Height); canvas.RotateDegrees(270); canvas.DrawBitmap(bitmap, 0, 0); }
-                    break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(0, rotated.Height); c.RotateDegrees(270); c.DrawBitmap(bitmap, 0, 0); } break;
                 default: return bitmap;
             }
             return rotated;
         }
 
-        // --- NEW HELPER: Manual Rotation for Preview Pipeline ---
         private SKBitmap RotateSkBitmap(SKBitmap bitmap, double angle)
         {
-            if (angle == 0) return bitmap;
-
-            bool isRotated90or270 = angle % 180 != 0;
-            int newWidth = isRotated90or270 ? bitmap.Height : bitmap.Width;
-            int newHeight = isRotated90or270 ? bitmap.Width : bitmap.Height;
-
-            var rotatedBitmap = new SKBitmap(newWidth, newHeight, bitmap.ColorType, bitmap.AlphaType);
-
-            using (var canvas = new SKCanvas(rotatedBitmap))
-            {
-                canvas.Clear();
-                canvas.Translate(newWidth / 2f, newHeight / 2f);
-                canvas.RotateDegrees((float)angle);
-                canvas.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f);
-                canvas.DrawBitmap(bitmap, 0, 0);
+            bool isRotated90 = angle % 180 != 0;
+            int newW = isRotated90 ? bitmap.Height : bitmap.Width;
+            int newH = isRotated90 ? bitmap.Width : bitmap.Height;
+            var rotated = new SKBitmap(newW, newH, bitmap.ColorType, bitmap.AlphaType);
+            using (var c = new SKCanvas(rotated)) 
+            { 
+                c.Translate(newW / 2f, newH / 2f); 
+                c.RotateDegrees((float)angle); 
+                c.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f); 
+                c.DrawBitmap(bitmap, 0, 0); 
             }
-            return rotatedBitmap;
+            return rotated;
         }
 
-
-private ImageItem? _lastHighResPreview;
-        // --- NATIVE VIEWER LOGIC (SHARPENING + ROTATION) ---
-       private async Task UpdatePreviewAsync(ImageItem? selectedItem, CancellationToken token)
-{
-    // 1. CLEANUP: Only dispose _lastHighResPreview if it is NOT in our cache.
-    // If it's in the cache, we want to keep it alive!
-    if (_lastHighResPreview != null)
-    {
-        bool isInCache = false;
-        lock(_cacheLock) { isInCache = _highResCache.ContainsValue(_lastHighResPreview); }
-        
-        if (!isInCache)
+        private Bitmap CreateAvaloniaBitmap(SKBitmap skBitmap)
         {
-            _lastHighResPreview.Bitmap?.Dispose();
-        }
-        _lastHighResPreview = null;
-    }
-
-    if (selectedItem == null)
-    {
-        PreviewImage = null;
-        IsLoadingPreview = false;
-        return;
-    }
-
-    // 2. CHECK CACHE: If we have the High-Res version, show it INSTANTLY.
-    var cachedItem = GetFromCache(selectedItem.FullPath);
-    if (cachedItem != null)
-    {
-        PreviewImage = cachedItem;
-        IsLoadingPreview = false;
-        return; // Exit early, no work needed!
-    }
-
-    // 3. IF NOT IN CACHE: Show the low-res thumbnail immediately (Progressive Load)
-    PreviewImage = new ImageItem 
-    { 
-        Bitmap = selectedItem.Bitmap, 
-        FileName = selectedItem.FileName,
-        FullPath = selectedItem.FullPath
-    };
-
-    IsLoadingPreview = true;
-
-    try
-    {
-        // 4. Generate High-Res in Background
-        var highResItem = await Task.Run(() => 
-            GenerateHighQualityPreview(selectedItem.FullPath, token), token);
-
-        if (token.IsCancellationRequested)
-        {
-            highResItem?.Bitmap?.Dispose();
-            return;
-        }
-
-        if (highResItem != null)
-        {
-            // 5. Store in Cache
-            AddToCache(selectedItem.FullPath, highResItem);
-
-            _lastHighResPreview = highResItem;
-            PreviewImage = highResItem; // Snap to high quality
-        }
-    }
-    catch { }
-    finally
-    {
-        IsLoadingPreview = false;
-    }
-}
-
-private ImageItem? GenerateHighQualityPreview(string path, CancellationToken token)
-{
-    try
-    {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var codec = SKCodec.Create(stream);
-        if (codec == null) return null;
-
-        // TARGET SIZE: 1500px is perfect for 1080p/4K screens. 
-        // Loading full 6000px is waste of RAM and CPU for a preview box.
-        // This keeps "Perceived Quality" identical but loads 4x faster.
-        int targetWidth = 1500; 
-        
-        var info = codec.Info;
-        var supportedDimensions = info.Size;
-
-        if (info.Width > targetWidth)
-        {
-            float scale = (float)targetWidth / info.Width;
-            supportedDimensions = codec.GetScaledDimensions(scale);
-        }
-
-        var decodeInfo = new SKImageInfo(
-            supportedDimensions.Width, 
-            supportedDimensions.Height, 
-            SKColorType.Bgra8888, 
-            SKAlphaType.Premul);
-
-        // 1. Decode
-        using var rawBitmap = new SKBitmap(decodeInfo);
-        var result = codec.GetPixels(decodeInfo, rawBitmap.GetPixels());
-        if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput) return null;
-        if (token.IsCancellationRequested) return null;
-
-        // 2. Rotate
-        SKBitmap workingBitmap = rawBitmap;
-        bool needsDispose = false;
-
-        double rotationAngle = dbm_select.Utils.ExifHelper.GetOrientationAngle(path);
-        if (rotationAngle != 0)
-        {
-            workingBitmap = RotateSkBitmap(rawBitmap, rotationAngle);
-            needsDispose = true;
-        }
-
-        // 3. SHARPEN (Preserving your original quality logic)
-        var finalInfo = new SKImageInfo(workingBitmap.Width, workingBitmap.Height);
-        using var surface = SKSurface.Create(finalInfo);
-        using var canvas = surface.Canvas;
-        
-        var kernel = new float[]
-        {
-            -0.5f, -0.5f, -0.5f,
-            -0.5f,  5.0f, -0.5f,
-            -0.5f, -0.5f, -0.5f
-        };
-
-        using var paint = new SKPaint();
-        paint.FilterQuality = SKFilterQuality.High;
-        paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(
-            new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1),
-            SKShaderTileMode.Clamp, false, null, null);
-
-        canvas.DrawBitmap(workingBitmap, 0, 0, paint);
-        canvas.Flush();
-
-        if (needsDispose) workingBitmap.Dispose();
-
-        // 4. Save to Avalonia Bitmap
-        using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var ms = new MemoryStream();
-        data.SaveTo(ms);
-        ms.Seek(0, SeekOrigin.Begin);
-
-        return new ImageItem
-        {
-            Bitmap = new Bitmap(ms),
-            FileName = Path.GetFileName(path),
-            FullPath = path
-        };
-    }
-    catch { return null; }
-}
-        // --- IMAGE LOADING LOGIC ---
-        // --- CACHING VARIABLES ---
-// Limit cache to 20 images (approx 100-200MB RAM) to prevent OutOfMemory errors
-private const int MaxCacheSize = 20; 
-private readonly Dictionary<string, ImageItem> _highResCache = new();
-private readonly List<string> _cacheOrder = new(); // Tracks usage history
-private readonly object _cacheLock = new(); // Ensures thread safety
-
-private void AddToCache(string path, ImageItem item)
-{
-    lock (_cacheLock)
-    {
-        // If already exists, just refresh its position in history
-        if (_highResCache.ContainsKey(path))
-        {
-            _cacheOrder.Remove(path);
-            _cacheOrder.Add(path);
-            return;
-        }
-
-        // If cache is full, remove the oldest image (First in list)
-        if (_cacheOrder.Count >= MaxCacheSize)
-        {
-            string oldestPath = _cacheOrder[0];
-            _cacheOrder.RemoveAt(0);
-
-            if (_highResCache.TryGetValue(oldestPath, out var oldItem))
+            var px = new Avalonia.PixelSize(skBitmap.Width, skBitmap.Height);
+            var wb = new Avalonia.Media.Imaging.WriteableBitmap(px, new Avalonia.Vector(96, 96), Avalonia.Platform.PixelFormat.Bgra8888, Avalonia.Platform.AlphaFormat.Premul);
+            using (var buf = wb.Lock())
             {
-                // dispose bitmap to free RAM immediately
-                // NOTE: Don't dispose if it's currently being viewed! 
-                // (The view binding holds a reference, so GC will handle it eventually, 
-                // but explicit dispose is safer for large bitmaps if not in use).
-                if (oldItem != PreviewImage) 
-                {
-                    oldItem.Bitmap?.Dispose();
-                }
-                _highResCache.Remove(oldestPath);
+                var info = new SKImageInfo(skBitmap.Width, skBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                using (var surface = SKSurface.Create(info, buf.Address, buf.RowBytes)) surface.Canvas.DrawBitmap(skBitmap, 0, 0);
             }
+            return wb;
         }
 
-        // Add new item
-        _highResCache[path] = item;
-        _cacheOrder.Add(path);
-    }
-}
-
-private ImageItem? GetFromCache(string path)
-{
-    lock (_cacheLock)
-    {
-        if (_highResCache.TryGetValue(path, out var item))
-        {
-            // Move to end of list (mark as recently used)
-            _cacheOrder.Remove(path);
-            _cacheOrder.Add(path);
-            return item;
-        }
-        return null;
-    }
-}
-
-private void ClearCache()
-{
-    lock (_cacheLock)
-    {
-        foreach (var item in _highResCache.Values)
-        {
-            item.Bitmap?.Dispose();
-        }
-        _highResCache.Clear();
-        _cacheOrder.Clear();
-    }
-    GC.Collect();
-}
-        private CancellationTokenSource? _loadImagesCts;
-
-        public async Task LoadImages(string folderPath)
-{
-    // 1. Reset everything
-    _loadImagesCts?.Cancel();
-    _loadImagesCts = new CancellationTokenSource();
-    var token = _loadImagesCts.Token;
-
-    Images.Clear();
-    
-    if (!Directory.Exists(folderPath)) return;
-
-    _currentBrowseFolderPath = folderPath;
-    SaveSettings();
-
-    IsLoadingImages = true;
-    HasNoImages = false;
-
-    try
-    {
-        // 2. Fast File Enumeration
-        var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) 
-            { ".jpg", ".jpeg", ".png" };
-
-        var files = await Task.Run(() =>
-            Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
-                     .Where(s => supportedExtensions.Contains(Path.GetExtension(s)))
-                     .OrderBy(f => f)
-                     .ToList(), token);
-
-        if (files.Count == 0)
-        {
-            HasNoImages = true;
-            IsLoadingImages = false;
-            return;
-        }
-
-        IsLoadingImages = false; // Hide spinner immediately
-
-        // 3. Thread-Safe Processing
-        await Task.Run(() =>
-        {
-            // Use ConcurrentBag for thread safety - no items will be lost
-            var tempBag = new ConcurrentBag<ImageItem>();
-            int processedCount = 0;
-
-            Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token }, file =>
-            {
-                try
-                {
-                    // Load small thumbnail (150px)
-                    var bmp = LoadBitmapWithOrientation(file, 150);
-
-                    if (bmp != null)
-                    {
-                        var item = new ImageItem 
-                        { 
-                            FileName = Path.GetFileName(file) ?? "Unknown", 
-                            FullPath = file, 
-                            Bitmap = bmp 
-                        };
-
-                        tempBag.Add(item);
-
-                        // Batch update UI every 20 items
-                        int currentCount = Interlocked.Increment(ref processedCount);
-                        if (currentCount % 20 == 0)
-                        {
-                            // Snapshot the current items to send to UI
-                            // Note: We don't clear tempBag here, we just grab new ones. 
-                            // Actually, simpler approach for reliability:
-                            // Just queue this specific item to be added.
-                            
-                            // However, adding 1 by 1 on UI thread is slow.
-                            // Better approach: Let the loop finish filling the bag, 
-                            // but periodically dump a chunk.
-                        }
-                    }
-                }
-                catch { /* Ignore corrupt files */ }
-            });
-
-            // 4. Reliable Final Update
-            // Parallel.ForEach is finished. All items are safely in 'tempBag'.
-            // Now we sort them and add them to the UI in one clean go 
-            // (or chunks if list is massive, but for 1000 items, one go is fine 
-            // and guarantees no duplicates/missing items).
-            
-            var sortedItems = tempBag.OrderBy(x => x.FileName).ToList();
-
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
-            {
-                // Use AddRange if your ObservableCollection supports it, 
-                // otherwise standard loop is fast enough for 1000 items on UI thread
-                foreach(var i in sortedItems)
-                {
-                    Images.Add(i);
-                }
-            }, Avalonia.Threading.DispatcherPriority.Background);
-
-        }, token);
-    }
-    catch (OperationCanceledException) { }
-    finally
-    {
-        // Cleanup
-        IsLoadingImages = false;
-        if (!token.IsCancellationRequested && Images.Count == 0) HasNoImages = true;
-        GC.Collect();
-    }
-}
-
+        // --- COMMANDS ---
         public void SetPackageImage(string category, ImageItem sourceItem)
         {
             ClearSlot(category);
             ImageItem newSlotItem = sourceItem;
-            try
-            {
-                // Slot thumbnails (300px)
-                var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
-                if (mediumBitmap != null)
-                {
-                    newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
-                }
-            }
-            catch { }
+            // Load medium quality for slot (300px) - uses cache if available
+            var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
+            if (mediumBitmap != null)
+                newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
 
             switch (category)
             {
@@ -649,7 +601,12 @@ private void ClearCache()
         {
             IsPreviewPackageDialogVisible = true;
             IsModalLoading = true;
-            DisposePreviewImages();
+            
+            PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
+            PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
+            PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
+            PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
+            PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
 
             try
             {
@@ -658,7 +615,7 @@ private void ClearCache()
                     ImageItem? Load(ImageItem? src)
                     {
                         if (src == null) return null;
-                        var bmp = LoadBitmapWithOrientation(src.FullPath, null); // Load full for modal preview check
+                        var bmp = LoadBitmapWithOrientation(src.FullPath, 500); 
                         if (bmp == null) return null;
                         return new ImageItem { Bitmap = bmp, FileName = src.FileName ?? "", FullPath = src.FullPath ?? "" };
                     }
@@ -683,17 +640,7 @@ private void ClearCache()
             finally { IsModalLoading = false; }
         }
 
-        private void DisposePreviewImages()
-        {
-            PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
-            PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
-            PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
-            PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
-            PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
-            GC.Collect();
-        }
-
-        [RelayCommand] public void ClosePreviewPackage() { IsPreviewPackageDialogVisible = false; DisposePreviewImages(); }
+        [RelayCommand] public void ClosePreviewPackage() { IsPreviewPackageDialogVisible = false; }
         [RelayCommand] public void OpenHelp() { IsHelpDialogVisible = true; }
         [RelayCommand] public void CloseHelp() { IsHelpDialogVisible = false; }
 
@@ -784,7 +731,7 @@ private void ClearCache()
         {
             IsAcknowledgementDialogVisible = false;
             IsLoadingSubmit = true;
-            await Task.Delay(3000);
+            await Task.Delay(2000); 
             try
             {
                 await Task.Run(() =>
@@ -829,7 +776,7 @@ private void ClearCache()
                 ClearBrowserImages();
                 IsLoadingSubmit = false;
                 IsThankYouDialogVisible = true;
-                await LoadImages(_currentBrowseFolderPath);
+                _ = LoadImages(_currentBrowseFolderPath);
             }
             catch (Exception ex) { IsLoadingSubmit = false; ErrorMessage = $"Saving Error: {ex.Message}"; IsErrorDialogVisible = true; }
         }
@@ -927,9 +874,13 @@ private void ClearCache()
         }
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }
-        private void ClearBrowserImages() { 
+        private void ClearBrowserImages() 
+        { 
             ClearCache();
             foreach (var i in Images) i.Bitmap?.Dispose(); 
-            Images.Clear(); GC.Collect(); HasNoImages = true; }
+            Images.Clear(); 
+            GC.Collect(); 
+            HasNoImages = true; 
+        }
     }
 }
