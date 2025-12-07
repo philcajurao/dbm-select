@@ -19,7 +19,6 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- Resources and Styles -->
     <Window.Resources>
         <StreamGeometry x:Key="TrashIcon">M10,2 L9,3 L5,3 L5,4 L15,4 L15,3 L11,3 L10,2 Z M5,5 L5,16 C5,17.1045695 5.8954305,18 7,18 L13,18 C14.1045695 18 15,17.1045695 15,16 L15,5 L5,5 Z</StreamGeometry>
         <StreamGeometry x:Key="FolderIcon">M19,20H5C3.89,20 3,19.1 3,18V6C3,4.89 3.89,4 5,4H9L11,6H19C20.1,6 21,6.89 21,8V18C21,19.1 20.1,20 19,20Z</StreamGeometry>
@@ -129,7 +128,6 @@
             <Setter Property="Stroke" Value="#ff8800"/>
         </Style>
 
-        <!-- Dynamic Scaling Styles for Slots -->
         <Style Selector="Border.slot-box">
             <Setter Property="Width" Value="120"/>
             <Setter Property="Height" Value="160"/>
@@ -185,7 +183,6 @@
 
     <Grid RowDefinitions="Auto, *" ColumnDefinitions="Auto, *" x:Name="MainGrid">
 
-        <!-- Top Toolbar -->
         <ExperimentalAcrylicBorder Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Height="30">
             <ExperimentalAcrylicBorder.Material>
                 <ExperimentalAcrylicMaterial
@@ -210,7 +207,6 @@
             </Grid>
         </ExperimentalAcrylicBorder>
 
-        <!-- Side Dropping Area -->
         <ExperimentalAcrylicBorder Grid.Row="1" Grid.Column="0"
                                    Padding="8,16"
                                    Width="350">
@@ -248,7 +244,6 @@
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Drop Targets Container -->
                 <Viewbox Grid.Row="2" Stretch="{Binding LayoutStretch}" StretchDirection="DownOnly">
                     <ScrollViewer VerticalScrollBarVisibility="{Binding ScrollVisibility}" 
                                   HorizontalScrollBarVisibility="Disabled">
@@ -257,10 +252,8 @@
                                     VerticalAlignment="Center" 
                                     Spacing="12">
 
-                            <!-- Row 1: 8x10 & Barong (Dynamic Orientation) -->
                             <StackPanel Orientation="{Binding SlotsOrientation}" Spacing="12" HorizontalAlignment="Center">
                                 
-                                <!-- 8x10 Box -->
                                 <StackPanel Spacing="5">
                                     <Border BorderBrush="Gray" BorderThickness="1" 
                                             Classes="slot-box"
@@ -269,42 +262,37 @@
                                             Classes.quad="{Binding IsQuadLayout}"
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="8x10" Background="Transparent" ClipToBounds="True">
-                                    <Panel>
-                                        <TextBlock Text="Drop photo here" 
+                                        <Panel>
+                                            <TextBlock Text="Drop photo here" 
                                                HorizontalAlignment="Center" 
                                                VerticalAlignment="Center" 
                                                Foreground="#aaa" 
                                                FontSize="10" 
                                                IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
                                     
-                                        <!-- Image at back -->
-                                        <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                            <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     
-                                        <!-- Size Name (Top Center) -->
-                                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2" Margin="0,0,0,0">
-                                            <TextBlock Text="8x10" Classes="slot-label"/>
-                                        </Border>
+                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2" Margin="0,0,0,0">
+                                                <TextBlock Text="8x10" Classes="slot-label"/>
+                                            </Border>
 
-                                        <!-- Delete Button Overlay -->
-                                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                        </Button>
-                                    </Panel>
-                                </Border>
-                                <!-- Filename Below -->
-                                <TextBlock Text="{Binding Image8x10.FileName}" 
-                                       IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                       Classes="filename-text"
-                                       Classes.single="{Binding IsSingleLargeLayout}"
-                                       Classes.double="{Binding IsDoubleLargeLayout}"
-                                       Classes.quad="{Binding IsQuadLayout}"
-                                       Classes.penta="{Binding IsFiveLayout}"
-                                       Foreground="#aaa" 
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       TextWrapping="Wrap"/>
+                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                                            </Button>
+                                        </Panel>
+                                    </Border>
+                                    <TextBlock Text="{Binding Image8x10.FileName}" 
+                                           IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                           Classes="filename-text"
+                                           Classes.single="{Binding IsSingleLargeLayout}"
+                                           Classes.double="{Binding IsDoubleLargeLayout}"
+                                           Classes.quad="{Binding IsQuadLayout}"
+                                           Classes.penta="{Binding IsFiveLayout}"
+                                           Foreground="#aaa" 
+                                           HorizontalAlignment="Center" TextAlignment="Center"
+                                           TextWrapping="Wrap"/>
                                 </StackPanel>
 
-                                <!-- Barong Box -->
                                 <StackPanel Spacing="5" IsVisible="{Binding IsBarongVisible}">
                                     <Border BorderBrush="Gray" BorderThickness="1" 
                                             Classes="slot-box"
@@ -313,150 +301,142 @@
                                             Classes.quad="{Binding IsQuadLayout}"
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Barong" Background="Transparent" ClipToBounds="True">
-                                    <Panel>
-                                        <TextBlock Text="Drop photo here" 
+                                        <Panel>
+                                            <TextBlock Text="Drop photo here" 
                                                HorizontalAlignment="Center" 
                                                VerticalAlignment="Center" 
                                                Foreground="#aaa" 
                                                FontSize="10" 
                                                IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-                                        <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                            <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     
-                                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                            <TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/>
-                                        </Border>
+                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                                                <TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/>
+                                            </Border>
 
-                                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                        </Button>
-                                    </Panel>
-                                </Border>
-                                <!-- Filename Below -->
-                                <TextBlock Text="{Binding ImageBarong.FileName}" 
-                                       IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                       Classes="filename-text"
-                                       Classes.single="{Binding IsSingleLargeLayout}"
-                                       Classes.double="{Binding IsDoubleLargeLayout}"
-                                       Classes.quad="{Binding IsQuadLayout}"
-                                       Classes.penta="{Binding IsFiveLayout}"
-                                       Foreground="#aaa" 
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       TextWrapping="Wrap"/>
+                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                                            </Button>
+                                        </Panel>
+                                    </Border>
+                                    <TextBlock Text="{Binding ImageBarong.FileName}" 
+                                           IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                           Classes="filename-text"
+                                           Classes.single="{Binding IsSingleLargeLayout}"
+                                           Classes.double="{Binding IsDoubleLargeLayout}"
+                                           Classes.quad="{Binding IsQuadLayout}"
+                                           Classes.penta="{Binding IsFiveLayout}"
+                                           Foreground="#aaa" 
+                                           HorizontalAlignment="Center" TextAlignment="Center"
+                                           TextWrapping="Wrap"/>
                                 </StackPanel>
                             </StackPanel>
 
-                            <!-- Row 2: Creative & Any -->
                             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsCreativeVisible}">
-                                <!-- Creative Box -->
                                 <StackPanel Spacing="5">
                                     <Border BorderBrush="Gray" BorderThickness="1" 
                                             Classes="slot-box"
                                             Classes.quad="{Binding IsQuadLayout}"
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Creative" Background="Transparent" ClipToBounds="True">
-                                    <Panel>
-                                        <TextBlock Text="Drop photo here" 
+                                        <Panel>
+                                            <TextBlock Text="Drop photo here" 
                                                HorizontalAlignment="Center" 
                                                VerticalAlignment="Center" 
                                                Foreground="#aaa" 
                                                FontSize="10" 
                                                IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-                                        <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                            <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     
-                                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                            <TextBlock Text="Creative" Classes="slot-label"/>
-                                        </Border>
+                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                                                <TextBlock Text="Creative" Classes="slot-label"/>
+                                            </Border>
 
-                                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                        </Button>
-                                    </Panel>
-                                </Border>
-                                <!-- Filename Below -->
-                                <TextBlock Text="{Binding ImageCreative.FileName}" 
-                                       IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                       Classes="filename-text"
-                                       Classes.quad="{Binding IsQuadLayout}"
-                                       Classes.penta="{Binding IsFiveLayout}"
-                                       FontSize="9" Foreground="#aaa" 
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       TextWrapping="Wrap"/>
+                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                                            </Button>
+                                        </Panel>
+                                    </Border>
+                                    <TextBlock Text="{Binding ImageCreative.FileName}" 
+                                           IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                           Classes="filename-text"
+                                           Classes.quad="{Binding IsQuadLayout}"
+                                           Classes.penta="{Binding IsFiveLayout}"
+                                           FontSize="9" Foreground="#aaa" 
+                                           HorizontalAlignment="Center" TextAlignment="Center"
+                                           TextWrapping="Wrap"/>
                                 </StackPanel>
 
-                                <!-- Any Box -->
                                 <StackPanel Spacing="5" IsVisible="{Binding IsAnyVisible}">
                                     <Border BorderBrush="Gray" BorderThickness="1" 
                                             Classes="slot-box"
                                             Classes.quad="{Binding IsQuadLayout}"
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Any" Background="Transparent" ClipToBounds="True">
-                                    <Panel>
-                                        <TextBlock Text="Drop photo here" 
+                                        <Panel>
+                                            <TextBlock Text="Drop photo here" 
                                                HorizontalAlignment="Center" 
                                                VerticalAlignment="Center" 
                                                Foreground="#aaa" 
                                                FontSize="10" 
                                                IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-                                        <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                            <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     
-                                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                            <TextBlock Text="Any" Classes="slot-label"/>
-                                        </Border>
+                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                                                <TextBlock Text="Any" Classes="slot-label"/>
+                                            </Border>
 
-                                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                        </Button>
-                                    </Panel>
-                                </Border>
-                                <!-- Filename Below -->
-                                <TextBlock Text="{Binding ImageAny.FileName}" 
-                                       IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                       Classes="filename-text"
-                                       Classes.quad="{Binding IsQuadLayout}"
-                                       Classes.penta="{Binding IsFiveLayout}"
-                                       FontSize="9" Foreground="#aaa" 
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       TextWrapping="Wrap"/>
+                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                                            </Button>
+                                        </Panel>
+                                    </Border>
+                                    <TextBlock Text="{Binding ImageAny.FileName}" 
+                                           IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                           Classes="filename-text"
+                                           Classes.quad="{Binding IsQuadLayout}"
+                                           Classes.penta="{Binding IsFiveLayout}"
+                                           FontSize="9" Foreground="#aaa" 
+                                           HorizontalAlignment="Center" TextAlignment="Center"
+                                           TextWrapping="Wrap"/>
                                 </StackPanel>
                             </StackPanel>
 
-                            <!-- Row 3: Instax -->
                             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsInstaxVisible}">
                                 <StackPanel Spacing="5">
                                     <Border BorderBrush="Gray" BorderThickness="1" 
                                             Classes="slot-box"
                                             Classes.penta="{Binding IsFiveLayout}"
                                             Tag="Instax" Background="Transparent" ClipToBounds="True">
-                                    <Panel>
-                                        <TextBlock Text="Drop photo here" 
+                                        <Panel>
+                                            <TextBlock Text="Drop photo here" 
                                                HorizontalAlignment="Center" 
                                                VerticalAlignment="Center" 
                                                Foreground="#aaa" 
                                                FontSize="10" 
                                                IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-                                        <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                            <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                     
-                                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                            <TextBlock Text="Instax" Classes="slot-label"/>
-                                        </Border>
+                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                                                <TextBlock Text="Instax" Classes="slot-label"/>
+                                            </Border>
 
-                                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                        </Button>
-                                    </Panel>
-                                </Border>
-                                <!-- Filename Below -->
-                                <TextBlock Text="{Binding ImageInstax.FileName}" 
-                                       IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                       Classes="filename-text"
-                                       Classes.penta="{Binding IsFiveLayout}"
-                                       FontSize="9" Foreground="#aaa" 
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       TextWrapping="Wrap" MaxWidth="120"/>
+                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                                            </Button>
+                                        </Panel>
+                                    </Border>
+                                    <TextBlock Text="{Binding ImageInstax.FileName}" 
+                                           IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                           Classes="filename-text"
+                                           Classes.penta="{Binding IsFiveLayout}"
+                                           FontSize="9" Foreground="#aaa" 
+                                           HorizontalAlignment="Center" TextAlignment="Center"
+                                           TextWrapping="Wrap" MaxWidth="120"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -473,13 +453,10 @@
             </Grid>
         </ExperimentalAcrylicBorder>
 
-        <!-- Main Content Area -->
         <Grid ColumnDefinitions="*, *" Grid.Row="1" Grid.Column="1" ColumnSpacing="16" Margin="16">
 
-            <!-- LEFT SIDE: Input + Browse Area -->
             <Grid Grid.Column="0" RowDefinitions="Auto, *" RowSpacing="16">
                 
-                <!--Top Input Data Area-->
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="24" Grid.Row="0">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
@@ -488,20 +465,16 @@
                     <Grid ColumnDefinitions="*, *" ColumnSpacing="20" VerticalAlignment="Center">
                         <StackPanel Grid.Column="0" Spacing="5">
                             <TextBlock Text="Email Address" FontSize="10" Foreground="#ccc"/>
-                            <!-- ✅ Updated: Responsive Width -->
                             <TextBox Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="5">
                             <TextBlock Text="Client Name" FontSize="10" Foreground="#ccc"/>
-                            <!-- ✅ Updated: Responsive Width -->
                             <TextBox Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                     </Grid>
                 </ExperimentalAcrylicBorder>
 
-                <!-- Browse Area + Sample Preview Button -->
                 <Grid Grid.Row="1" RowDefinitions="*, Auto">
-                    <!-- Browse Photos Area -->
                     <Border Grid.Row="0" BorderBrush="#666666" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
                         <ExperimentalAcrylicBorder CornerRadius="8" Padding="24">
                             <ExperimentalAcrylicBorder.Material>
@@ -519,7 +492,6 @@
                                     <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
                                 </StackPanel>
 
-                                <!-- ListBox (Always Visible) -->
                                 <ListBox Grid.Row="1" 
                                      x:Name="PhotosListBox" 
                                      KeyDown="PhotosListBox_KeyDown"
@@ -541,10 +513,25 @@
                                     </ListBox.Styles>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
+                                            <Border Classes="image-tile" 
+                                                    Cursor="Hand" 
+                                                    PointerPressed="OnPointerPressed" 
+                                                    PointerMoved="OnPointerMoved" 
+                                                    PointerReleased="OnPointerReleased" 
+                                                    Background="Transparent">
                                                 <StackPanel Margin="4" Width="110">
-                                                    <Image Source="{Binding Bitmap}" Width="40" Stretch="Uniform" HorizontalAlignment="Center" RenderOptions.BitmapInterpolationMode="None"/>
-                                                    <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,2,0,0"/>
+                                                    <Image Source="{Binding Bitmap}" 
+                                                           Width="40" 
+                                                           Stretch="Uniform" 
+                                                           HorizontalAlignment="Center" 
+                                                           RenderOptions.BitmapInterpolationMode="LowQuality"/>
+                                                    
+                                                    <TextBlock Text="{Binding FileName}" 
+                                                               Foreground="#e0e0e0" 
+                                                               TextWrapping="Wrap" 
+                                                               HorizontalAlignment="Center" 
+                                                               FontSize="8" 
+                                                               Margin="0,2,0,0"/>
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>
@@ -554,14 +541,12 @@
                         </ExperimentalAcrylicBorder>
                     </Border>
 
-                    <!-- Sample Preview Button Area -->
                     <ExperimentalAcrylicBorder Grid.Row="1" CornerRadius="8" Padding="24" Margin="0,16,0,0">
                         <ExperimentalAcrylicBorder.Material>
                             <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                         </ExperimentalAcrylicBorder.Material>
                         
                         <Grid ColumnDefinitions="*, Auto">
-                            <!-- Package Selector (Left) -->
                             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="Select Package" FontSize="12" Foreground="#f0f0f0" Margin="2,0,0,0"/>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
@@ -573,7 +558,6 @@
                                 </StackPanel>
                             </StackPanel>
 
-                            <!-- View Package Button (Right) -->
                             <Button Grid.Column="1" Command="{Binding OpenPreviewPackageCommand}" Classes="dialog-btn secondary" Padding="15,8" CornerRadius="8" ToolTip.Tip="Preview Package Inclusions" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="View Package" VerticalAlignment="Center"/>
@@ -584,51 +568,31 @@
                 </Grid>
             </Grid>
 
-            <!-- RIGHT SIDE: Quick Preview Area -->
-            <!-- ✅ Updated: Replaced ExperimentalAcrylicBorder with Border, Background="#FF000000" (Opaque Black) -->
             <Border Grid.Column="1" CornerRadius="8" Padding="24" Background="#FF000000">
                 <Grid Grid.Row="1" RowDefinitions="*, Auto">
     
-    <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" 
-               HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="PreviewImage" Converter="{x:Static ObjectConverters.IsNull}"/>
-                <Binding Path="!IsLoadingPreview"/>
-            </MultiBinding>
-        </TextBlock.IsVisible>
-    </TextBlock>
+                    <TextBlock Grid.Row="0" Text="Select a photo to preview" FontSize="12" Foreground="#d3d3d3" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNull}}"/>
     
-    <Border Grid.Row="0" Background="Black" CornerRadius="4" ClipToBounds="True" 
-            IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <Image Source="{Binding PreviewImage.Bitmap}" 
-               Stretch="Uniform"
-               UseLayoutRounding="True"
-               RenderOptions.BitmapInterpolationMode="HighQuality"/>
-    </Border>
+                    <Border Grid.Row="0" Background="Black" CornerRadius="4" ClipToBounds="True" 
+                            IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <Image Source="{Binding PreviewImage.Bitmap}" 
+                               Stretch="Uniform"
+                               UseLayoutRounding="True"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Border>
 
-    <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15" 
-            IsVisible="{Binding IsLoadingPreview}">
-    
-    <ProgressBar IsIndeterminate="True" Width="150" Height="4" 
-                 Foreground="#ff8800" Background="#333333" CornerRadius="2"/>
-    
-    <TextBlock Text="Loading high quality image..." Foreground="#aaaaaa" FontSize="12" 
-               FontStyle="Italic" HorizontalAlignment="Center"/>
-</StackPanel>
-
-    <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" 
-               FontWeight="Bold" HorizontalAlignment="Center" 
-               IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}" 
-               Margin="0,10,0,0"/>
-</Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding PreviewImage.FileName}" Foreground="#f0f0f0" FontSize="12" 
+                               FontWeight="Bold" HorizontalAlignment="Center" 
+                               IsVisible="{Binding PreviewImage, Converter={x:Static ObjectConverters.IsNotNull}}" 
+                               Margin="0,10,0,0"/>
+                </Grid>
             </Border>
 
         </Grid>
 
 
-        <!-- Dialog Overlays -->
-        <!-- Clear Confirmation -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsClearConfirmationVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -641,7 +605,6 @@
             </Border>
         </Grid>
 
-        <!-- Submit Confirmation -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSubmitConfirmationVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -659,7 +622,6 @@
             </Border>
         </Grid>
 
-        <!-- Validation Error -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsErrorDialogVisible}" ZIndex="200">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
@@ -675,7 +637,6 @@
             </Border>
         </Grid>
 
-        <!-- Settings Dialog -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsSettingsDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="450">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -722,7 +683,6 @@
             </Border>
         </Grid>
 
-        <!-- About Dialog -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsAboutDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -746,7 +706,6 @@
             </Border>
         </Grid>
 
-        <!-- Help Dialog -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsHelpDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -773,7 +732,6 @@
             </Border>
         </Grid>
 
-        <!-- Important Notes -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsImportantNotesDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -801,7 +759,6 @@
             </Border>
         </Grid>
 
-        <!-- Acknowledgement -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsAcknowledgementDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -829,7 +786,6 @@
             </Border>
         </Grid>
 
-        <!-- Loading Overlay for Submission -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" 
               Background="#CC000000" IsVisible="{Binding IsLoadingSubmit}" ZIndex="400">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
@@ -842,7 +798,6 @@
             </StackPanel>
         </Grid>
 
-        <!-- Thank You -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsThankYouDialogVisible}" ZIndex="250">
             <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="350">
                 <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
@@ -859,7 +814,6 @@
             </Border>
         </Grid>
 
-        <!-- Preview -->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsPreviewPackageDialogVisible}" ZIndex="300">
             <Border Margin="30" CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000">
                 <ExperimentalAcrylicBorder CornerRadius="8">
@@ -878,12 +832,10 @@
                             <TextBlock Text="Loading high-resolution preview..." Foreground="#ccc" FontSize="14" HorizontalAlignment="Center"/>
                         </StackPanel>
 
-                        <!-- ✅ Replaced Viewbox with Grid + ScrollViewer -->
                         <Grid Grid.Row="1" IsVisible="{Binding !IsModalLoading}">
                             <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20">
                                      <Panel>
-                                        <!-- Package D -->
                                         <Grid ColumnDefinitions="Auto, 20, Auto, 20, Auto" IsVisible="{Binding IsPkgDSelected}">
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
                                                 <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="25" BoxShadow="0 0 25 5 black">
@@ -913,7 +865,7 @@
                                                 <TextBlock Text="8x10 PRINT with 10x12 FRAME" FontSize="14" Foreground="#cc8800" HorizontalAlignment="Center" FontWeight="Bold"/>
                                             </StackPanel>
 
-                                          <Grid Grid.Column="4" RowDefinitions="Auto, 15, Auto, 15, Auto" VerticalAlignment="Top">
+                                            <Grid Grid.Column="4" RowDefinitions="Auto, 15, Auto, 15, Auto" VerticalAlignment="Top">
 
     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
         
@@ -987,8 +939,7 @@
 </Grid>
                                         </Grid>
 
-                                        <!-- Package C -->
-                                       <Grid ColumnDefinitions="Auto, 25, Auto" Height="550" IsVisible="{Binding IsPkgCSelected}">
+                                        <Grid ColumnDefinitions="Auto, 25, Auto" Height="550" IsVisible="{Binding IsPkgCSelected}">
     
     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="15" BoxShadow="0 0 15 4 black">
@@ -1045,7 +996,6 @@
     </Grid>
 </Grid>
 
-                                        <!-- Package B -->
                                         <Grid ColumnDefinitions="Auto, 40, Auto" Height="450" IsVisible="{Binding IsPkgBSelected}">
     
     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
@@ -1097,7 +1047,6 @@
     </Grid>
 </Grid>
 
-                                        <!-- Package A -->
                                         <Grid ColumnDefinitions="Auto, 40, Auto" Height="450" IsVisible="{Binding IsPkgASelected}">
     
     <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="10">
@@ -1141,8 +1090,6 @@
     </Grid>
 </Grid>
 
-                                        <!-- Basic Package -->
-                                        <!-- ✅ UPDATED: Scaled up dimensions (560x700) -->
                                         <StackPanel Spacing="15" IsVisible="{Binding IsBasicSelected}" VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <Border Background="#151515" BorderBrush="#333" BorderThickness="2" BoxShadow="0 0 20 5 #000000">
                                                 <Panel Width="560" Height="700">
@@ -1157,19 +1104,19 @@
                             </ScrollViewer>
                         </Grid>
 
-                        <TextBlock Grid.Row="2"
-                                   Text="* NOTE: This preview is for REFERENCE ONLY. Final layout may be adjusted to ensure the best quality."
-                                   FontSize="13"
-                                   Foreground="#ff8800"
-                                   FontWeight="SemiBold"
-                                   VerticalAlignment="Center"
+                        <TextBlock Grid.Row="2" 
+                                   Text="* NOTE: This preview is for REFERENCE ONLY. Final layout may be adjusted to ensure the best quality." 
+                                   FontSize="13" 
+                                   Foreground="#ff8800" 
+                                   FontWeight="SemiBold" 
+                                   VerticalAlignment="Center" 
                                    HorizontalAlignment="Left"
                                    Margin="5,0,0,0"/>
 
-                        <Button Grid.Row="2"
-                                Content="Close Preview"
-                                Command="{Binding ClosePreviewPackageCommand}"
-                                Classes="dialog-btn secondary"
+                        <Button Grid.Row="2" 
+                                Content="Close Preview" 
+                                Command="{Binding ClosePreviewPackageCommand}" 
+                                Classes="dialog-btn secondary" 
                                 HorizontalAlignment="Right"
                                 Padding="20,10"/>
                     </Grid>
@@ -1177,7 +1124,6 @@
             </Border>
         </Grid>
 
-        <!-- Ghost Image Overlay -->
         <Canvas x:Name="DragCanvas" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" IsHitTestVisible="False" IsVisible="False" ZIndex="100">
             <Image x:Name="GhostImage" Width="80" Height="80" Opacity="0.7" Stretch="UniformToFill"/>
         </Canvas>
