@@ -542,7 +542,7 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <Border Classes="image-tile" Cursor="Hand" PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased" Background="Transparent">
-                                                <StackPanel Margin="4" Width="60">
+                                                <StackPanel Margin="4" Width="110">
                                                     <Image Source="{Binding Bitmap}" Width="40" Stretch="Uniform" HorizontalAlignment="Center" RenderOptions.BitmapInterpolationMode="None"/>
                                                     <TextBlock Text="{Binding FileName}" Foreground="#e0e0e0" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="8" Margin="0,2,0,0"/>
                                                 </StackPanel>
@@ -626,7 +626,6 @@
 
         </Grid>
 
-        </Grid>
 
         <!-- Dialog Overlays -->
         <!-- Clear Confirmation -->

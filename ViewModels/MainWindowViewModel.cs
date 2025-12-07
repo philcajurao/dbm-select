@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace dbm_select.ViewModels
 {
@@ -153,17 +154,14 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isLoadingImages;
 
         public ObservableCollection<ImageItem> Images { get; } = new();
-        
 
-        
-        // --- SKIASHARP HELPER ---
+        // --- SKIASHARP HELPER (For Thumbnails) ---
         private Bitmap? LoadBitmapWithOrientation(string path, int? targetWidth)
         {
             FileStream? stream = null;
             try
             {
                 stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
                 using var codec = SKCodec.Create(stream);
                 if (codec == null) throw new Exception("Skia Codec failed");
 
@@ -177,45 +175,35 @@ namespace dbm_select.ViewModels
                     supportedDimensions = codec.GetScaledDimensions(scale);
                 }
 
-                // Color Management & Dithering preserved
                 var bitmapInfo = new SKImageInfo(
                     supportedDimensions.Width,
                     supportedDimensions.Height,
                     SKColorType.Bgra8888,
                     SKAlphaType.Premul,
-                    SKColorSpace.CreateSrgb()); 
+                    SKColorSpace.CreateSrgb());
 
                 using var bitmap = new SKBitmap(bitmapInfo);
-
                 var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
-                
+
                 if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
-                {
                     throw new Exception("Skia GetPixels failed");
-                }
 
                 SKBitmap finalBitmap = bitmap;
                 bool needsDispose = false;
 
+                // Handle Rotation
                 if (orientation != SKEncodedOrigin.TopLeft)
                 {
                     finalBitmap = RotateBitmap(bitmap, orientation);
                     needsDispose = true;
                 }
 
+                // Handle Scaling
                 if (targetWidth.HasValue && finalBitmap.Width > targetWidth.Value)
                 {
                     int height = (int)((double)targetWidth.Value / finalBitmap.Width * finalBitmap.Height);
-
-                    var resizeInfo = new SKImageInfo(
-                        targetWidth.Value,
-                        height,
-                        SKColorType.Bgra8888,
-                        SKAlphaType.Premul,
-                        SKColorSpace.CreateSrgb());
-
+                    var resizeInfo = new SKImageInfo(targetWidth.Value, height, SKColorType.Bgra8888, SKAlphaType.Premul, SKColorSpace.CreateSrgb());
                     var resized = finalBitmap.Resize(resizeInfo, SKFilterQuality.High);
-
                     if (resized != finalBitmap)
                     {
                         if (needsDispose) finalBitmap.Dispose();
@@ -224,24 +212,15 @@ namespace dbm_select.ViewModels
                     }
                 }
 
+                // Convert to Avalonia Bitmap
                 var pixelSize = new Avalonia.PixelSize(finalBitmap.Width, finalBitmap.Height);
                 var vector = new Avalonia.Vector(96, 96);
-
                 var writeableBitmap = new Avalonia.Media.Imaging.WriteableBitmap(
-                    pixelSize,
-                    vector,
-                    Avalonia.Platform.PixelFormat.Bgra8888,
-                    Avalonia.Platform.AlphaFormat.Premul);
+                    pixelSize, vector, Avalonia.Platform.PixelFormat.Bgra8888, Avalonia.Platform.AlphaFormat.Premul);
 
                 using (var buffer = writeableBitmap.Lock())
                 {
-                    var dstInfo = new SKImageInfo(
-                        finalBitmap.Width,
-                        finalBitmap.Height,
-                        SKColorType.Bgra8888,
-                        SKAlphaType.Premul,
-                        SKColorSpace.CreateSrgb());
-
+                    var dstInfo = new SKImageInfo(finalBitmap.Width, finalBitmap.Height, SKColorType.Bgra8888, SKAlphaType.Premul, SKColorSpace.CreateSrgb());
                     using (var surface = SKSurface.Create(dstInfo, buffer.Address, buffer.RowBytes))
                     {
                         if (surface != null)
@@ -257,15 +236,11 @@ namespace dbm_select.ViewModels
                 if (needsDispose) finalBitmap.Dispose();
                 return writeableBitmap;
             }
-            catch (Exception)
+            catch
             {
                 stream?.Dispose();
                 stream = null;
-                try
-                {
-                    return new Bitmap(path);
-                }
-                catch { return null; }
+                try { return new Bitmap(path); } catch { return null; }
             }
             finally { stream?.Dispose(); }
         }
@@ -276,43 +251,196 @@ namespace dbm_select.ViewModels
             var info = new SKImageInfo(
                 orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Height : bitmap.Width,
                 orientation == SKEncodedOrigin.RightTop || orientation == SKEncodedOrigin.LeftBottom ? bitmap.Width : bitmap.Height,
-                bitmap.ColorType,
-                bitmap.AlphaType,
-                bitmap.ColorSpace); 
+                bitmap.ColorType, bitmap.AlphaType, bitmap.ColorSpace);
 
             switch (orientation)
             {
                 case SKEncodedOrigin.BottomRight:
                     rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated))
-                    {
-                        canvas.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2);
-                        canvas.DrawBitmap(bitmap, 0, 0);
-                    }
+                    using (var canvas = new SKCanvas(rotated)) { canvas.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2); canvas.DrawBitmap(bitmap, 0, 0); }
                     break;
                 case SKEncodedOrigin.RightTop:
                     rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated))
-                    {
-                        canvas.Translate(rotated.Width, 0);
-                        canvas.RotateDegrees(90);
-                        canvas.DrawBitmap(bitmap, 0, 0);
-                    }
+                    using (var canvas = new SKCanvas(rotated)) { canvas.Translate(rotated.Width, 0); canvas.RotateDegrees(90); canvas.DrawBitmap(bitmap, 0, 0); }
                     break;
                 case SKEncodedOrigin.LeftBottom:
                     rotated = new SKBitmap(info);
-                    using (var canvas = new SKCanvas(rotated))
-                    {
-                        canvas.Translate(0, rotated.Height);
-                        canvas.RotateDegrees(270);
-                        canvas.DrawBitmap(bitmap, 0, 0);
-                    }
+                    using (var canvas = new SKCanvas(rotated)) { canvas.Translate(0, rotated.Height); canvas.RotateDegrees(270); canvas.DrawBitmap(bitmap, 0, 0); }
                     break;
                 default: return bitmap;
             }
             return rotated;
         }
 
+        // --- NEW HELPER: Manual Rotation for Preview Pipeline ---
+        private SKBitmap RotateSkBitmap(SKBitmap bitmap, double angle)
+        {
+            if (angle == 0) return bitmap;
+
+            bool isRotated90or270 = angle % 180 != 0;
+            int newWidth = isRotated90or270 ? bitmap.Height : bitmap.Width;
+            int newHeight = isRotated90or270 ? bitmap.Width : bitmap.Height;
+
+            var rotatedBitmap = new SKBitmap(newWidth, newHeight, bitmap.ColorType, bitmap.AlphaType);
+
+            using (var canvas = new SKCanvas(rotatedBitmap))
+            {
+                canvas.Clear();
+                canvas.Translate(newWidth / 2f, newHeight / 2f);
+                canvas.RotateDegrees((float)angle);
+                canvas.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f);
+                canvas.DrawBitmap(bitmap, 0, 0);
+            }
+            return rotatedBitmap;
+        }
+
+        // --- NATIVE VIEWER LOGIC (SHARPENING + ROTATION) ---
+        private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
+{
+    // 1. Dispose previous image to free memory
+    if (PreviewImage != null && PreviewImage != thumbnailItem)
+    {
+        PreviewImage.Bitmap?.Dispose();
+        PreviewImage = null;
+    }
+
+    if (thumbnailItem == null) return;
+
+    IsLoadingPreview = true;
+
+    try
+    {
+        var sharpenedItem = await Task.Run(() =>
+        {
+            if (token.IsCancellationRequested) return null;
+
+            try
+            {
+                // 1. Get Orientation Angle
+                double rotationAngle = dbm_select.Utils.ExifHelper.GetOrientationAngle(thumbnailItem.FullPath);
+
+                using var stream = File.OpenRead(thumbnailItem.FullPath);
+                
+                // --- OPTIMIZATION STARTS HERE ---
+                // Instead of SKBitmap.Decode(stream), we use SKCodec to peek first
+                using var codec = SKCodec.Create(stream);
+                if (codec == null) return null;
+
+                // 2. Calculate optimal decode size (Targeting ~1500px width for preview)
+                int targetWidth = 1500;
+                var info = codec.Info;
+                SKSizeI supportedDimensions = info.Size;
+
+                // Only scale down if the image is actually huge
+                if (info.Width > targetWidth)
+                {
+                    float scale = (float)targetWidth / info.Width;
+                    supportedDimensions = codec.GetScaledDimensions(scale);
+                }
+
+                // 3. Decode DIRECTLY to the smaller size (Huge speed boost)
+                var decodeInfo = new SKImageInfo(
+                    supportedDimensions.Width,
+                    supportedDimensions.Height,
+                    SKColorType.Bgra8888, // Use Bgra for best compatibility
+                    SKAlphaType.Premul,
+                    SKColorSpace.CreateSrgb());
+
+                using var rawBitmap = new SKBitmap(decodeInfo);
+                var result = codec.GetPixels(decodeInfo, rawBitmap.GetPixels());
+
+                if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
+                    return null;
+                // --- OPTIMIZATION ENDS HERE ---
+
+                // 4. Apply Rotation (Now fast because bitmap is small)
+                SKBitmap workingBitmap = rawBitmap;
+                bool needsDispose = false;
+
+                if (rotationAngle != 0)
+                {
+                    var rotated = RotateSkBitmap(rawBitmap, rotationAngle);
+                    workingBitmap = rotated;
+                    needsDispose = true; // Mark to dispose the new rotated copy
+                }
+
+                // 5. Sharpening Logic (Kept exactly the same for quality)
+                var finalInfo = new SKImageInfo(workingBitmap.Width, workingBitmap.Height);
+                using var surface = SKSurface.Create(finalInfo);
+                using var canvas = surface.Canvas;
+
+                canvas.Clear(SKColors.Transparent);
+
+                // Standard 3x3 Sharpening Kernel
+                var kernel = new float[]
+                {
+                    -0.5f, -0.5f, -0.5f,
+                    -0.5f,  5.0f, -0.5f,
+                    -0.5f, -0.5f, -0.5f
+                };
+
+                using var paint = new SKPaint();
+                paint.FilterQuality = SKFilterQuality.High; // Ensure high quality draw
+                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(
+                    new SKSizeI(3, 3),
+                    kernel,
+                    1.0f,
+                    0.0f,
+                    new SKPointI(1, 1),
+                    SKShaderTileMode.Clamp,
+                    false,
+                    null,
+                    null
+                );
+
+                canvas.DrawBitmap(workingBitmap, 0, 0, paint);
+                canvas.Flush();
+
+                // Clean up rotated copy if created
+                if (needsDispose) workingBitmap.Dispose();
+
+                // 6. Convert back to Avalonia Bitmap
+                using var image = surface.Snapshot();
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                using var ms = new MemoryStream();
+                data.SaveTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+
+                return new ImageItem
+                {
+                    Bitmap = new Bitmap(ms),
+                    FileName = thumbnailItem.FileName ?? string.Empty,
+                    FullPath = thumbnailItem.FullPath ?? string.Empty
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }, token);
+
+        if (token.IsCancellationRequested)
+        {
+            sharpenedItem?.Bitmap?.Dispose();
+            return;
+        }
+
+        if (sharpenedItem != null)
+        {
+            PreviewImage = sharpenedItem;
+        }
+    }
+    catch { }
+    finally
+    {
+        IsLoadingPreview = false;
+        // Note: Removed GC.Collect() here as calling it on every click causes stuttering.
+        // Let the system handle it naturally, or do it periodically.
+    }
+}
+
+
+        // --- IMAGE LOADING LOGIC ---
         private CancellationTokenSource? _loadImagesCts;
 
         public async Task LoadImages(string folderPath)
@@ -356,6 +484,7 @@ namespace dbm_select.ViewModels
                         if (token.IsCancellationRequested) break;
                         try
                         {
+                            // Load Thumbnail size (100px) for list
                             var bmp = LoadBitmapWithOrientation(file, 100);
                             if (bmp != null)
                             {
@@ -378,95 +507,13 @@ namespace dbm_select.ViewModels
             }
         }
 
-     private async Task UpdatePreviewAsync(ImageItem? thumbnailItem, CancellationToken token)
-{
-    // 1. Clear old image
-    if (PreviewImage != null && PreviewImage != thumbnailItem)
-    {
-        PreviewImage.Bitmap?.Dispose();
-        PreviewImage = null;
-    }
-
-    if (thumbnailItem == null) return;
-
-    // TURN ON LOADING
-    IsLoadingPreview = true;
-
-    try
-    {
-        var sharpenedItem = await Task.Run(() =>
-        {
-            if (token.IsCancellationRequested) return null;
-
-            try
-            {
-                using var stream = File.OpenRead(thumbnailItem.FullPath);
-                using var originalBitmap = SKBitmap.Decode(stream);
-                if (originalBitmap == null) return null;
-
-                // Target ~1500px width for Retina quality
-                int targetWidth = 1500;
-                int targetHeight = (int)((float)originalBitmap.Height / originalBitmap.Width * targetWidth);
-                var info = new SKImageInfo(targetWidth, targetHeight);
-
-                // High Quality Resize
-                using var resizedBitmap = originalBitmap.Resize(info, SKFilterQuality.High);
-
-                // Sharpening Matrix
-                using var surface = SKSurface.Create(info);
-                using var canvas = surface.Canvas;
-                canvas.Clear(SKColors.Transparent);
-
-                var kernel = new float[] { -0.5f, -0.5f, -0.5f, -0.5f, 5.0f, -0.5f, -0.5f, -0.5f, -0.5f };
-
-                using var paint = new SKPaint();
-                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(
-                    new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1),
-                    SKShaderTileMode.Clamp, false, null, null);
-
-                canvas.DrawBitmap(resizedBitmap, 0, 0, paint);
-                canvas.Flush();
-
-                // Encode to Bitmap
-                using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                using var ms = new MemoryStream();
-                data.SaveTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-
-                return new ImageItem
-                {
-                    Bitmap = new Bitmap(ms),
-                    FileName = thumbnailItem.FileName ?? string.Empty,
-                    FullPath = thumbnailItem.FullPath ?? string.Empty
-                };
-            }
-            catch { return null; }
-        }, token);
-
-        if (token.IsCancellationRequested)
-        {
-            sharpenedItem?.Bitmap?.Dispose();
-            return;
-        }
-
-        if (sharpenedItem != null) PreviewImage = sharpenedItem;
-    }
-    catch { }
-    finally
-    {
-        // TURN OFF LOADING (UI Thread)
-        IsLoadingPreview = false;
-        GC.Collect();
-    }
-}
         public void SetPackageImage(string category, ImageItem sourceItem)
         {
             ClearSlot(category);
             ImageItem newSlotItem = sourceItem;
             try
             {
-                // Slots keep using 300px for performance
+                // Slot thumbnails (300px)
                 var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
                 if (mediumBitmap != null)
                 {
@@ -499,15 +546,9 @@ namespace dbm_select.ViewModels
                     ImageItem? Load(ImageItem? src)
                     {
                         if (src == null) return null;
-                        var bmp = LoadBitmapWithOrientation(src.FullPath, null);
+                        var bmp = LoadBitmapWithOrientation(src.FullPath, null); // Load full for modal preview check
                         if (bmp == null) return null;
-
-                        return new ImageItem
-                        {
-                            Bitmap = bmp,
-                            FileName = src.FileName ?? string.Empty,
-                            FullPath = src.FullPath ?? string.Empty
-                        };
+                        return new ImageItem { Bitmap = bmp, FileName = src.FileName ?? "", FullPath = src.FullPath ?? "" };
                     }
 
                     return new Dictionary<string, ImageItem?>
