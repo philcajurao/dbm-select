@@ -3,10 +3,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
+using dbmselect.Models;
 using MiniExcelLibs;
 using SkiaSharp;
 using System;
@@ -14,24 +14,21 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Utils;
 
 namespace dbm_select.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        private readonly string _settingsFilePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "DBM_Select",
-            "settings.json");
+        private readonly AppSettings _appsettings = new();
 
         // --- CACHING VARIABLES ---
         private const int MaxCacheSize = 20;
-        private readonly Dictionary<string, ImageItem> _highResCache = new();
-        private readonly List<string> _cacheOrder = new();
+        private readonly Dictionary<string, ImageItem> _highResCache = [];
+        private readonly List<string> _cacheOrder = [];
         private readonly object _cacheLock = new();
         private ImageItem? _lastHighResPreview; 
 
@@ -42,15 +39,15 @@ namespace dbm_select.ViewModels
             if (!LoadSettings())
             {
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string baseFolder = Path.Combine(documentsPath, "DBM_Select");
-                string logsFolder = Path.Combine(baseFolder, "Logs");
+                string baseFolder = Path.Combine(documentsPath, FolderNameConstants.DBM_SELECT);
+                string logsFolder = Path.Combine(baseFolder, FolderNameConstants.LOGS);
 
                 if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
                 if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
 
                 OutputFolderPath = baseFolder;
                 ExcelFolderPath = logsFolder;
-                ExcelFileName = "Client_Logs";
+                ExcelFileName = FileNameConstants.CLIENT_LOGS;
             }
 
             string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
@@ -59,7 +56,7 @@ namespace dbm_select.ViewModels
 
             _ = LoadImages(folderToLoad);
 
-            UpdateVisibility("Basic");
+            UpdateVisibility(PackgeConstants.Basic);
         }
 
         // --- PROPERTIES ---
@@ -73,7 +70,7 @@ namespace dbm_select.ViewModels
         partial void OnOutputFolderPathChanged(string value) => CheckSettingsDirty();
         [ObservableProperty] private string _excelFolderPath = string.Empty;
         partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
-        [ObservableProperty] private string _excelFileName = "Client_Logs";
+        [ObservableProperty] private string _excelFileName = FileNameConstants.CLIENT_LOGS;
         partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
 
         private void CheckSettingsDirty()
@@ -86,8 +83,8 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
-        private string _selectedPackage = "Basic";
-        public string SelectedPackageDisplayName => SelectedPackage == "Basic" ? "Basic Package" : $"Package {SelectedPackage}";
+        private string _selectedPackage = PackgeConstants.Basic;
+        public string SelectedPackageDisplayName => SelectedPackage == PackgeConstants.Basic ? PackgeConstants.BasicPackage : $"Package {SelectedPackage}";
 
         [ObservableProperty] private bool _isBasicSelected = true;
         [ObservableProperty] private bool _isPkgASelected;
@@ -588,11 +585,11 @@ namespace dbm_select.ViewModels
 
             switch (category)
             {
-                case "8x10": Image8x10 = newSlotItem; break;
-                case "Barong": ImageBarong = newSlotItem; break;
-                case "Creative": ImageCreative = newSlotItem; break;
-                case "Any": ImageAny = newSlotItem; break;
-                case "Instax": ImageInstax = newSlotItem; break;
+                case CategoryConstants.EightByTen: Image8x10 = newSlotItem; break;
+                case CategoryConstants.Barong: ImageBarong = newSlotItem; break;
+                case CategoryConstants.Creative: ImageCreative = newSlotItem; break;
+                case CategoryConstants.Any: ImageAny = newSlotItem; break;
+                case CategoryConstants.Instax: ImageInstax = newSlotItem; break;
             }
         }
 
@@ -622,19 +619,19 @@ namespace dbm_select.ViewModels
 
                     return new Dictionary<string, ImageItem?>
                     {
-                        { "8x10", Load(Image8x10) },
-                        { "Barong", IsBarongVisible ? Load(ImageBarong) : null },
-                        { "Creative", IsCreativeVisible ? Load(ImageCreative) : null },
-                        { "Any", IsAnyVisible ? Load(ImageAny) : null },
-                        { "Instax", IsInstaxVisible ? Load(ImageInstax) : null }
+                        { CategoryConstants.EightByTen, Load(Image8x10) },
+                        { CategoryConstants.Barong, IsBarongVisible ? Load(ImageBarong) : null },
+                        { CategoryConstants.Creative, IsCreativeVisible ? Load(ImageCreative) : null },
+                        { CategoryConstants.Any, IsAnyVisible ? Load(ImageAny) : null },
+                        { CategoryConstants.Instax, IsInstaxVisible ? Load(ImageInstax) : null }
                     };
                 });
 
-                PreviewImage8x10 = results["8x10"];
-                PreviewImageBarong = results["Barong"];
-                PreviewImageCreative = results["Creative"];
-                PreviewImageAny = results["Any"];
-                PreviewImageInstax = results["Instax"];
+                PreviewImage8x10 = results[CategoryConstants.EightByTen];
+                PreviewImageBarong = results[CategoryConstants.Barong];
+                PreviewImageCreative = results[CategoryConstants.Creative];
+                PreviewImageAny = results[CategoryConstants.Any];
+                PreviewImageInstax = results[CategoryConstants.Instax];
             }
             catch { IsPreviewPackageDialogVisible = false; }
             finally { IsModalLoading = false; }
@@ -717,11 +714,11 @@ namespace dbm_select.ViewModels
         {
             switch (category)
             {
-                case "8x10": Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
-                case "Barong": ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
-                case "Creative": ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
-                case "Any": ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
-                case "Instax": ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
+                case CategoryConstants.EightByTen: Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
+                case CategoryConstants.Barong: ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
+                case CategoryConstants.Creative: ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
+                case CategoryConstants.Any: ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
+                case CategoryConstants.Instax: ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
             }
             GC.Collect();
         }
@@ -742,11 +739,11 @@ namespace dbm_select.ViewModels
                     string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
                     if (!Directory.Exists(specificFolder)) Directory.CreateDirectory(specificFolder);
 
-                    SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
-                    if (IsBarongVisible) SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
-                    if (IsCreativeVisible) SaveImageToFile(ImageCreative, " Creative ", specificFolder);
-                    if (IsAnyVisible) SaveImageToFile(ImageAny, " Any ", specificFolder);
-                    if (IsInstaxVisible) SaveImageToFile(ImageInstax, " Instax ", specificFolder);
+                    SaveImageToFile(Image8x10, $" {CategoryConstants.EightByTen} ", specificFolder);
+                    if (IsBarongVisible) SaveImageToFile(ImageBarong, $" {CategoryConstants.Barong} Filipiniana ", specificFolder);
+                    if (IsCreativeVisible) SaveImageToFile(ImageCreative, $" {CategoryConstants.Creative} ", specificFolder);
+                    if (IsAnyVisible) SaveImageToFile(ImageAny, $" {CategoryConstants.Any} ", specificFolder);
+                    if (IsInstaxVisible) SaveImageToFile(ImageInstax, $" {CategoryConstants.Instax} ", specificFolder);
 
                     string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
                     string? excelDir = Path.GetDirectoryName(excelPath);
@@ -792,14 +789,32 @@ namespace dbm_select.ViewModels
 
         private bool LoadSettings()
         {
-            try { if (File.Exists(_settingsFilePath)) { var json = File.ReadAllText(_settingsFilePath); var settings = JsonSerializer.Deserialize<AppSettings>(json); if (settings != null) { if (!string.IsNullOrEmpty(settings.LastOutputFolder)) OutputFolderPath = settings.LastOutputFolder; if (!string.IsNullOrEmpty(settings.LastExcelFolder)) ExcelFolderPath = settings.LastExcelFolder; else ExcelFolderPath = OutputFolderPath; if (!string.IsNullOrEmpty(settings.LastExcelFileName)) ExcelFileName = settings.LastExcelFileName; if (!string.IsNullOrEmpty(settings.LastBrowseFolder)) _currentBrowseFolderPath = settings.LastBrowseFolder; return true; } } } catch { }
-            return false;
+            if (!_appsettings.LoadSettings())
+                return false;
+
+            if (!string.IsNullOrEmpty(_appsettings.LastOutputFolder)) 
+                OutputFolderPath = _appsettings.LastOutputFolder; 
+                    
+            if (!string.IsNullOrEmpty(_appsettings.LastExcelFolder)) 
+                ExcelFolderPath = _appsettings.LastExcelFolder; 
+            else ExcelFolderPath = OutputFolderPath; 
+                            
+            if (!string.IsNullOrEmpty(_appsettings.LastExcelFileName)) 
+                ExcelFileName = _appsettings.LastExcelFileName; 
+            
+            if (!string.IsNullOrEmpty(_appsettings.LastBrowseFolder)) 
+                _currentBrowseFolderPath = _appsettings.LastBrowseFolder; 
+                            
+            return true; 
         }
         private void SaveSettings()
         {
-            try { string? dir = Path.GetDirectoryName(_settingsFilePath); if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir); var settings = new AppSettings { LastOutputFolder = OutputFolderPath, LastExcelFolder = ExcelFolderPath, LastExcelFileName = ExcelFileName, LastBrowseFolder = _currentBrowseFolderPath }; File.WriteAllText(_settingsFilePath, JsonSerializer.Serialize(settings)); } catch { }
+            _appsettings.SaveSettings(
+                OutputFolderPath,
+                ExcelFolderPath,
+                ExcelFileName,
+                _currentBrowseFolderPath);
         }
-        public class AppSettings { public string? LastOutputFolder { get; set; } public string? LastExcelFolder { get; set; } public string? LastExcelFileName { get; set; } public string? LastBrowseFolder { get; set; } }
 
         private void UpdateVisibility(string pkg)
         {
