@@ -1,5 +1,16 @@
 ﻿namespace dbmselect.Models
 {
+    public class FolderNameConstants
+    {
+        public const string DBM_SELECT = "DBM_Select";
+        public const string LOGS = "Output";
+    }
+
+    public class FileNameConstants
+    {
+        public const string CLIENT_LOGS = "Client_Logs";
+    }
+
     public class PackgeConstants
     {
         public const string PackageA = "Package A";
@@ -7,6 +18,7 @@
         public const string PackageC = "Package C";
         public const string PackageD = "Package D";
         public const string BasicPackage = "Basic Package";
+        public const string Basic = "Basic";
     }
 
     public class CategoryConstants
