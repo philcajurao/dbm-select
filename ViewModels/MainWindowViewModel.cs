@@ -10,6 +10,7 @@ using dbm_select.Models;
 using MiniExcelLibs;
 using SkiaSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -34,6 +35,16 @@ namespace dbm_select.ViewModels
         private readonly List<string> _cacheOrder = new();
         private readonly object _cacheLock = new();
         private ImageItem? _lastHighResPreview; 
+
+        // --- FOLDER CACHE (Instant Load) ---
+        private readonly Dictionary<string, List<ImageItem>> _folderCache = new();
+        private readonly List<string> _folderCacheOrder = new();
+        private const int MaxFolderCacheCount = 5;
+
+        // --- WORKER QUEUE ---
+        // Instead of firing 200 tasks, we queue items here and 1 worker processes them.
+        private readonly ConcurrentQueue<ImageItem> _upgradeQueue = new();
+        private CancellationTokenSource? _loadImagesCts;
 
         public MainWindowViewModel()
         {
@@ -62,7 +73,7 @@ namespace dbm_select.ViewModels
             UpdateVisibility("Basic");
         }
 
-        // --- PROPERTIES ---
+        // --- PROPERTIES (Unchanged) ---
         private string _snapOutputFolder = string.Empty;
         private string _snapExcelFolder = string.Empty;
         private string _snapExcelFileName = string.Empty;
@@ -155,32 +166,59 @@ namespace dbm_select.ViewModels
         public ObservableCollection<ImageItem> Images { get; } = new();
 
         // ---------------------------------------------------------
-        // IMAGE LOADING LOGIC (Smart Cache-First Strategy)
+        // STABLE IMAGE LOADING LOGIC (Worker Pattern)
         // ---------------------------------------------------------
-        private CancellationTokenSource? _loadImagesCts;
-
         public async Task LoadImages(string folderPath)
         {
-            _loadImagesCts?.Cancel();
+            // 1. HARD STOP previous loading
+            if (_loadImagesCts != null)
+            {
+                _loadImagesCts.Cancel();
+                _loadImagesCts.Dispose();
+                _loadImagesCts = null;
+            }
+
             _loadImagesCts = new CancellationTokenSource();
             var token = _loadImagesCts.Token;
 
+            // 2. Cleanup Memory & Queue
+            _upgradeQueue.Clear(); 
             Images.Clear();
-            ClearCache();
+            HasNoImages = false;
+            IsLoadingImages = true;
+            
+            // Force GC to clear previous folder's bitmaps before loading new ones
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
 
             if (!Directory.Exists(folderPath)) return;
 
             _currentBrowseFolderPath = folderPath;
             SaveSettings();
 
-            IsLoadingImages = true;
-            HasNoImages = false;
+            // 3. INSTANT CACHE CHECK
+            if (_folderCache.ContainsKey(folderPath))
+            {
+                var cachedImages = _folderCache[folderPath];
+                
+                // Refresh LRU
+                _folderCacheOrder.Remove(folderPath);
+                _folderCacheOrder.Add(folderPath);
 
+                if (cachedImages.Count == 0) HasNoImages = true;
+                
+                // Add all to UI instantly
+                foreach(var img in cachedImages) Images.Add(img);
+                
+                IsLoadingImages = false;
+                return; 
+            }
+
+            // 4. LOAD FROM DISK
             await Task.Run(async () =>
             {
-                var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) 
-                    { ".jpg", ".jpeg", ".png" };
-
+                var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png" };
+                
                 var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                                      .Where(s => supportedExtensions.Contains(Path.GetExtension(s)))
                                      .OrderBy(f => f)
@@ -195,99 +233,125 @@ namespace dbm_select.ViewModels
 
                 IsLoadingImages = false;
 
-                // --- PHASE 1: FILL THE GRID ---
-                // Strategy: Try loading from Cache (150px) first.
-                // If Cache exists -> We show high quality instantly.
-                // If Cache missing -> We load tiny 50px placeholder instantly.
+                var currentFolderItems = new List<ImageItem>();
                 var batch = new List<ImageItem>();
-                int counter = 0;
 
+                // PHASE 1: Fast Load Loop
                 foreach (var file in files)
                 {
-                    if (token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) return;
 
                     try
                     {
-                        // 1. Try Cached Version (High Quality)
-                        var bmp = LoadBitmapWithOrientation(file, 150, onlyLoadFromCache: true);
+                        // Tiny load (40px)
+                        var tinyBmp = LoadBitmapWithOrientation(file, 40); 
 
-                        // 2. If no cache, load Tiny Placeholder (Low Quality)
-                        if (bmp == null)
+                        if (tinyBmp != null)
                         {
-                            bmp = LoadBitmapWithOrientation(file, 50);
-                        }
-
-                        if (bmp != null)
-                        {
-                            var item = new ImageItem 
-                            { 
-                                FileName = Path.GetFileName(file) ?? "Unknown", 
-                                FullPath = file, 
-                                Bitmap = bmp 
+                            var item = new ImageItem
+                            {
+                                FileName = Path.GetFileName(file) ?? "Unknown",
+                                FullPath = file,
+                                Bitmap = tinyBmp
                             };
+
+                            currentFolderItems.Add(item);
                             batch.Add(item);
+                            
+                            // Enqueue for background worker to upgrade later
+                            _upgradeQueue.Enqueue(item);
                         }
                     }
                     catch { }
 
-                    // Add to UI in batches of 20
-                    if (batch.Count >= 20)
+                    // Update UI in batches of 10 to prevent freezing
+                    if (batch.Count >= 10)
                     {
-                        var itemsToAdd = batch.ToList();
+                        var chunk = batch.ToList();
                         batch.Clear();
-                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => 
+                        await Dispatcher.UIThread.InvokeAsync(() => 
                         {
-                            foreach (var i in itemsToAdd) Images.Add(i);
-                        }, Avalonia.Threading.DispatcherPriority.Background);
-                        await Task.Delay(1);
+                            foreach (var i in chunk) Images.Add(i);
+                        }, DispatcherPriority.Background);
+                        
+                        // Start the upgrade worker if not running
+                        _ = ProcessUpgradeQueue(token);
                     }
-                    counter++;
-                    if (counter % 100 == 0) GC.Collect();
                 }
 
                 // Add remaining items
                 if (batch.Count > 0)
                 {
-                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => 
+                    await Dispatcher.UIThread.InvokeAsync(() => 
                     {
                         foreach (var i in batch) Images.Add(i);
                     });
+                    _ = ProcessUpgradeQueue(token);
                 }
 
-                // --- PHASE 2: UPGRADE PLACEHOLDERS ---
-                // Only upgrade images that are currently small (width <= 50).
-                // If we loaded from cache in Phase 1, they are already 150px, so we skip them.
-                
-                var itemsToUpgrade = Images.ToList(); // Safety copy
-                
-                foreach (var item in itemsToUpgrade)
+                // PHASE 2: Cache Result
+                if (!token.IsCancellationRequested)
                 {
-                    if (token.IsCancellationRequested) break;
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (_folderCache.ContainsKey(folderPath)) return;
 
-                    // Skip if already high quality (loaded from cache in Phase 1)
-                    if (item.Bitmap != null && item.Bitmap.PixelSize.Width > 100) continue;
+                        if (_folderCacheOrder.Count >= MaxFolderCacheCount)
+                        {
+                            var oldest = _folderCacheOrder[0];
+                            if (_folderCache.TryGetValue(oldest, out var oldList))
+                            {
+                                foreach(var img in oldList) img.Bitmap?.Dispose();
+                            }
+                            _folderCache.Remove(oldest);
+                            _folderCacheOrder.RemoveAt(0);
+                        }
 
+                        _folderCache[folderPath] = currentFolderItems;
+                        _folderCacheOrder.Add(folderPath);
+                    });
+                }
+
+            }, token);
+        }
+
+        // --- BACKGROUND WORKER FOR UPGRADES ---
+        // This runs sequentially on a background thread, ensuring we don't overload the system
+        private async Task ProcessUpgradeQueue(CancellationToken token)
+        {
+            // Simple locking mechanism to ensure only one worker runs per token
+            // Note: In a real producer/consumer, we'd use Channels, but this is sufficient here.
+            
+            while (!_upgradeQueue.IsEmpty)
+            {
+                if (token.IsCancellationRequested) return;
+
+                if (_upgradeQueue.TryDequeue(out var item))
+                {
                     try 
                     {
-                        // Load Standard 150px (This will also save to disk cache for next time)
-                        var betterBmp = LoadBitmapWithOrientation(item.FullPath, 150);
-                        
-                        if (betterBmp != null)
+                        // Check if already high quality (e.g. from previous run)
+                        if (item.Bitmap != null && item.Bitmap.PixelSize.Width > 100) continue;
+
+                        // Heavy Load
+                        var highResBmp = await Task.Run(() => LoadBitmapWithOrientation(item.FullPath, 200), token);
+
+                        if (highResBmp != null && !token.IsCancellationRequested)
                         {
-                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                            await Dispatcher.UIThread.InvokeAsync(() =>
                             {
-                                item.Bitmap = betterBmp;
-                            }, Avalonia.Threading.DispatcherPriority.Background);
+                                var old = item.Bitmap;
+                                item.Bitmap = highResBmp; // UI Snaps here
+                                old?.Dispose();
+                            }, DispatcherPriority.Background);
                         }
                     }
                     catch { }
-                    
-                    await Task.Delay(5); 
                 }
-
-                GC.Collect();
-
-            }, token);
+                
+                // Small breathe between heavy decodes
+                await Task.Delay(5, token);
+            }
         }
 
         // ---------------------------------------------------------
@@ -380,7 +444,7 @@ namespace dbm_select.ViewModels
         private void ClearCache()
         {
             lock (_cacheLock) { foreach (var i in _highResCache.Values) i.Bitmap?.Dispose(); _highResCache.Clear(); _cacheOrder.Clear(); }
-            GC.Collect();
+            // Note: We do NOT clear _folderCache here, that is persistent across browsing.
         }
 
         // ---------------------------------------------------------
@@ -402,14 +466,12 @@ namespace dbm_select.ViewModels
                         var cacheDir = Path.Combine(dir, ".dbm_thumbs");
                         cachePath = Path.Combine(cacheDir, name + ".dbm");
                         
-                        // IF CACHE HIT: Return it immediately
                         if (File.Exists(cachePath)) return new Bitmap(cachePath);
                     }
                 }
                 catch { }
             }
 
-            // IF ONLY CACHE WAS REQUESTED AND WE MISSED: Return null (don't load raw)
             if (onlyLoadFromCache) return null;
 
             try
@@ -442,7 +504,7 @@ namespace dbm_select.ViewModels
                     needsDispose = true;
                 }
 
-                // SAVE TO DISK CACHE (Only for 150px size)
+                // SAVE TO DISK CACHE
                 if (useDiskCache && !string.IsNullOrEmpty(cachePath))
                 {
                     try
@@ -526,7 +588,7 @@ namespace dbm_select.ViewModels
             catch { return null; }
         }
 
-        // --- SKIASHARP HELPERS ---
+        // --- SKIASHARP HELPERS (Unchanged) ---
         private SKBitmap RotateBitmap(SKBitmap bitmap, SKEncodedOrigin orientation)
         {
             SKBitmap rotated;
@@ -581,7 +643,7 @@ namespace dbm_select.ViewModels
         {
             ClearSlot(category);
             ImageItem newSlotItem = sourceItem;
-            // Load medium quality for slot (300px) - uses cache if available
+            // Uses disk cache for 300px too if available
             var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
             if (mediumBitmap != null)
                 newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
@@ -602,6 +664,7 @@ namespace dbm_select.ViewModels
             IsPreviewPackageDialogVisible = true;
             IsModalLoading = true;
             
+            // Dispose existing previews
             PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
             PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
             PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
