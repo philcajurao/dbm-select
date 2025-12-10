@@ -3,10 +3,12 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using dbm_select.Models;
 using dbmselect.Models;
+using dbmselect.Utils;
 using MiniExcelLibs;
 using SkiaSharp;
 using System;
@@ -234,7 +236,10 @@ namespace dbm_select.ViewModels
                 var batch = new List<ImageItem>();
 
                 // PHASE 1: Fast Load Loop
-                foreach (var file in files)
+                await Parallel.ForEachAsync(
+                    files, 
+                    new ParallelOptions { MaxDegreeOfParallelism = AdaptiveParallelism.GetOptimalDegree() }, 
+                    async (file, token) =>
                 {
                     if (token.IsCancellationRequested) return;
 
@@ -242,7 +247,6 @@ namespace dbm_select.ViewModels
                     {
                         // Tiny load (40px)
                         var tinyBmp = LoadBitmapWithOrientation(file, 40); 
-
                         if (tinyBmp != null)
                         {
                             var item = new ImageItem
@@ -251,45 +255,20 @@ namespace dbm_select.ViewModels
                                 FullPath = file,
                                 Bitmap = tinyBmp
                             };
-
-                            currentFolderItems.Add(item);
-                            batch.Add(item);
-                            
-                            // Enqueue for background worker to upgrade later
-                            _upgradeQueue.Enqueue(item);
+                            lock (currentFolderItems) currentFolderItems.Add(item);
+                            lock (batch) Images.Add(item);
+                            lock (_upgradeQueue) _upgradeQueue.Enqueue(item);
                         }
                     }
                     catch { }
+                });
 
-                    // Update UI in batches of 10 to prevent freezing
-                    if (batch.Count >= 10)
-                    {
-                        var chunk = batch.ToList();
-                        batch.Clear();
-                        await Dispatcher.UIThread.InvokeAsync(() => 
-                        {
-                            foreach (var i in chunk) Images.Add(i);
-                        }, DispatcherPriority.Background);
-                        
-                        // Start the upgrade worker if not running
-                        _ = ProcessUpgradeQueue(token);
-                    }
-                }
-
-                // Add remaining items
-                if (batch.Count > 0)
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() => 
-                    {
-                        foreach (var i in batch) Images.Add(i);
-                    });
-                    _ = ProcessUpgradeQueue(token);
-                }
+                await ProcessUpgradeQueue(token);
 
                 // PHASE 2: Cache Result
                 if (!token.IsCancellationRequested)
                 {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    await Dispatcher.UIThread.InvokeAsync(async () =>
                     {
                         if (_folderCache.ContainsKey(folderPath)) return;
 
@@ -298,7 +277,11 @@ namespace dbm_select.ViewModels
                             var oldest = _folderCacheOrder[0];
                             if (_folderCache.TryGetValue(oldest, out var oldList))
                             {
-                                foreach(var img in oldList) img.Bitmap?.Dispose();
+                                await Parallel.ForEachAsync(oldList, new ParallelOptions { MaxDegreeOfParallelism = AdaptiveParallelism.GetOptimalDegree() }, 
+                                async (img, token) =>
+                                {
+                                    img.Bitmap?.Dispose();
+                                });
                             }
                             _folderCache.Remove(oldest);
                             _folderCacheOrder.RemoveAt(0);
