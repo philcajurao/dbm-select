@@ -10,6 +10,7 @@ using dbmselect.Models;
 using MiniExcelLibs;
 using SkiaSharp;
 using System;
+using Avalonia.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -797,7 +798,7 @@ public async Task ProceedFromAcknowledgement()
     _loadImagesCts?.Cancel();
 
     // Small delay to ensure UI updates and previous tasks stop
-    await Task.Delay(500); 
+    await Task.Delay(500);
 
     try
     {
@@ -807,40 +808,56 @@ public async Task ProceedFromAcknowledgement()
             if (string.IsNullOrWhiteSpace(OutputFolderPath))
                 throw new DirectoryNotFoundException("The output folder path is not set in Settings.");
 
-            if (!Directory.Exists(OutputFolderPath)) 
+            if (!Directory.Exists(OutputFolderPath))
                 Directory.CreateDirectory(OutputFolderPath);
 
             // Sanitize Client Name for Folder Creation
             string safeClientName = (ClientName ?? "Unknown").ToUpper();
-            foreach (char c in Path.GetInvalidFileNameChars()) 
+            foreach (char c in Path.GetInvalidFileNameChars())
                 safeClientName = safeClientName.Replace(c, '_');
-            
+
             string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
-            if (!Directory.Exists(specificFolder)) 
+            if (!Directory.Exists(specificFolder))
                 Directory.CreateDirectory(specificFolder);
 
             // --- B. SAVE IMAGES ---
-            // We use a helper function to avoid repeating code
             SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
-            
-            if (IsBarongVisible) 
+
+            if (IsBarongVisible)
                 SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
-            
-            if (IsCreativeVisible) 
+
+            if (IsCreativeVisible)
                 SaveImageToFile(ImageCreative, " Creative ", specificFolder);
-            
-            if (IsAnyVisible) 
+
+            if (IsAnyVisible)
                 SaveImageToFile(ImageAny, " Any ", specificFolder);
-            
-            if (IsInstaxVisible) 
+
+            if (IsInstaxVisible)
                 SaveImageToFile(ImageInstax, " Instax ", specificFolder);
 
             // --- C. EXCEL LOGGING ---
-           string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
+            string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
             string? excelDir = Path.GetDirectoryName(excelPath);
-            
-            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir)) 
+
+            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
                 Directory.CreateDirectory(excelDir);
+
+            // Create new log item
+            // (Note: I condensed the logic here to match your previous flow properly)
+            var allRows = new List<OrderLogItem>();
+
+            // 1. Try reading existing file
+            if (File.Exists(excelPath))
+            {
+                try
+                {
+                    allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
+                }
+                catch (IOException)
+                {
+                   // If reading fails, we just proceed with the new list
+                }
+            }
 
             var newItem = new OrderLogItem
             {
@@ -855,94 +872,52 @@ public async Task ProceedFromAcknowledgement()
                 Box_Instax = IsInstaxVisible ? ImageInstax?.FileName ?? "Empty" : "N/A",
                 TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
-
-            var allRows = new List<OrderLogItem>();
-
-            // 1. Try reading existing file
-            if (File.Exists(excelPath)) 
-            {
-                try 
-                { 
-                    allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath)); 
-                } 
-                catch (IOException) 
-                {
-                    if (!Directory.Exists(OutputFolderPath)) Directory.CreateDirectory(OutputFolderPath);
-                    string safeClientName = (ClientName ?? "Unknown").ToUpper();
-                    foreach (char c in Path.GetInvalidFileNameChars()) safeClientName = safeClientName.Replace(c, '_');
-                    string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
-                    if (!Directory.Exists(specificFolder)) Directory.CreateDirectory(specificFolder);
-
-                    SaveImageToFile(Image8x10, $" {CategoryConstants.EightByTen} ", specificFolder);
-                    if (IsBarongVisible) SaveImageToFile(ImageBarong, $" {CategoryConstants.Barong} Filipiniana ", specificFolder);
-                    if (IsCreativeVisible) SaveImageToFile(ImageCreative, $" {CategoryConstants.Creative} ", specificFolder);
-                    if (IsAnyVisible) SaveImageToFile(ImageAny, $" {CategoryConstants.Any} ", specificFolder);
-                    if (IsInstaxVisible) SaveImageToFile(ImageInstax, $" {CategoryConstants.Instax} ", specificFolder);
-
-                    string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
-                    string? excelDir = Path.GetDirectoryName(excelPath);
-                    if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir)) Directory.CreateDirectory(excelDir);
-
-                    var newItem = new OrderLogItem
-                    {
-                        Status = "DONE CHOOSING",
-                        Name = ClientName?.ToUpper() ?? "UNKNOWN",
-                        Email = ClientEmail ?? string.Empty,
-                        Package = SelectedPackage,
-                        Box_8x10 = Image8x10?.FileName ?? "Empty",
-                        Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
-                        Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
-                        Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
-                        Box_Instax = IsInstaxVisible ? ImageInstax?.FileName ?? "Empty" : "N/A",
-                        TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                    };
+            
+            allRows.Add(newItem);
 
             // 2. Save Excel (Manual Overwrite Safety)
-            try 
+            try
             {
-                // If file exists, we try to delete it first to ensure a clean save.
-                // This effectively acts as "overwrite = true"
                 if (File.Exists(excelPath))
                 {
                     File.Delete(excelPath);
                 }
 
-                MiniExcel.SaveAs(excelPath, allRows); 
+                MiniExcel.SaveAs(excelPath, allRows);
             }
             catch (IOException)
             {
                 throw new IOException($"Could not save to Excel. Please ensure '{ExcelFileName}.xlsx' is closed.");
             }
-        });
+        }); // <--- THIS WAS MISSING (Closes Task.Run)
 
         // --- D. CLEANUP & RESET (Main Thread) ---
         ResetData();
-        
-        // Use the new safe ClearBrowserImages method (the one with the delay)
-        ClearBrowserImages(); 
-        
+
+        // Use the new safe ClearBrowserImages method
+        ClearBrowserImages();
+
         IsLoadingSubmit = false;
         IsThankYouDialogVisible = true;
-        
+
         // Reload folder images fresh
         _ = LoadImages(_currentBrowseFolderPath);
-    }
+    } // <--- THIS WAS MISSING (Closes the Try block)
     catch (IOException ioEx)
     {
         // Handle file locking specifically
         IsLoadingSubmit = false;
-        ErrorMessage = ioEx.Message; // "File is currently open..."
+        ErrorMessage = ioEx.Message; 
         IsErrorDialogVisible = true;
     }
-    catch (Exception ex) 
-    { 
+    catch (Exception ex)
+    {
         // Handle any other crashes
-        IsLoadingSubmit = false; 
-        ErrorMessage = $"An unexpected error occurred: {ex.Message}"; 
-        IsErrorDialogVisible = true; 
+        IsLoadingSubmit = false;
+        ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+        IsErrorDialogVisible = true;
     }
 }
-
         private void SaveImageToFile(ImageItem? image, string cat, string folder)
         {
             if (image == null) return;
@@ -1054,24 +1029,33 @@ public async Task ProceedFromAcknowledgement()
         }
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }
-        private void ClearBrowserImages() 
+       private void ClearBrowserImages() 
 { 
     // 1. Cancel any active loading background tasks first
     _loadImagesCts?.Cancel();
 
-    // 2. Snapshot the images currently in the list
+    // 2. Remove the current folder from Memory Cache
+    // This forces the app to reload fresh from Disk Cache (safe) instead of using disposed RAM images (unsafe)
+    if (!string.IsNullOrEmpty(_currentBrowseFolderPath))
+    {
+        if (_folderCache.ContainsKey(_currentBrowseFolderPath))
+        {
+            _folderCache.Remove(_currentBrowseFolderPath);
+            _folderCacheOrder.Remove(_currentBrowseFolderPath);
+        }
+    }
+
+    // 3. Snapshot the images currently in the list
     var imagesToDispose = Images.ToList();
 
-    // 3. Clear the observable collection (This updates the UI)
+    // 4. Clear the observable collection (This updates the UI)
     Images.Clear(); 
     HasNoImages = true; 
     
-    // 4. Clear the internal cache
+    // 5. Clear the internal High-Res Preview cache
     ClearCache();
 
-    // 5. CRITICAL FIX: Do not Dispose immediately. 
-    // The Render thread might still be drawing them for a split second.
-    // We run this on a background thread with a delay.
+    // 6. Dispose the bitmaps on a background thread to avoid UI lag/locking
     Task.Run(async () => 
     {
         // Wait 1 second to ensure the UI has fully removed the images from the Visual Tree
