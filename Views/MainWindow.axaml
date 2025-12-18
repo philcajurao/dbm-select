@@ -733,53 +733,64 @@
         </Grid>
 
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsImportantNotesDialogVisible}" ZIndex="250">
-            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+            <Border CornerRadius="12" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 50 20 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="900">
+                <ExperimentalAcrylicBorder CornerRadius="12" Padding="50">
                     <ExperimentalAcrylicBorder.Material>
-                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.9" MaterialOpacity="0.95" />
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.9" MaterialOpacity="0.98" />
                     </ExperimentalAcrylicBorder.Material>
-                    <StackPanel Spacing="20">
-                        <TextBlock Text="IMPORTANT NOTES" FontSize="18" FontWeight="Bold" Foreground="#d9534f" HorizontalAlignment="Center"/>
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="• Please double check all your chosen photos." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• STRICTLY NO CANCELLATION OF ORDERS once submitted." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• Ensure your Name and Email are correct." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• CLAIMING OF PHOTOS WILL BE AFTER 6-8 WEEKS" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• FOR YOUR SOFT COPIES: It will only be available on Google Drive for 10 days. Please ensure to download them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• FOR RE-UPLOADING SOFT COPIES: After the 10-day period, re-uploading soft copies will incur a cost of 300 per student. We encourage you to save your soft copies to avoid any fees." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• FOR PRINT AND FRAME STORAGE: Unclaimed prints and frames will only be stored for 45 days. After this period, we will discard them." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="• FOR RE-PRINT AND FRAME: If you need a re-print and frame after the original has been discarded, it will cost 500." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
+                    <StackPanel Spacing="30">
+                        <TextBlock Text="IMPORTANT NOTES" FontSize="30" FontWeight="Black" Foreground="#d9534f" HorizontalAlignment="Center" LetterSpacing="1"/>
+                        
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="• Please double check all your chosen photos." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• STRICTLY NO CANCELLATION OF ORDERS once submitted." FontSize="18" FontWeight="Bold" Foreground="#d9534f" TextWrapping="Wrap"/>
+                            <TextBlock Text="• Ensure your Name and Email are correct." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• CLAIMING OF PHOTOS WILL BE AFTER 6-8 WEEKS" FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR YOUR SOFT COPIES: It will only be available on Google Drive for 10 days. Please ensure to download them." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR RE-UPLOADING SOFT COPIES: After the 10-day period, re-uploading soft copies will incur a cost of 300 per student. We encourage you to save your soft copies to avoid any fees." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR PRINT AND FRAME STORAGE: Unclaimed prints and frames will only be stored for 45 days. After this period, we will discard them." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
+                            <TextBlock Text="• FOR RE-PRINT AND FRAME: If you need a re-print and frame after the original has been discarded, it will cost 500." FontSize="18" Foreground="#e0e0e0" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center" Margin="0,10,0,0">
-                            <Button Content="Continue" Command="{Binding ContinueFromNotesCommand}" Classes="dialog-btn success" Width="100"/>
-                            <Button Content="Cancel" Command="{Binding CancelNotesCommand}" Classes="dialog-btn secondary" Width="100"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Center" Margin="0,25,0,0">
+                            <Button Content="Continue" Command="{Binding ContinueFromNotesCommand}" Classes="dialog-btn success" Width="180" FontSize="16" FontWeight="Bold" Padding="20"/>
+                            <Button Content="Cancel" Command="{Binding CancelNotesCommand}" Classes="dialog-btn secondary" Width="180" FontSize="16" Padding="20"/>
                         </StackPanel>
                     </StackPanel>
                 </ExperimentalAcrylicBorder>
             </Border>
         </Grid>
 
+
+
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsAcknowledgementDialogVisible}" ZIndex="250">
-            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
-                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+            <Border CornerRadius="12" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 50 20 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="1100">
+                <ExperimentalAcrylicBorder CornerRadius="12" Padding="50">
                     <ExperimentalAcrylicBorder.Material>
-                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.9" MaterialOpacity="0.95" />
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.9" MaterialOpacity="0.98" />
                     </ExperimentalAcrylicBorder.Material>
-                    <StackPanel Spacing="20">
-                        <TextBlock Text="ACKNOWLEDGEMENT" FontSize="18" FontWeight="Bold" Foreground="#f0f0f0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="I hereby acknowledge and agree with the information provided by DBM ESTUDYO. I have thoroughly reviewed and understood the details, guidelines, and policies presented by DBM ESTUDYO and willingly consent to the terms outlined therein." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap" TextAlignment="Center"/>
-                        <TextBlock Text="DBM ESTUDYO has provided me with comprehensive information regarding the photography session, scheduled to take place at Brgy. Sta Cruz Antipolo City. This includes a detailed description of the session, the intended use of the photographs, and any available packages or services." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap" TextAlignment="Center"/>
-                        <StackPanel>
-                            <TextBlock Text="Note:" FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="📌 DBM ESTUDYO does not accept self-edited photos for final printing." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="📌 8x10 and 9x12 printed photos will include studio watermarks." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                        </StackPanel>
-                        <TextBlock Text="In addition to the details about the photography session, I also acknowledge and agree to adhere to the guidelines and policies set forth by DBM ESTUDYO. These guidelines may cover various aspects, including conduct during the session, usage of the studio facilities, and any other pertinent information." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap" TextAlignment="Center"/>
-                        <TextBlock Text="By providing this acknowledgment, I affirm that I have had the opportunity to ask questions and seek clarification on any aspects of the information provided by DBM ESTUDYO. I enter into this agreement willingly and understand that my consent is valid indefinitely unless revoked in writing by either party." FontSize="12" Foreground="#d3d3d3" TextWrapping="Wrap" TextAlignment="Center"/>
-                        <CheckBox IsChecked="{Binding IsImportantNotesChecked}" Content="I Agree and Proceed" Foreground="White" HorizontalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-                            <Button Content="Proceed" Command="{Binding ProceedFromAcknowledgementCommand}" IsEnabled="{Binding IsImportantNotesChecked}" Classes="dialog-btn success" Width="100"/>
-                            <Button Content="Cancel" Command="{Binding CancelAcknowledgementCommand}" Classes="dialog-btn secondary" Width="100"/>
+                    <StackPanel Spacing="25">
+                        <TextBlock Text="ACKNOWLEDGEMENT" FontSize="30" FontWeight="Black" Foreground="#f0f0f0" HorizontalAlignment="Center" LetterSpacing="1"/>
+                        
+                        <TextBlock Text="I hereby acknowledge and agree with the information provided by DBM ESTUDYO. I have thoroughly reviewed and understood the details, guidelines, and policies presented by DBM ESTUDYO and willingly consent to the terms outlined therein." FontSize="16" Foreground="#e0e0e0" TextWrapping="Wrap" TextAlignment="Center" LineHeight="24"/>
+                        <TextBlock Text="DBM ESTUDYO has provided me with comprehensive information regarding the photography session, scheduled to take place at Brgy. Sta Cruz Antipolo City. This includes a detailed description of the session, the intended use of the photographs, and any available packages or services." FontSize="16" Foreground="#e0e0e0" TextWrapping="Wrap" TextAlignment="Center" LineHeight="24"/>
+                        
+                        <Border Margin="40,10" Background="#33000000" Padding="20" CornerRadius="8">
+                            <StackPanel>
+                                <TextBlock Text="Important Notes:" FontSize="18" FontWeight="Bold" Foreground="#ffcc00" TextWrapping="Wrap"/>
+                                <TextBlock Text="📌 DBM ESTUDYO does not accept self-edited photos for final printing." FontSize="16" Foreground="#f0f0f0" TextWrapping="Wrap" Margin="10,10,0,0"/>
+                                <TextBlock Text="📌 8x10 and 9x12 printed photos will include studio watermarks." FontSize="16" Foreground="#f0f0f0" TextWrapping="Wrap" Margin="10,10,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <TextBlock Text="In addition to the details about the photography session, I also acknowledge and agree to adhere to the guidelines and policies set forth by DBM ESTUDYO. These guidelines may cover various aspects, including conduct during the session, usage of the studio facilities, and any other pertinent information." FontSize="16" Foreground="#e0e0e0" TextWrapping="Wrap" TextAlignment="Center" LineHeight="24"/>
+                        <TextBlock Text="By providing this acknowledgment, I affirm that I have had the opportunity to ask questions and seek clarification on any aspects of the information provided by DBM ESTUDYO. I enter into this agreement willingly and understand that my consent is valid indefinitely unless revoked in writing by either party." FontSize="16" Foreground="#e0e0e0" TextWrapping="Wrap" TextAlignment="Center" LineHeight="24"/>
+                        
+                        <CheckBox IsChecked="{Binding IsImportantNotesChecked}" Content="I have read, understood, and agree to proceed." FontSize="18" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" Margin="0,20"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="30" HorizontalAlignment="Center">
+                            <Button Content="Proceed" Command="{Binding ProceedFromAcknowledgementCommand}" IsEnabled="{Binding IsImportantNotesChecked}" Classes="dialog-btn success" Width="180" FontSize="16" FontWeight="Bold" Padding="20"/>
+                            <Button Content="Cancel" Command="{Binding CancelAcknowledgementCommand}" Classes="dialog-btn secondary" Width="180" FontSize="16" Padding="20"/>
                         </StackPanel>
                     </StackPanel>
                 </ExperimentalAcrylicBorder>
