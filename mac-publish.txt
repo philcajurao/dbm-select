@@ -1,0 +1,27 @@
+dotnet publish -c Release -r osx-x64 --self-contained
+
+# Define paths
+APP_NAME="DBM Select"
+PUBLISH_DIR="bin/Release/net8.0/osx-x64/publish"
+DEST_DIR="bin/Distribution"
+
+# Create the .app folder structure
+mkdir -p "$DEST_DIR/$APP_NAME.app/Contents/MacOS"
+mkdir -p "$DEST_DIR/$APP_NAME.app/Contents/Resources"
+
+# Copy the published binary and files
+cp -a "$PUBLISH_DIR/." "$DEST_DIR/$APP_NAME.app/Contents/MacOS/"
+
+# Copy the Icon
+cp "Assets/AppIcon.icns" "$DEST_DIR/$APP_NAME.app/Contents/Resources/"
+
+# Copy the Info.plist
+cp "Info.plist" "$DEST_DIR/$APP_NAME.app/Contents/Info.plist"
+
+# Remove the extra .icns from the binary folder (optional clean up)
+rm "$DEST_DIR/$APP_NAME.app/Contents/MacOS/Assets/AppIcon.icns"
+
+xattr -cr ~/Desktop/DBM\ Select.app
+
+# Optional
+chmod +x /Users/You/Desktop/DBM\ Select.app/Contents/MacOS/dbm-select
