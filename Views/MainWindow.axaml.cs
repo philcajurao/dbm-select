@@ -16,6 +16,14 @@ namespace dbm_select.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            // Bring window to front when opened
+            Opened += (s, e) =>
+            {
+                Activate();
+                Topmost = true;
+                Topmost = false;
+            };
         }
 
         // Handle Arrow Key Navigation for Grid Layout (Windows Explorer Style)
@@ -113,7 +121,7 @@ namespace dbm_select.Views
                 if (DataContext is MainWindowViewModel vm)
                 {
                     await vm.LoadImages(folderPath);
-                    
+
                     // FIX: Use FindControl to safely access the ListBox
                     var photosBox = this.FindControl<ListBox>("PhotosListBox");
                     photosBox?.Focus();
@@ -225,8 +233,8 @@ namespace dbm_select.Views
                     // Safely check for Tag string
                     if (targetBorder.Tag is string category && DataContext is MainWindowViewModel vm)
                     {
-                         vm.SetPackageImage(category, _draggedItem);
-                         System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {category}");
+                        vm.SetPackageImage(category, _draggedItem);
+                        System.Diagnostics.Debug.WriteLine($"SUCCESS: Manual Drop into {category}");
                     }
                 }
             }

@@ -246,202 +246,117 @@
                 </StackPanel>
 
                 <Viewbox Grid.Row="2" Stretch="{Binding LayoutStretch}" StretchDirection="DownOnly">
-                    <ScrollViewer VerticalScrollBarVisibility="{Binding ScrollVisibility}" 
-                                  HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Orientation="Vertical" 
-                                    HorizontalAlignment="Center" 
-                                    VerticalAlignment="Center" 
-                                    Spacing="12">
+                   <ScrollViewer VerticalScrollBarVisibility="{Binding ScrollVisibility}" 
+              HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Orientation="Vertical" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Top" 
+                Spacing="12">
 
-                            <StackPanel Orientation="{Binding SlotsOrientation}" Spacing="12" HorizontalAlignment="Center">
-                                
-                                <StackPanel Spacing="5">
-                                    <Border BorderBrush="Gray" BorderThickness="1" 
-                                            Classes="slot-box"
-                                            Classes.single="{Binding IsSingleLargeLayout}"
-                                            Classes.double="{Binding IsDoubleLargeLayout}"
-                                            Classes.quad="{Binding IsQuadLayout}"
-                                            Classes.penta="{Binding IsFiveLayout}"
-                                            Tag="8x10" Background="Transparent" ClipToBounds="True">
-                                        <Panel>
-                                            <TextBlock Text="Drop photo here" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               Foreground="#aaa" 
-                                               FontSize="10" 
-                                               IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    
-                                            <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    
-                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2" Margin="0,0,0,0">
-                                                <TextBlock Text="8x10" Classes="slot-label"/>
-                                            </Border>
+        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+            
+            <StackPanel Spacing="5">
+                <Border BorderBrush="Gray" BorderThickness="1" 
+                        Classes="slot-box"
+                        Classes.single="{Binding IsSingleLargeLayout}"
+                        Classes.double="{Binding IsDoubleLargeLayout}"
+                        Classes.quad="{Binding IsQuadLayout}"
+                        Classes.penta="{Binding IsFiveLayout}"
+                        Tag="8x10" Background="Transparent" ClipToBounds="True">
+                    <Panel>
+                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="8x10" Classes="slot-label"/></Border>
+                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                    </Panel>
+                </Border>
+                <TextBlock Text="{Binding Image8x10.FileName}" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.single="{Binding IsSingleLargeLayout}" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
 
-                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                            </Button>
-                                        </Panel>
-                                    </Border>
-                                    <TextBlock Text="{Binding Image8x10.FileName}" 
-                                           IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                           Classes="filename-text"
-                                           Classes.single="{Binding IsSingleLargeLayout}"
-                                           Classes.double="{Binding IsDoubleLargeLayout}"
-                                           Classes.quad="{Binding IsQuadLayout}"
-                                           Classes.penta="{Binding IsFiveLayout}"
-                                           Foreground="#aaa" 
-                                           HorizontalAlignment="Center" TextAlignment="Center"
-                                           TextWrapping="Wrap"/>
-                                </StackPanel>
+            <StackPanel Spacing="5" IsVisible="{Binding IsBarongHorizontal}">
+                <Border BorderBrush="Gray" BorderThickness="1" 
+                        Classes="slot-box"
+                        Classes.quad="{Binding IsQuadLayout}"
+                        Classes.penta="{Binding IsFiveLayout}"
+                        Tag="Barong" Background="Transparent" ClipToBounds="True">
+                    <Panel>
+                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                    </Panel>
+                </Border>
+                <TextBlock Text="{Binding ImageBarong.FileName}" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
+        </StackPanel>
 
-                                <StackPanel Spacing="5" IsVisible="{Binding IsBarongVisible}">
-                                    <Border BorderBrush="Gray" BorderThickness="1" 
-                                            Classes="slot-box"
-                                            Classes.single="{Binding IsSingleLargeLayout}"
-                                            Classes.double="{Binding IsDoubleLargeLayout}"
-                                            Classes.quad="{Binding IsQuadLayout}"
-                                            Classes.penta="{Binding IsFiveLayout}"
-                                            Tag="Barong" Background="Transparent" ClipToBounds="True">
-                                        <Panel>
-                                            <TextBlock Text="Drop photo here" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               Foreground="#aaa" 
-                                               FontSize="10" 
-                                               IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" MaxWidth="340">
+            
+            <StackPanel Spacing="5" IsVisible="{Binding IsBarongVertical}" Margin="6">
+                <Border BorderBrush="Gray" BorderThickness="1" 
+                        Classes="slot-box"
+                        Classes.double="{Binding !IsSecondaryQuad}" 
+                        Classes.quad="{Binding IsSecondaryQuad}"
+                        Tag="Barong" Background="Transparent" ClipToBounds="True">
+                    <Panel>
+                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                    </Panel>
+                </Border>
+                <TextBlock Text="{Binding ImageBarong.FileName}" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.double="{Binding !IsSecondaryQuad}" Classes.quad="{Binding IsSecondaryQuad}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
 
-                                            <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    
-                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                                <TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/>
-                                            </Border>
+            <StackPanel Spacing="5" IsVisible="{Binding IsCreativeVisible}" Margin="6">
+                <Border BorderBrush="Gray" BorderThickness="1" 
+                        Classes="slot-box"
+                        Classes.quad="True"
+                        Tag="Creative" Background="Transparent" ClipToBounds="True">
+                    <Panel>
+                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Creative" Classes="slot-label"/></Border>
+                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                    </Panel>
+                </Border>
+                <TextBlock Text="{Binding ImageCreative.FileName}" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="True" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
 
-                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                            </Button>
-                                        </Panel>
-                                    </Border>
-                                    <TextBlock Text="{Binding ImageBarong.FileName}" 
-                                           IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                           Classes="filename-text"
-                                           Classes.single="{Binding IsSingleLargeLayout}"
-                                           Classes.double="{Binding IsDoubleLargeLayout}"
-                                           Classes.quad="{Binding IsQuadLayout}"
-                                           Classes.penta="{Binding IsFiveLayout}"
-                                           Foreground="#aaa" 
-                                           HorizontalAlignment="Center" TextAlignment="Center"
-                                           TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </StackPanel>
+            <StackPanel Spacing="5" IsVisible="{Binding IsAnyVisible}" Margin="6">
+                <Border BorderBrush="Gray" BorderThickness="1" 
+                        Classes="slot-box"
+                        Classes.quad="True"
+                        Tag="Any" Background="Transparent" ClipToBounds="True">
+                    <Panel>
+                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding AnySlotLabel}" Classes="slot-label"/></Border>
+                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                    </Panel>
+                </Border>
+                <TextBlock Text="{Binding ImageAny.FileName}" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="True" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsCreativeVisible}">
-                                <StackPanel Spacing="5">
-                                    <Border BorderBrush="Gray" BorderThickness="1" 
-                                            Classes="slot-box"
-                                            Classes.quad="{Binding IsQuadLayout}"
-                                            Classes.penta="{Binding IsFiveLayout}"
-                                            Tag="Creative" Background="Transparent" ClipToBounds="True">
-                                        <Panel>
-                                            <TextBlock Text="Drop photo here" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               Foreground="#aaa" 
-                                               FontSize="10" 
-                                               IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+        </WrapPanel>
 
-                                            <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    
-                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                                <TextBlock Text="Creative" Classes="slot-label"/>
-                                            </Border>
+        <StackPanel Spacing="5" IsVisible="{Binding IsSoloGroupVisible}" Margin="6">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Solo/Group" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageSoloGroup.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Solo or Group Shot" Classes="slot-label"/></Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="SoloGroup" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageSoloGroup.FileName}" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="120"/>
+        </StackPanel>
 
-                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                            </Button>
-                                        </Panel>
-                                    </Border>
-                                    <TextBlock Text="{Binding ImageCreative.FileName}" 
-                                           IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                           Classes="filename-text"
-                                           Classes.quad="{Binding IsQuadLayout}"
-                                           Classes.penta="{Binding IsFiveLayout}"
-                                           FontSize="9" Foreground="#aaa" 
-                                           HorizontalAlignment="Center" TextAlignment="Center"
-                                           TextWrapping="Wrap"/>
-                                </StackPanel>
-
-                                <StackPanel Spacing="5" IsVisible="{Binding IsAnyVisible}">
-                                    <Border BorderBrush="Gray" BorderThickness="1" 
-                                            Classes="slot-box"
-                                            Classes.quad="{Binding IsQuadLayout}"
-                                            Classes.penta="{Binding IsFiveLayout}"
-                                            Tag="Any" Background="Transparent" ClipToBounds="True">
-                                        <Panel>
-                                            <TextBlock Text="Drop photo here" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               Foreground="#aaa" 
-                                               FontSize="10" 
-                                               IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-
-                                            <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    
-                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                                <TextBlock Text="Any" Classes="slot-label"/>
-                                            </Border>
-
-                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                            </Button>
-                                        </Panel>
-                                    </Border>
-                                    <TextBlock Text="{Binding ImageAny.FileName}" 
-                                           IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                           Classes="filename-text"
-                                           Classes.quad="{Binding IsQuadLayout}"
-                                           Classes.penta="{Binding IsFiveLayout}"
-                                           FontSize="9" Foreground="#aaa" 
-                                           HorizontalAlignment="Center" TextAlignment="Center"
-                                           TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" IsVisible="{Binding IsInstaxVisible}">
-                                <StackPanel Spacing="5">
-                                    <Border BorderBrush="Gray" BorderThickness="1" 
-                                            Classes="slot-box"
-                                            Classes.penta="{Binding IsFiveLayout}"
-                                            Tag="Instax" Background="Transparent" ClipToBounds="True">
-                                        <Panel>
-                                            <TextBlock Text="Drop photo here" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center" 
-                                               Foreground="#aaa" 
-                                               FontSize="10" 
-                                               IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNull}}"/>
-
-                                            <Image Source="{Binding ImageInstax.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    
-                                            <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                                                <TextBlock Text="Instax" Classes="slot-label"/>
-                                            </Border>
-
-                                            <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Instax" IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                                <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                                            </Button>
-                                        </Panel>
-                                    </Border>
-                                    <TextBlock Text="{Binding ImageInstax.FileName}" 
-                                           IsVisible="{Binding ImageInstax, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                           Classes="filename-text"
-                                           Classes.penta="{Binding IsFiveLayout}"
-                                           FontSize="9" Foreground="#aaa" 
-                                           HorizontalAlignment="Center" TextAlignment="Center"
-                                           TextWrapping="Wrap" MaxWidth="120"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
+    </StackPanel>
+</ScrollViewer>
                 </Viewbox>
 
                 <Grid Grid.Row="3"
@@ -879,8 +794,8 @@
             <UniformGrid Rows="1" Columns="5" Height="240">
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
+                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
-                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
             </UniformGrid>
             <TextBlock Text="5 PCS 5x7 PRINTS" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
@@ -902,8 +817,8 @@
                     <UniformGrid Rows="1" Columns="5" Height="180">
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
+                        <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
-                        <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                     </UniformGrid>
                     <TextBlock Text="5 PCS 4x6 PRINTS" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
@@ -911,27 +826,29 @@
 
                 <StackPanel Grid.Row="2" Spacing="5">
                     <UniformGrid Rows="2" Columns="10">
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                       <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                    
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                    
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                    
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageSoloGroup.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
                     </UniformGrid>
                     <TextBlock Text="20 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                 </StackPanel>
@@ -952,7 +869,7 @@
         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="30" BoxShadow="0 0 15 5 #000000aa">
             <Border Background="#181818" Padding="35">
                 <Border BorderBrush="#151515" BorderThickness="1">
-                    <Panel Width="400" Height="480" Background="#141414">
+                    <Panel Width="400" Height="580" Background="#141414">
                         <TextBlock Text="10x12 Empty" Foreground="#444" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
                         <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     </Panel>
@@ -965,31 +882,21 @@
     <Grid Grid.Column="2" Width="740" Height="714" VerticalAlignment="Top" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
 
         <StackPanel Grid.Row="0" Spacing="5">
-            <UniformGrid Rows="1" Columns="4" Height="240">
+            <UniformGrid Rows="1" Columns="4" Height="230">
+                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
-                <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
             </UniformGrid>
             <TextBlock Text="4 PCS 5x7 PRINTS" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="Auto, 20, *" VerticalAlignment="Top">
+        <Grid Grid.Row="2" ColumnDefinitions="*, 20, Auto" VerticalAlignment="Top">
 
-            <StackPanel Grid.Column="0" Spacing="5">
-                <Border Background="#151515" BorderBrush="#333" BorderThickness="1">
-                    <Panel Width="280" Height="430" Background="#151515">
-                        <TextBlock Text="Barkada" Foreground="#444" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    </Panel>
-                </Border>
-                <TextBlock Text="1 PC 5x7 BARKADA SHOT" Foreground="#aaa" FontSize="11" HorizontalAlignment="Center"/>
-            </StackPanel>
-
-            <Grid Grid.Column="2" RowDefinitions="Auto, 20, *">
-
-                <StackPanel Grid.Row="0" Spacing="5">
-                    <UniformGrid Rows="1" Columns="4" Height="180">
+            <StackPanel Grid.Column="0" Spacing="10">
+                
+                <StackPanel Spacing="5">
+                    <UniformGrid Rows="1" Columns="4" Height="150">
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
@@ -998,30 +905,41 @@
                     <TextBlock Text="4 PCS 4x6 PRINTS" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="2" Spacing="5">
+                <StackPanel Spacing="5">
                     <UniformGrid Rows="2" Columns="8">
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
                     </UniformGrid>
                     <TextBlock Text="16 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                 </StackPanel>
 
-            </Grid>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Center">
+                <Border Background="#151515" BorderBrush="#333" BorderThickness="1">
+                    <Panel Width="230" Height="140" Background="#151515">
+                        <TextBlock Text="Barkada" Foreground="#444" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        <Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    </Panel>
+                </Border>
+                <TextBlock Text="1 PC 5x7 BARKADA SHOT" Foreground="#aaa" FontSize="11" HorizontalAlignment="Center"/>
+            </StackPanel>
+
         </Grid>
     </Grid>
 </Grid>
@@ -1032,7 +950,7 @@
 
 
 
-                                       <Grid HorizontalAlignment="Left" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgBSelected}">
+                                      <Grid HorizontalAlignment="Left" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgBSelected}">
 
     <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="15">
         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="30" BoxShadow="0 0 15 5 #000000aa">
@@ -1045,7 +963,7 @@
                 </Border>
             </Border>
         </Border>
-        <TextBlock Text="8x10 PRINT w/ GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="8x10 PRINT" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
     </StackPanel>
 
     <Grid Grid.Column="2" Width="740" Height="714" VerticalAlignment="Top" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
@@ -1060,11 +978,28 @@
             <TextBlock Text="4 PCS 5x7 PRINTS (2 Toga, 2 Barong)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="Auto, 20, *" VerticalAlignment="Top">
+        <Grid Grid.Row="2" ColumnDefinitions="300, 20, Auto" VerticalAlignment="Top">
 
-            <StackPanel Grid.Column="0" Spacing="5">
+            <Grid Grid.Column="0" VerticalAlignment="Center">
+                <StackPanel Spacing="5">
+                    <UniformGrid Rows="2" Columns="4">
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+                    </UniformGrid>
+                    <TextBlock Text="8 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Column="2" Spacing="5">
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1">
-                    <Panel Width="280" Height="430" Background="#151515">
+                    <Panel Width="200" Height="240" Background="#151515">
                         <TextBlock Text="Barkada" Foreground="#444" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
                         <Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     </Panel>
@@ -1072,51 +1007,28 @@
                 <TextBlock Text="1 PC 5x7 BARKADA SHOT" Foreground="#aaa" FontSize="11" HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Grid Grid.Column="2" VerticalAlignment="Bottom">
-                
-                <StackPanel Spacing="5">
-                    <UniformGrid Rows="2" Columns="4">
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                    </UniformGrid>
-                    <TextBlock Text="8 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
-                </StackPanel>
-
-            </Grid>
         </Grid>
     </Grid>
 </Grid>
 
 
 
+                                    <Grid HorizontalAlignment="Left" VerticalAlignment="Center" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgASelected}">
 
-                                       <Grid HorizontalAlignment="Left" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgASelected}">
-
-    <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="15">
-        <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="30" BoxShadow="0 0 15 5 #000000aa">
-            <Border Background="#181818" Padding="35">
-                <Border BorderBrush="#151515" BorderThickness="1">
-                    <Panel Width="400" Height="500" Background="#141414">
-                        <TextBlock Text="8x10 Empty" Foreground="#444" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    </Panel>
-                </Border>
-            </Border>
+    <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Spacing="15">
+        <Border BorderBrush="#333" BorderThickness="1" BoxShadow="0 2 10 2 #000000aa">
+            <Panel Width="400" Height="480" Background="#141414">
+                <TextBlock Text="8x10 Empty" Foreground="#444" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            </Panel>
         </Border>
         <TextBlock Text="8x10 PRINT (FRAME NOT INCLUDED)" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
     </StackPanel>
 
-    <Grid Grid.Column="2" Width="740" Height="714" VerticalAlignment="Top" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
+    <Grid Grid.Column="2" Width="740" VerticalAlignment="Center" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
 
         <StackPanel Grid.Row="0" Spacing="5">
-            <UniformGrid Rows="1" Columns="4" Height="180">
+            <UniformGrid Rows="1" Columns="4" Height="240">
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                 <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="6"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
@@ -1125,31 +1037,31 @@
             <TextBlock Text="4 PCS 4x6 PRINTS (2 Toga, 2 Barong)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="Auto, 20, *" VerticalAlignment="Top">
+        <Grid Grid.Row="2" ColumnDefinitions="300, 20, Auto">
 
-            <StackPanel Grid.Column="0" Width="280">
-                </StackPanel>
-
-            <Grid Grid.Column="2" VerticalAlignment="Top">
+            <Grid Grid.Column="0" VerticalAlignment="Center">
                 <StackPanel Spacing="5">
                     <UniformGrid Rows="2" Columns="4">
                         <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
                         <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
                         <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
+
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
                         <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
-                        
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
-                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
+                        <Border Height="90" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill"/></Border>
                     </UniformGrid>
                     <TextBlock Text="8 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                 </StackPanel>
             </Grid>
+
+            <StackPanel Grid.Column="2" Spacing="5">
+                </StackPanel>
+
         </Grid>
     </Grid>
 </Grid>
-
 
 
 
@@ -1170,7 +1082,14 @@
                             </ScrollViewer>
                         </Grid>
 
-                      <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="5,10,0,0">
+                    
+                    
+
+
+
+
+
+                   <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="5,10,0,0">
     
     <TextBlock Grid.Column="0" 
                Text="* NOTE: This preview is for REFERENCE ONLY. Final layout may be adjusted." 
@@ -1193,15 +1112,54 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <Border Padding="20,20,20,30">
                                 <StackPanel Spacing="15">
+                                    
                                     <StackPanel Spacing="5">
                                         <TextBlock Text="PRINTS (Package D)" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
-                                        <TextBlock Text="• One (1) 11'x14' Print with 12'x15' Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• One (1) 11'x 14' Print with 12'x15' Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Twenty (20) Copies of 2R Photo Print (Wallet Size)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
-                                        <TextBlock Text="• One (1) Copy of 8x10 Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• One (1) Copy of 8x10 Print (Solo or Group Shot)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Five (5) Copies of 5x7' Photo Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Five (5) Copies of 4x6' Photo Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
+                                    
+                                    <Separator Background="#333" Height="1"/>
+                                    
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="SHOTS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• Unlimited Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Toga Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Filipiñana/Barong Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Creative Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Family or Couple Shots (Maximum of 3 companion)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Barkada/Group Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="(ONLY APPLICABLE FOR THOSE STUDENTS WHO AVAILED THIS PACKAGE)" Foreground="#ff8800" FontSize="10" FontWeight="Bold" TextWrapping="Wrap" Margin="0,5,0,0"/>
                                     </StackPanel>
+                                    
+                                    <Separator Background="#333" Height="1"/>
+                                    
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="INCLUSIONS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• With Hair and Make Up" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free use of Toga, Filipiñana, or Barong" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Free Edited Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free All Raw Files Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free Eco Bag Storage" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Five (5) Final Photo Edited" Foreground="#ccc" FontSize="11"/>
+                                    </StackPanel>
+
+                                    <Separator Background="#333" Height="1"/>
+
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="WHAT'S NEW IN THIS PACKAGE?" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• Larger Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Bigger Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Name of School and Program" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Eco Bag Storage with DBM Logo" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With 8x10 Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• AND MOREEEE!" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+
+                                </StackPanel>
                             </Border>
                         </ScrollViewer>
                     </Border>
@@ -1224,11 +1182,47 @@
                                         <TextBlock Text="PRINTS (Package C)" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
                                         <TextBlock Text="• One (1) 10'x 12' Print with 12'x14' Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Sixteen (16) Copies of 2R Photo Print (Wallet Size)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
-                                        <TextBlock Text="• One (1) Copy of 5x7 Barkada Shots" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• One (1) Copy of 5x7 Barkada Shots (If there is any)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Four (4) Copies of 5x7' Photo Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Four (4) Copies of 4x6' Photo Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
+                                    
+                                    <Separator Background="#333" Height="1"/>
+                                    
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="SHOTS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• Unlimited Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Toga Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Filipiñana/Barong Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Creative Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Barkada/Group Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="(ONLY APPLICABLE FOR THOSE STUDENTS WHO AVAILED THIS PACKAGE)" Foreground="#ff8800" FontSize="10" FontWeight="Bold" TextWrapping="Wrap" Margin="0,5,0,0"/>
                                     </StackPanel>
+                                    
+                                    <Separator Background="#333" Height="1"/>
+                                    
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="INCLUSIONS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• With Hair and Make Up" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free use of Toga, Filipiñana, or Barong" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Free Edited Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free All Raw Files Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free Eco Bag Storage" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Four (4) Final Photos Edited" Foreground="#ccc" FontSize="11"/>
+                                    </StackPanel>
+
+                                    <Separator Background="#333" Height="1"/>
+
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="WHAT'S NEW IN THIS PACKAGE?" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• Larger Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Bigger Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Name of School and Program" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Eco Bag Storage with DBM Logo" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Barkada/Group Shot Print" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• And MOREEEE!" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </Border>
                         </ScrollViewer>
                     </Border>
@@ -1251,11 +1245,45 @@
                                         <TextBlock Text="PRINTS (Package B)" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
                                         <TextBlock Text="• One (1) 8x10' Print with 10x12' Glass to Glass Frame" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                         <TextBlock Text="• Eight (8) Copies of 2R Photo Print (Wallet Size)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
-                                        <TextBlock Text="• One (1) Copy of 5x7 Barkada Shots" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
-                                        <TextBlock Text="• Two (2) Copies of 5x7' Photo Print (Toga)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
-                                        <TextBlock Text="• Two (2) Copies of 5x7' Photo Print (Barong)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• One (1) Copy of 5x7 Barkada Shots (If there is any)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Two (2) Copies of 5x7' Photo Print (Toga Outfit)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Two (2) Copies of 5x7' Photo Print (Barong/Filipiñana)" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
+
+                                    <Separator Background="#333" Height="1"/>
+
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="SHOTS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• 50-60 Shots for all outfits" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Toga Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Barong or Filipiñana Shots" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free Barkada or Group Shots." Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="AT LEAST FIVE (5) STUDENTS MUST AVAIL THIS PACKAGE TO RECEIVE FREE BARKADA/GROUP SHOTS." Foreground="#ff8800" FontSize="10" FontWeight="Bold" TextWrapping="Wrap" Margin="0,5,0,0"/>
                                     </StackPanel>
+
+                                    <Separator Background="#333" Height="1"/>
+
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="INCLUSIONS" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• With Hair and Make Up" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free use of Toga, Filipiñana or Barong" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• Free Edited Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free All Raw File Soft Copies" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• Free Eco Bag Storage" Foreground="#ccc" FontSize="11"/>
+                                        <TextBlock Text="• 2 Photos Final Edited" Foreground="#ccc" FontSize="11"/>
+                                    </StackPanel>
+
+                                    <Separator Background="#333" Height="1"/>
+
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="WHAT'S NEW IN THIS PACKAGE?" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                        <TextBlock Text="• Upgraded Frame! From Classic Frame to Glass to Glass Frame." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Name of School and Program." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Eco Bag Storage with DBM Logo" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• With Barkada/Group Shot Print." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        <TextBlock Text="• AND MOREEEE!" Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </Border>
                         </ScrollViewer>
                     </Border>
@@ -1264,7 +1292,7 @@
         </Button>
 
         <Button Classes="dialog-btn secondary" Padding="15,8" CornerRadius="4" Cursor="Hand" IsVisible="{Binding IsPkgASelected}">
-            <StackPanel Orientation="Horizontal" Spacing="8">
+             <StackPanel Orientation="Horizontal" Spacing="8">
                 <PathIcon Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" Width="16" Height="16" Foreground="#aaa"/>
                 <TextBlock Text="Package Details" VerticalAlignment="Center" FontSize="12"/>
             </StackPanel>
@@ -1305,7 +1333,6 @@
                                         <TextBlock Text="• Free Envelope Photo Storage" Foreground="#ccc" FontSize="11"/>
                                         <TextBlock Text="• 2 Photos Final Edited" Foreground="#ccc" FontSize="11"/>
                                     </StackPanel>
-
                                 </StackPanel>
                             </Border>
                         </ScrollViewer>

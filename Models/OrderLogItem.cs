@@ -37,8 +37,8 @@ namespace dbm_select.Models
         public string Box_Any { get; set; } = "";
 
         // 9. instax
-        [ExcelColumn(Name = "instax", Width = 40, Index = 8)]
-        public string Box_Instax { get; set; } = "";
+       [ExcelColumn(Name = "Solo/Group", Width = 40, Index = 8)]
+        public string Box_SoloGroup { get; set; } = "";
 
         // 10. TimeStamp
         [ExcelColumn(Name = "TimeStamp", Width = 25, Index = 9)]

@@ -27,6 +27,6 @@
         public const string Barong = "Barong";
         public const string Creative = "Creative";
         public const string Any = "Any";
-        public const string Instax = "Instax";
+        public const string SoloGroup = "Solo/Group";
     }
 }
