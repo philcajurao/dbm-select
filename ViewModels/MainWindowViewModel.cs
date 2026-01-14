@@ -979,12 +979,11 @@ private void UpdateVisibility(string pkg)
     IsCreativeVisible = false;
     IsAnyVisible = false;
     IsSoloGroupVisible = false;
+    
     IsSingleLargeLayout = false;
     IsDoubleLargeLayout = false;
     IsQuadLayout = false;
     IsFiveLayout = false;
-    
-    // New Flags Reset
     IsSecondaryQuad = false;
 
     LayoutStretch = Stretch.None;
@@ -993,63 +992,55 @@ private void UpdateVisibility(string pkg)
 
     if (pkg == "Basic")
     {
+        // 1 Slot: 8x10 Only
         IsSingleLargeLayout = true;
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
     }
     else if (pkg == "A")
     {
-        // 2 Rows: 8x10 (Big) + Barong (Big)
+        // 2 Slots: 8x10 + Barong (Large Layout)
         IsBarongVisible = true;
         IsBarongVertical = true;
-        IsDoubleLargeLayout = true; // Makes 8x10 Big
-        IsSecondaryQuad = false;    // Makes Barong Big
+        IsDoubleLargeLayout = true; 
+        
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
     }
-   else if (pkg == "B")
+    else if (pkg == "B")
     {
-        // 2 Rows: 
-        // Row 1: 8x10 (Normal/Quad Size)
-        // Row 2: Barong + Barkada (Quad Size)
+        // 2 Slots: 8x10 + Barong (Large Layout - Matches Pkg A)
         IsBarongVisible = true;
         IsBarongVertical = true;
-        IsAnyVisible = true;
-        AnySlotLabel = "Barkada Shot";
-        
-        IsDoubleLargeLayout = false; // CHANGED: Set to false (was true) to remove huge size
-        IsQuadLayout = true;         // ADDED: Set to true so 8x10 matches the size of bottom slots
-        IsSecondaryQuad = true;      // Bottom row remains Quad/Small
+        IsDoubleLargeLayout = true;
         
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
     }
     else if (pkg == "C")
     {
-        // 2 Rows: [8x10 + Barong] + [Creative + Barkada]
+        // 3 Slots: 8x10 + Barong + Creative
         IsBarongVisible = true;
         IsBarongHorizontal = true;
         IsCreativeVisible = true;
-        IsAnyVisible = true;
-        AnySlotLabel = "Barkada Shot";
         
-        IsQuadLayout = true;
-        IsSecondaryQuad = true; 
+        IsQuadLayout = true; 
         
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
     }
     else if (pkg == "D")
     {
-        // 3 Rows: [8x10 + Barong] + [Creative + Any] + [Solo]
+        // 4 Slots: 8x10 + Barong + Creative + Any
         IsBarongVisible = true;
         IsBarongHorizontal = true;
         IsCreativeVisible = true;
-        IsAnyVisible = true;
-        IsSoloGroupVisible = true;
         
-        IsFiveLayout = true;
-        IsSecondaryQuad = true;
+        // RESTORED: Any Slot (formerly Solo/Group logic)
+        IsAnyVisible = true; 
+        AnySlotLabel = "Any"; // Renamed to 'Any'
+        
+        IsQuadLayout = true; // 4 slots fit perfectly in a 2x2 Quad grid
         
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
