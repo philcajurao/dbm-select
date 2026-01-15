@@ -98,11 +98,31 @@ namespace dbm_select.ViewModels
         private string _selectedPackage = PackgeConstants.Basic;
         public string SelectedPackageDisplayName => SelectedPackage == PackgeConstants.Basic ? PackgeConstants.BasicPackage : $"Package {SelectedPackage}";
 
-        [ObservableProperty] private bool _isBasicSelected = true;
-        [ObservableProperty] private bool _isPkgASelected;
-        [ObservableProperty] private bool _isPkgBSelected;
-        [ObservableProperty] private bool _isPkgCSelected;
-        [ObservableProperty] private bool _isPkgDSelected;
+
+        public string LargePrintLabel
+        {
+            get
+            {
+                if (IsPkgDSelected) return "11x14";
+                if (IsPkgCSelected) return "10x12";
+                return "8x10";
+            }
+        }
+
+        [ObservableProperty] 
+        private bool _isBasicSelected = true;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgASelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgBSelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgCSelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgDSelected;
 
         [ObservableProperty] private ImageItem? _selectedImage;
 

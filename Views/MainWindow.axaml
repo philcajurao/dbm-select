@@ -267,7 +267,9 @@
                     <Panel>
                         <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
                         <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="8x10" Classes="slot-label"/></Border>
+                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                            <TextBlock Text="{Binding LargePrintLabel}" Classes="slot-label"/>
+                        </Border>
                         <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                     </Panel>
                 </Border>
@@ -599,27 +601,94 @@
         </Grid>
 
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsHelpDialogVisible}" ZIndex="250">
-            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="1000" MaxHeight="1000">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="20">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.95" MaterialOpacity="0.95" />
                     </ExperimentalAcrylicBorder.Material>
-                    <StackPanel Spacing="20">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    
+                    <Grid RowDefinitions="Auto, *, Auto">
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,0,0,20">
                             <PathIcon Data="{StaticResource InfoIcon}" Foreground="#f0f0f0" Width="24" Height="24"/>
-                            <TextBlock Text="How to Use" FontSize="20" FontWeight="Bold" Foreground="#f0f0f0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Help &amp; Guidelines" FontSize="20" FontWeight="Bold" Foreground="#f0f0f0" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="1. Enter your Name and Email Address." Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="2. Select your Package." Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="3. Click 'Open Folder' to load your photos." Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                            <TextBlock Text="4. Drag and Drop the photos in the slots that you want to print accordingly on the sizes. You can preview the package inclusions by clicking the View Package Inclusions button at the bottom of the Browse Photos area." 
-                                       Foreground="#d3d3d3" 
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="5. Click 'Submit' when you are done." Foreground="#d3d3d3" TextWrapping="Wrap"/>
-                        </StackPanel>
-                        <Button Content="Got it!" Command="{Binding CloseHelpCommand}" Classes="dialog-btn success" Width="120" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                    </StackPanel>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,15,0">
+                            <StackPanel Spacing="10">
+                                
+                                <Expander Header="How to Use App" IsExpanded="False" HorizontalAlignment="Stretch" CornerRadius="4">
+                                    <StackPanel Spacing="10" Margin="10,5">
+                                        <TextBlock Text="1. Enter your Name and Email Address." Foreground="#d3d3d3" TextWrapping="Wrap" FontSize="12"/>
+                                        <TextBlock Text="2. Select your Package." Foreground="#d3d3d3" TextWrapping="Wrap" FontSize="12"/>
+                                        <TextBlock Text="3. Click 'Open Folder' to load your photos." Foreground="#d3d3d3" TextWrapping="Wrap" FontSize="12"/>
+                                        <TextBlock Text="4. Drag and Drop the photos into the slots. You can preview the package inclusions by clicking the View Package button." 
+                                                   Foreground="#d3d3d3" TextWrapping="Wrap" FontSize="12"/>
+                                        <TextBlock Text="5. Click 'Submit' when you are done." Foreground="#d3d3d3" TextWrapping="Wrap" FontSize="12"/>
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander Header="GradPic Package Guidelines" IsExpanded="False" HorizontalAlignment="Stretch" CornerRadius="4">
+                                    <StackPanel Spacing="15" Margin="10,5">
+                                        
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="PACKAGE A" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                            <TextBlock Text="• This package includes Hair and Make up." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Strictly two (2) outfits only (Toga, Barong or Filipiniana)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Includes one (1) 8x10 Print (Frame Not Included)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Client may choose two (2) photos for final editing for Printing." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• 20-30 Shots per session." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• At least five (5) Students must avail this package to receive free group shots." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <Separator Height="1" Background="#333"/>
+
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="PACKAGE B" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                            <TextBlock Text="• This package includes Hair and Make up." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Strictly two (2) outfits only (Toga, Barong or Filipiniana)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Includes one (1) 8x10 Print with 10x12 Glass to Glass Frame." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Client may choose two (2) photos for final editing for Printing." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• 50-60 Shots per session." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• At least five (5) Students must avail this package to receive free group shots." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Free 5R photo print for group shots will only be applicable if there are barkada or group shots. This cannot be claimed for solo or duo shots." Foreground="#d9534f" FontSize="11" TextWrapping="Wrap" FontStyle="Italic"/>
+                                        </StackPanel>
+
+                                        <Separator Height="1" Background="#333"/>
+
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="PACKAGE C" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                            <TextBlock Text="• This package includes Hair and Make up." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Strictly three (3) outfits only (Toga, Barong or Filipiniana and Creative Attire)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Includes one (1) 10x12 Print with 12x14 Glass to Glass Frame." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Client may choose five (5) photos for final editing for Printing." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Unlimited Shots in every outfit." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Free Group Shot for those students who availed this package." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Free 5R photo print for group shots will only be applicable if there are barkada or group shots. This cannot be claimed for solo or duo shots." Foreground="#d9534f" FontSize="11" TextWrapping="Wrap" FontStyle="Italic"/>
+                                        </StackPanel>
+
+                                        <Separator Height="1" Background="#333"/>
+
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="PACKAGE D" FontWeight="Bold" Foreground="#ff8800" FontSize="12"/>
+                                            <TextBlock Text="• This package includes Hair and Make up." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Strictly three (3) outfits only (Toga, Barong or Filipiniana and Creative Attire)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Includes one (1) 11 x 14 Print with 12x15 Glass to Glass Frame." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• With one (1) 8x10 Print." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Client may choose five (5) photos for final editing for Printing." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Unlimited Shots in every outfit." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Free Family or Couple Shot (Maximum of 3 Companion Only)." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Free Group Shot for those students who availed this package." Foreground="#ccc" FontSize="11" TextWrapping="Wrap"/>
+                                            <TextBlock Text="• Only one (1) outfit is allowed for family/couple shots, but each member may take a one-on-one photo with the graduate." Foreground="#d9534f" FontSize="11" TextWrapping="Wrap" FontStyle="Italic"/>
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Expander>
+
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <Button Grid.Row="2" Content="Got it!" Command="{Binding CloseHelpCommand}" Classes="dialog-btn success" Width="120" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                    </Grid>
                 </ExperimentalAcrylicBorder>
             </Border>
         </Grid>
@@ -756,12 +825,12 @@
                 <Border BorderBrush="#151515" BorderThickness="1">
                     <Panel Width="440" Height="580" Background="#141414">
                         <TextBlock Text="11x14 Empty" Foreground="#444" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        <Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding PreviewImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     </Panel>
                 </Border>
             </Border>
         </Border>
-        <TextBlock Text="11x14 PRINT w/ GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="11x14 PRINT w/ GLASS TO GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
     </StackPanel>
 
     <Grid Grid.Column="2" Height="714" VerticalAlignment="Center" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
@@ -785,7 +854,7 @@
                     <UniformGrid Rows="1" Columns="5" Width="700" Height="170">
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
-                        <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageBaron.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
+                        <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageBarong.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageAny.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                         <Border Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="4"><Image Source="{Binding PreviewImageCreative.Bitmap}" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/></Border>
                     </UniformGrid>
@@ -842,7 +911,7 @@
                 </Border>
             </Border>
         </Border>
-        <TextBlock Text="10x12 PRINT w/ GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="10x12 PRINT w/ GLASS TO GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
     </StackPanel>
 
     <Grid Grid.Column="2" Height="714" VerticalAlignment="Center" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
@@ -917,7 +986,7 @@
                 </Border>
             </Border>
         </Border>
-        <TextBlock Text="8x10 PRINT" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="8x10 PRINT w/ GLASS TO GLASS FRAME" Foreground="#ff8800" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
     </StackPanel>
 
     <Grid Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left" RowDefinitions="Auto, 20, Auto">
