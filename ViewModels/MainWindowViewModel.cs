@@ -1039,10 +1039,12 @@ private void UpdateVisibility(string pkg)
     }
     else if (pkg == "C")
     {
-        // 3 Slots: 8x10 + Barong + Creative
+        // 4 Slots: 8x10 + Barong + Creative + Any
         IsBarongVisible = true;
         IsBarongHorizontal = true;
         IsCreativeVisible = true;
+        IsAnyVisible = true; 
+        AnySlotLabel = "Any";
         
         IsQuadLayout = true; 
         
@@ -1060,7 +1062,10 @@ private void UpdateVisibility(string pkg)
         IsAnyVisible = true; 
         AnySlotLabel = "Any"; // Renamed to 'Any'
         
-        IsQuadLayout = true; // 4 slots fit perfectly in a 2x2 Quad grid
+        IsSoloGroupVisible = true;
+    
+        IsQuadLayout = false; 
+        IsFiveLayout = true;
         
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
