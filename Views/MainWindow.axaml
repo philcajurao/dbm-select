@@ -1052,7 +1052,7 @@
 
 
 
-                                     <Grid HorizontalAlignment="Left" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgBSelected}">
+                                    <Grid HorizontalAlignment="Left" ColumnDefinitions="Auto, 30, Auto" Height="760" IsVisible="{Binding IsPkgBSelected}">
 
     <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Spacing="15">
         <Border Background="#0d0d0d" BorderBrush="#333" BorderThickness="2" Padding="30" BoxShadow="0 0 15 5 #000000aa">
@@ -1080,10 +1080,11 @@
             <TextBlock Text="4 PCS 5x7 PRINTS (2 Toga, 2 Barong)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*" HorizontalAlignment="Left">
-
-            <Grid Grid.Column="0">
-                <StackPanel Spacing="5" Width="260" HorizontalAlignment="Left">
+       <Grid Grid.Row="2" HorizontalAlignment="Left">
+            
+            <Grid ColumnDefinitions="Auto, 30, Auto">
+                
+                <StackPanel Grid.Column="0" Spacing="5" Width="260" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <UniformGrid Rows="2" Columns="4" Width="260">
                         <Border Width="60" Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
                         <Border Width="60" Height="80" Background="#151515" BorderBrush="#333" BorderThickness="1" Margin="2"><Image Source="{Binding PreviewImage8x10.Bitmap}" Stretch="UniformToFill"/></Border>
@@ -1097,8 +1098,21 @@
                     </UniformGrid>
                     <TextBlock Text="8 PCS 2R (WALLET SIZE)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                 </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Top" 
+                            IsVisible="{Binding PreviewImageBarkada, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    
+                    <Border Width="185" Height="240" Background="#151515" BorderBrush="#333" BorderThickness="1">
+                        <Image Source="{Binding PreviewImageBarkada.Bitmap}" 
+                               Stretch="UniformToFill" 
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Border>
+                    <TextBlock Text="1 PC 5x7 (BARKADA)" Foreground="#aaa" FontSize="11" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                </StackPanel>
+                
             </Grid>
         </Grid>
+
     </Grid>
 </Grid>
 

@@ -143,6 +143,7 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private ImageItem? _previewImageCreative;
         [ObservableProperty] private ImageItem? _previewImageAny;
         [ObservableProperty] private ImageItem? _previewImageSoloGroup;
+        [ObservableProperty] private ImageItem? _previewImageBarkada;
         [ObservableProperty] private bool _isModalLoading;
 
         [ObservableProperty] private ImageItem? _image8x10;
@@ -588,7 +589,11 @@ namespace dbm_select.ViewModels
                 using var surface = SKSurface.Create(finalInfo);
                 using var canvas = surface.Canvas;
 
-                var kernel = new float[] { -0.5f, -0.5f, -0.5f, -0.5f, 5.0f, -0.5f, -0.5f, -0.5f, -0.5f };
+                var kernel = new float[] { 
+                    -0.09375f, -0.09375f, -0.09375f, 
+                    -0.09375f,  1.75f,    -0.09375f, 
+                    -0.09375f, -0.09375f, -0.09375f
+                };
                 using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
                 paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1), SKShaderTileMode.Clamp, false, null, null);
 
@@ -693,8 +698,8 @@ namespace dbm_select.ViewModels
             PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
             PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
             PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
-            // UPDATED DISPOSE
             PreviewImageSoloGroup?.Bitmap?.Dispose(); PreviewImageSoloGroup = null;
+            PreviewImageBarkada?.Bitmap?.Dispose(); PreviewImageBarkada = null;
 
             try
             {
@@ -714,8 +719,8 @@ namespace dbm_select.ViewModels
                         { CategoryConstants.Barong, IsBarongVisible ? Load(ImageBarong) : null },
                         { CategoryConstants.Creative, IsCreativeVisible ? Load(ImageCreative) : null },
                         { CategoryConstants.Any, IsAnyVisible ? Load(ImageAny) : null },
-                        // UPDATED KEY AND PROPERTY
-                        { CategoryConstants.SoloGroup, IsSoloGroupVisible ? Load(ImageSoloGroup) : null }
+                        { CategoryConstants.SoloGroup, IsSoloGroupVisible ? Load(ImageSoloGroup) : null },
+                        { CategoryConstants.Barkada, IsBarkadaVisible ? Load(ImageBarkada) : null }
                     };
                 });
 
@@ -723,8 +728,8 @@ namespace dbm_select.ViewModels
                 PreviewImageBarong = results[CategoryConstants.Barong];
                 PreviewImageCreative = results[CategoryConstants.Creative];
                 PreviewImageAny = results[CategoryConstants.Any];
-                // UPDATED ASSIGNMENT
                 PreviewImageSoloGroup = results[CategoryConstants.SoloGroup];
+                PreviewImageBarkada = results[CategoryConstants.Barkada];
             }
             catch { IsPreviewPackageDialogVisible = false; }
             finally { IsModalLoading = false; }
