@@ -40,8 +40,12 @@ namespace dbm_select.Models
        [ExcelColumn(Name = "Solo/Group", Width = 40, Index = 8)]
         public string Box_SoloGroup { get; set; } = "";
 
-        // 10. TimeStamp
-        [ExcelColumn(Name = "TimeStamp", Width = 25, Index = 9)]
-        public string TimeStamp { get; set; } = ""; // Renamed from Date
+        // 10. Barkada (NEW OPTIONAL SLOT)
+        [ExcelColumn(Name = "Barkada", Width = 40, Index = 9)]
+        public string Box_Barkada { get; set; } = "";
+
+        // 11. TimeStamp (Moved Index from 9 to 10)
+        [ExcelColumn(Name = "TimeStamp", Width = 25, Index = 10)]
+        public string TimeStamp { get; set; } = "";
     }
 }

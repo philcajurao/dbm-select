@@ -250,118 +250,165 @@
               HorizontalScrollBarVisibility="Disabled">
     
     <StackPanel Orientation="Vertical" 
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Top" 
-                Spacing="5">
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Top" 
+            Spacing="5">
 
-        <WrapPanel Orientation="Horizontal" 
-                   HorizontalAlignment="Center" 
-                   MaxWidth="340">
-
-            <StackPanel Spacing="5" Margin="5">
-                <Border BorderBrush="Gray" BorderThickness="1" 
-                        Classes="slot-box"
-                        Classes.single="{Binding IsSingleLargeLayout}"
-                        Classes.double="{Binding IsDoubleLargeLayout}" 
-                        Classes.quad="{Binding IsQuadLayout}"
-                        Classes.penta="{Binding IsFiveLayout}"
-                        Tag="8x10" Background="Transparent" ClipToBounds="True">
-                    <Panel>
-                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                            <TextBlock Text="{Binding LargePrintLabel}" Classes="slot-label"/>
-                        </Border>
-                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
-                    </Panel>
-                </Border>
-                <TextBlock Text="{Binding Image8x10.FileName}" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.single="{Binding IsSingleLargeLayout}" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-            </StackPanel>
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsBarongVisible}" Margin="5">
-                <Border BorderBrush="Gray" BorderThickness="1" 
-                        Classes="slot-box"
-                        Classes.double="{Binding IsDoubleLargeLayout}" 
-                        Classes.quad="{Binding IsQuadLayout}"
-                        Classes.penta="{Binding IsFiveLayout}"
-                        Tag="Barong" Background="Transparent" ClipToBounds="True">
-                    <Panel>
-                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
-                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
-                    </Panel>
-                </Border>
-                <TextBlock Text="{Binding ImageBarong.FileName}" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-            </StackPanel>
-
-        </WrapPanel>
-
-        <StackPanel Orientation="Horizontal" 
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top">
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsCreativeVisible}" Margin="5">
-                <Border BorderBrush="Gray" BorderThickness="1" 
-                        Classes="slot-box"
-                        Classes.quad="{Binding IsQuadLayout}"
-                        Classes.penta="{Binding IsFiveLayout}"
-                        Tag="Creative" Background="Transparent" ClipToBounds="True">
-                    <Panel>
-                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Creative" Classes="slot-label"/></Border>
-                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
-                    </Panel>
-                </Border>
-                <TextBlock Text="{Binding ImageCreative.FileName}" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-            </StackPanel>
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsAnyVisible}" Margin="5">
-                <Border BorderBrush="Gray" BorderThickness="1" 
-                        Classes="slot-box"
-                        Classes.quad="{Binding IsQuadLayout}"
-                        Classes.penta="{Binding IsFiveLayout}"
-                        Tag="Any" Background="Transparent" ClipToBounds="True">
-                    <Panel>
-                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding AnySlotLabel}" Classes="slot-label"/></Border>
-                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
-                    </Panel>
-                </Border>
-                <TextBlock Text="{Binding ImageAny.FileName}" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-            </StackPanel>
-
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5">
+        
+        <StackPanel Spacing="5" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.single="{Binding IsSingleLargeLayout}"
+                    Classes.double="{Binding IsDoubleLargeLayout}" 
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="8x10" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                        <TextBlock Text="{Binding LargePrintLabel}" Classes="slot-label"/>
+                    </Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="8x10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding Image8x10.FileName}" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.single="{Binding IsSingleLargeLayout}" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" 
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top">
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsSoloGroupVisible}" Margin="5">
-                <Border BorderBrush="Gray" BorderThickness="1" 
-                        Classes="slot-box"
-                        Classes.quad="{Binding IsQuadLayout}"
-                        Classes.penta="{Binding IsFiveLayout}"
-                        Tag="Solo/Group" Background="Transparent" ClipToBounds="True">
-                    <Panel>
-                        <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNull}}"/>
-                        <Image Source="{Binding ImageSoloGroup.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
-                            <TextBlock Text="Solo/Group" Classes="slot-label"/>
-                        </Border>
-                        <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="SoloGroup" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
-                            <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
-                        </Button>
-                    </Panel>
-                </Border>
-                <TextBlock Text="{Binding ImageSoloGroup.FileName}" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
-            </StackPanel>
-
+        <StackPanel Spacing="5" IsVisible="{Binding IsBarongHorizontal}" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.double="{Binding IsDoubleLargeLayout}" 
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Barong" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageBarong.FileName}" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
         </StackPanel>
 
     </StackPanel>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5" IsVisible="{Binding IsBarongVertical}">
+         <StackPanel Spacing="5" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.double="{Binding IsDoubleLargeLayout}" 
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Barong" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageBarong.FileName}" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.double="{Binding IsDoubleLargeLayout}" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+    </StackPanel>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5">
+        
+        <StackPanel Spacing="5" IsVisible="{Binding IsCreativeVisible}" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Creative" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Creative" Classes="slot-label"/></Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageCreative.FileName}" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Spacing="5" IsVisible="{Binding IsAnyVisible}" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Any" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding AnySlotLabel}" Classes="slot-label"/></Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageAny.FileName}" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+        
+    </StackPanel>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5">
+
+        <StackPanel Spacing="5" IsVisible="{Binding IsSoloGroupVisible}" Margin="5">
+            <Border BorderBrush="Gray" BorderThickness="1" 
+                    Classes="slot-box"
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Solo/Group" Background="Transparent" ClipToBounds="True">
+                <Panel>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageSoloGroup.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                        <TextBlock Text="Solo/Group" Classes="slot-label"/>
+                    </Border>
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="SoloGroup" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                    </Button>
+                </Panel>
+            </Border>
+            <TextBlock Text="{Binding ImageSoloGroup.FileName}" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#aaa" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+
+       <StackPanel Spacing="5" IsVisible="{Binding IsBarkadaVisible}" Margin="5">
+            
+            <Border Classes="slot-box"
+                    Classes.quad="{Binding IsQuadLayout}"
+                    Classes.penta="{Binding IsFiveLayout}"
+                    Tag="Barkada" 
+                    Background="Transparent" 
+                    ClipToBounds="True">
+                
+                <Panel>
+                    <Rectangle Stroke="#999999" 
+                               StrokeThickness="1" 
+                               StrokeDashArray="4,4" 
+                               RadiusX="4" 
+                               RadiusY="4"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               IsHitTestVisible="False"/>
+
+                    <TextBlock Text="Only if applicable" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#999999" FontSize="10" IsVisible="{Binding ImageBarkada, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <Image Source="{Binding ImageBarkada.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarkada, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    
+                    <Border Background="#66000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
+                        <TextBlock Text="Barkada" Classes="slot-label" Foreground="#888"/>
+                    </Border>
+                    
+                    <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barkada" IsVisible="{Binding ImageBarkada, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/>
+                    </Button>
+                </Panel>
+            </Border>
+            
+            <TextBlock Text="{Binding ImageBarkada.FileName}" IsVisible="{Binding ImageBarkada, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="filename-text" Classes.quad="{Binding IsQuadLayout}" Classes.penta="{Binding IsFiveLayout}" FontSize="9" Foreground="#666" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+    </StackPanel>
+
+</StackPanel>
 </ScrollViewer>
                 </Viewbox>
 

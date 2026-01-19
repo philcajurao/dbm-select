@@ -28,5 +28,6 @@
         public const string Creative = "Creative";
         public const string Any = "Any";
         public const string SoloGroup = "Solo/Group";
+        public const string Barkada = "Barkada";
     }
 }

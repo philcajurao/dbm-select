@@ -150,11 +150,13 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private ImageItem? _imageCreative;
         [ObservableProperty] private ImageItem? _imageAny;
         [ObservableProperty] private ImageItem? _imageSoloGroup;
+        [ObservableProperty] private ImageItem? _imageBarkada;
 
         [ObservableProperty] private bool _isBarongVisible;
         [ObservableProperty] private bool _isCreativeVisible;
         [ObservableProperty] private bool _isAnyVisible;
         [ObservableProperty] private bool _isSoloGroupVisible;
+        [ObservableProperty] private bool _isBarkadaVisible;
 
         [ObservableProperty] private bool _isSingleLargeLayout;
         [ObservableProperty] private bool _isDoubleLargeLayout;
@@ -674,8 +676,8 @@ namespace dbm_select.ViewModels
                 case CategoryConstants.Barong: ImageBarong = newSlotItem; break;
                 case CategoryConstants.Creative: ImageCreative = newSlotItem; break;
                 case CategoryConstants.Any: ImageAny = newSlotItem; break;
-                // UPDATED CASE
                 case CategoryConstants.SoloGroup: ImageSoloGroup = newSlotItem; break;
+                case CategoryConstants.Barkada: ImageBarkada = newSlotItem; break;
             }
         }
 
@@ -810,8 +812,8 @@ namespace dbm_select.ViewModels
                 case CategoryConstants.Barong: ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
                 case CategoryConstants.Creative: ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
                 case CategoryConstants.Any: ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
-                // UPDATED CASE
                 case CategoryConstants.SoloGroup: ImageSoloGroup?.Bitmap?.Dispose(); ImageSoloGroup = null; break;
+                case CategoryConstants.Barkada: ImageBarkada?.Bitmap?.Dispose(); ImageBarkada = null; break;
             }
             GC.Collect();
         }
@@ -864,6 +866,9 @@ namespace dbm_select.ViewModels
                     if (IsSoloGroupVisible)
                         SaveImageToFile(ImageSoloGroup, " Solo or Group ", specificFolder);
 
+                    if (IsBarkadaVisible && ImageBarkada != null) 
+                        SaveImageToFile(ImageBarkada, " Barkada ", specificFolder);
+
                     // --- C. EXCEL LOGGING ---
                     string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
                     string? excelDir = Path.GetDirectoryName(excelPath);
@@ -899,6 +904,7 @@ namespace dbm_select.ViewModels
                         Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
                         Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
                         Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
+                        Box_Barkada = IsBarkadaVisible ? (ImageBarkada?.FileName ?? "None") : "N/A",
                         TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     };
 
@@ -999,6 +1005,7 @@ private void UpdateVisibility(string pkg)
     IsCreativeVisible = false;
     IsAnyVisible = false;
     IsSoloGroupVisible = false;
+    IsBarkadaVisible = false;
     
     IsSingleLargeLayout = false;
     IsDoubleLargeLayout = false;
@@ -1031,8 +1038,10 @@ private void UpdateVisibility(string pkg)
     {
         // 2 Slots: 8x10 + Barong (Large Layout - Matches Pkg A)
         IsBarongVisible = true;
-        IsBarongVertical = true;
-        IsDoubleLargeLayout = true;
+        IsBarongHorizontal = true;
+        IsBarkadaVisible = true;
+
+        IsQuadLayout = true;
         
         LayoutStretch = Stretch.Uniform;
         ScrollVisibility = ScrollBarVisibility.Disabled;
@@ -1045,6 +1054,7 @@ private void UpdateVisibility(string pkg)
         IsCreativeVisible = true;
         IsAnyVisible = true; 
         AnySlotLabel = "Any";
+        IsBarkadaVisible = true;
         
         IsQuadLayout = true; 
         
@@ -1090,6 +1100,8 @@ private void UpdateVisibility(string pkg)
             ImageCreative = null;
             ImageAny = null;
             ImageSoloGroup = null;
+            ImageBarkada = null; 
+            IsBarkadaVisible = false;
             UpdateVisibility("Basic");
         }
 
