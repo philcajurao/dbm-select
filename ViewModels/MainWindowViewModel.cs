@@ -361,9 +361,9 @@ namespace dbm_select.ViewModels
                         {
                             await Dispatcher.UIThread.InvokeAsync(() =>
                             {
-                                var old = item.Bitmap;
+                                // var old = item.Bitmap;
                                 item.Bitmap = highResBmp; // UI Snaps here
-                                old?.Dispose();
+                                // old?.Dispose();
                             }, DispatcherPriority.Background);
                         }
                     }
@@ -439,19 +439,31 @@ namespace dbm_select.ViewModels
 
         // --- CACHE HELPERS ---
         private void AddToCache(string path, ImageItem item)
+{
+    lock (_cacheLock)
+    {
+        if (_highResCache.ContainsKey(path)) 
+        { 
+            _cacheOrder.Remove(path); 
+            _cacheOrder.Add(path); 
+            return; 
+        }
+
+        if (_cacheOrder.Count >= MaxCacheSize)
         {
-            lock (_cacheLock)
-            {
-                if (_highResCache.ContainsKey(path)) { _cacheOrder.Remove(path); _cacheOrder.Add(path); return; }
-                if (_cacheOrder.Count >= MaxCacheSize)
-                {
-                    string oldest = _cacheOrder[0];
-                    _cacheOrder.RemoveAt(0);
-                    if (_highResCache.TryGetValue(oldest, out var old)) { if (old != PreviewImage) old.Bitmap?.Dispose(); _highResCache.Remove(oldest); }
-                }
-                _highResCache[path] = item; _cacheOrder.Add(path);
+            string oldest = _cacheOrder[0];
+            _cacheOrder.RemoveAt(0);
+            
+            if (_highResCache.TryGetValue(oldest, out var old)) 
+            { 
+                // FIX: Do NOT Dispose 'old'. Just remove it.
+                _highResCache.Remove(oldest); 
             }
         }
+        _highResCache[path] = item; 
+        _cacheOrder.Add(path);
+    }
+}
 
         private ImageItem? GetFromCache(string path)
         {
@@ -464,8 +476,13 @@ namespace dbm_select.ViewModels
 
         private void ClearCache()
         {
-            lock (_cacheLock) { foreach (var i in _highResCache.Values) i.Bitmap?.Dispose(); _highResCache.Clear(); _cacheOrder.Clear(); }
-            // Note: We do NOT clear _folderCache here, that is persistent across browsing.
+           lock (_cacheLock) 
+    { 
+        // FIX: Do NOT call .Dispose() here. 
+        // Just clear the list so the Garbage Collector can clean up safely later.
+        _highResCache.Clear(); 
+        _cacheOrder.Clear(); 
+    }
         }
 
         // ---------------------------------------------------------
@@ -809,155 +826,157 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
 
         [RelayCommand]
-        public void ClearSlot(string category)
+public void ClearSlot(string category)
+{
+    // FIX: Just set to null. Do NOT call .Dispose().
+    // The Garbage Collector will free the memory automatically when it's safe.
+    switch (category)
+    {
+        case CategoryConstants.EightByTen:
+            Image8x10 = null;
+            break;
+        case CategoryConstants.Barong:
+            ImageBarong = null;
+            break;
+        case CategoryConstants.Creative:
+            ImageCreative = null;
+            break;
+        case CategoryConstants.Any:
+            ImageAny = null;
+            break;
+        case CategoryConstants.SoloGroup:
+            ImageSoloGroup = null;
+            break;
+        case CategoryConstants.Barkada:
+            ImageBarkada = null;
+            break;
+    }
+
+    // Optional: Hint to GC to clean up if it wants to, but don't force it aggressively
+    GC.Collect();
+}
+
+       [RelayCommand]
+public async Task ProceedFromAcknowledgement()
+{
+    // 1. Close dialog & show loader
+    IsAcknowledgementDialogVisible = false;
+    IsLoadingSubmit = true;
+
+    // 2. Stop any active loading (just in case)
+    _loadImagesCts?.Cancel();
+    
+    // Tiny delay to let UI breathe
+    await Task.Delay(500);
+
+    try
+    {
+        // ---------------------------------------------------------
+        // PART 1: BACKGROUND WORK (File I/O)
+        // ---------------------------------------------------------
+        await Task.Run(() =>
         {
-            switch (category)
+            // --- A. VALIDATION & SETUP ---
+            if (string.IsNullOrWhiteSpace(OutputFolderPath))
+                throw new DirectoryNotFoundException("The output folder path is not set in Settings.");
+
+            if (!Directory.Exists(OutputFolderPath))
+                Directory.CreateDirectory(OutputFolderPath);
+
+            // Sanitize Name
+            string safeClientName = (ClientName ?? "Unknown").ToUpper();
+            foreach (char c in Path.GetInvalidFileNameChars())
+                safeClientName = safeClientName.Replace(c, '_');
+
+            string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
+            if (!Directory.Exists(specificFolder))
+                Directory.CreateDirectory(specificFolder);
+
+            // --- B. SAVE IMAGES ---
+            SaveImageToFile(Image8x10, $" {LargePrintLabel} ", specificFolder);
+
+            if (IsBarongVisible)
+                SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
+
+            if (IsCreativeVisible)
+                SaveImageToFile(ImageCreative, " Creative ", specificFolder);
+
+            if (IsAnyVisible)
+                SaveImageToFile(ImageAny, $" {AnySlotLabel} ", specificFolder);
+
+            if (IsSoloGroupVisible)
+                SaveImageToFile(ImageSoloGroup, " Solo Group ", specificFolder);
+
+            if (IsBarkadaVisible && ImageBarkada != null)
+                SaveImageToFile(ImageBarkada, " Barkada ", specificFolder);
+
+            // --- C. EXCEL LOGGING ---
+            string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
+            string? excelDir = Path.GetDirectoryName(excelPath);
+
+            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
+                Directory.CreateDirectory(excelDir);
+
+            var allRows = new List<OrderLogItem>();
+
+            if (File.Exists(excelPath))
             {
-                case CategoryConstants.EightByTen: Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
-                case CategoryConstants.Barong: ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
-                case CategoryConstants.Creative: ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
-                case CategoryConstants.Any: ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
-                case CategoryConstants.SoloGroup: ImageSoloGroup?.Bitmap?.Dispose(); ImageSoloGroup = null; break;
-                case CategoryConstants.Barkada: ImageBarkada?.Bitmap?.Dispose(); ImageBarkada = null; break;
-            }
-            GC.Collect();
-        }
-
-        [RelayCommand]
-        public async Task ProceedFromAcknowledgement()
-        {
-            // 1. Close the dialog and show loading spinner
-            IsAcknowledgementDialogVisible = false;
-            IsLoadingSubmit = true;
-
-            // 2. STOP any background image loading immediately to free up resources/files
-            _loadImagesCts?.Cancel();
-
-            // Small delay to ensure UI updates and previous tasks stop
-            await Task.Delay(500);
-
-            try
-            {
-                await Task.Run(() =>
+                try
                 {
-                    // --- A. VALIDATION & SETUP ---
-                    if (string.IsNullOrWhiteSpace(OutputFolderPath))
-                        throw new DirectoryNotFoundException("The output folder path is not set in Settings.");
-
-                    if (!Directory.Exists(OutputFolderPath))
-                        Directory.CreateDirectory(OutputFolderPath);
-
-                    // Sanitize Client Name for Folder Creation
-                    string safeClientName = (ClientName ?? "Unknown").ToUpper();
-                    foreach (char c in Path.GetInvalidFileNameChars())
-                        safeClientName = safeClientName.Replace(c, '_');
-
-                    string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
-                    if (!Directory.Exists(specificFolder))
-                        Directory.CreateDirectory(specificFolder);
-
-                    // --- B. SAVE IMAGES ---
-                    SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
-
-                    if (IsBarongVisible)
-                        SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
-
-                    if (IsCreativeVisible)
-                        SaveImageToFile(ImageCreative, " Creative ", specificFolder);
-
-                    if (IsAnyVisible)
-                        SaveImageToFile(ImageAny, " Any ", specificFolder);
-
-                    if (IsSoloGroupVisible)
-                        SaveImageToFile(ImageSoloGroup, " Solo or Group ", specificFolder);
-
-                    if (IsBarkadaVisible && ImageBarkada != null) 
-                        SaveImageToFile(ImageBarkada, " Barkada ", specificFolder);
-
-                    // --- C. EXCEL LOGGING ---
-                    string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
-                    string? excelDir = Path.GetDirectoryName(excelPath);
-
-                    if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
-                        Directory.CreateDirectory(excelDir);
-
-                    // Create new log item
-                    // (Note: I condensed the logic here to match your previous flow properly)
-                    var allRows = new List<OrderLogItem>();
-
-                    // 1. Try reading existing file
-                    if (File.Exists(excelPath))
-                    {
-                        try
-                        {
-                            allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
-                        }
-                        catch (IOException)
-                        {
-                            // If reading fails, we just proceed with the new list
-                        }
-                    }
-
-                    var newItem = new OrderLogItem
-                    {
-                        Status = "DONE CHOOSING",
-                        Name = safeClientName,
-                        Email = ClientEmail ?? string.Empty,
-                        Package = SelectedPackage,
-                        Box_8x10 = Image8x10?.FileName ?? "Empty",
-                        Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
-                        Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
-                        Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
-                        Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
-                        Box_Barkada = IsBarkadaVisible ? (ImageBarkada?.FileName ?? "None") : "N/A",
-                        TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                    };
-
-                    allRows.Add(newItem);
-
-                    // 2. Save Excel (Manual Overwrite Safety)
-                    try
-                    {
-                        if (File.Exists(excelPath))
-                        {
-                            File.Delete(excelPath);
-                        }
-
-                        MiniExcel.SaveAs(excelPath, allRows);
-                    }
-                    catch (IOException)
-                    {
-                        throw new IOException($"Could not save to Excel. Please ensure '{ExcelFileName}.xlsx' is closed.");
-                    }
-                }); // <--- THIS WAS MISSING (Closes Task.Run)
-
-                // --- D. CLEANUP & RESET (Main Thread) ---
-                ResetData();
-
-                // Use the new safe ClearBrowserImages method
-                ClearBrowserImages();
-
-                IsLoadingSubmit = false;
-                IsThankYouDialogVisible = true;
-
-                // Reload folder images fresh
-                _ = LoadImages(_currentBrowseFolderPath);
-            } // <--- THIS WAS MISSING (Closes the Try block)
-            catch (IOException ioEx)
-            {
-                // Handle file locking specifically
-                IsLoadingSubmit = false;
-                ErrorMessage = ioEx.Message;
-                IsErrorDialogVisible = true;
+                    allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
+                }
+                catch { }
             }
-            catch (Exception ex)
+
+            var newItem = new OrderLogItem
             {
-                // Handle any other crashes
-                IsLoadingSubmit = false;
-                ErrorMessage = $"An unexpected error occurred: {ex.Message}";
-                IsErrorDialogVisible = true;
-            }
-        }
+                Status = "DONE CHOOSING",
+                Name = safeClientName,
+                Email = ClientEmail ?? string.Empty,
+                Package = SelectedPackage,
+                Box_LargePrint = Image8x10?.FileName ?? "Empty",
+                Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
+                Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
+                Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
+                Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
+                Box_Barkada = IsBarkadaVisible ? (ImageBarkada?.FileName ?? "None") : "N/A",
+                TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            allRows.Add(newItem);
+
+            if (File.Exists(excelPath)) File.Delete(excelPath);
+            MiniExcel.SaveAs(excelPath, allRows);
+
+        }); 
+
+        // ---------------------------------------------------------
+        // PART 2: UI UPDATES
+        // ---------------------------------------------------------
+        
+        // Only reset the input slots and text fields
+        ResetData();
+
+        // REMOVED: ClearBrowserImages(); 
+        // REMOVED: LoadImages(...);
+        
+        // This keeps the photos on the right side visible!
+        IsLoadingSubmit = false;
+        IsThankYouDialogVisible = true;
+    }
+    catch (IOException ioEx)
+    {
+        IsLoadingSubmit = false;
+        ErrorMessage = $"File Error: {ioEx.Message}\n(Check if the Excel file is open)";
+        IsErrorDialogVisible = true;
+    }
+    catch (Exception ex)
+    {
+        IsLoadingSubmit = false;
+        ErrorMessage = $"An error occurred: {ex.Message}";
+        IsErrorDialogVisible = true;
+    }
+}
         private void SaveImageToFile(ImageItem? image, string cat, string folder)
         {
             if (image == null) return;
@@ -1087,73 +1106,71 @@ private void UpdateVisibility(string pkg)
     }
 }
 
-        private void ResetData()
-        {
-            ClearCache();
-            ClientName = string.Empty;
-            ClientEmail = string.Empty;
-            SelectedPackage = "Basic";
-            IsBasicSelected = true;
-            IsPkgASelected = false;
-            IsPkgBSelected = false;
-            IsPkgCSelected = false;
-            IsPkgDSelected = false;
-            SelectedImage = null;
-            PreviewImage = null;
-            Image8x10 = null;
-            ImageBarong = null;
-            ImageCreative = null;
-            ImageAny = null;
-            ImageSoloGroup = null;
-            ImageBarkada = null; 
-            IsBarkadaVisible = false;
-            UpdateVisibility("Basic");
-        }
+      private void ResetData()
+{
+    // 1. Unbind UI Properties
+    ClientName = string.Empty;
+    ClientEmail = string.Empty;
+    SelectedPackage = "Basic";
+    
+    // Reset Checkboxes
+    IsBasicSelected = true;
+    IsPkgASelected = false;
+    IsPkgBSelected = false;
+    IsPkgCSelected = false;
+    IsPkgDSelected = false;
+
+    // 2. Remove Images from UI
+    // FIX: Just set to null. Do NOT call .Dispose().
+    Image8x10 = null;
+    ImageBarong = null;
+    ImageCreative = null;
+    ImageAny = null;
+    ImageSoloGroup = null;
+    ImageBarkada = null;
+
+    SelectedImage = null;
+    PreviewImage = null;
+
+    // 3. Reset Layout Visibility
+    IsBarkadaVisible = false;
+    UpdateVisibility("Basic");
+
+    // 4. Clear internal cache
+    ClearCache(); 
+    
+    // 5. Trigger GC to clean up the orphaned bitmaps safely
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+}
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }
-        private void ClearBrowserImages()
+      private void ClearBrowserImages()
+{
+    // 1. Cancel any active loading
+    _loadImagesCts?.Cancel();
+
+    // 2. Clear cache keys
+    if (!string.IsNullOrEmpty(_currentBrowseFolderPath))
+    {
+        if (_folderCache.ContainsKey(_currentBrowseFolderPath))
         {
-            // 1. Cancel any active loading background tasks first
-            _loadImagesCts?.Cancel();
-
-            // 2. Remove the current folder from Memory Cache
-            // This forces the app to reload fresh from Disk Cache (safe) instead of using disposed RAM images (unsafe)
-            if (!string.IsNullOrEmpty(_currentBrowseFolderPath))
-            {
-                if (_folderCache.ContainsKey(_currentBrowseFolderPath))
-                {
-                    _folderCache.Remove(_currentBrowseFolderPath);
-                    _folderCacheOrder.Remove(_currentBrowseFolderPath);
-                }
-            }
-
-            // 3. Snapshot the images currently in the list
-            var imagesToDispose = Images.ToList();
-
-            // 4. Clear the observable collection (This updates the UI)
-            Images.Clear();
-            HasNoImages = true;
-
-            // 5. Clear the internal High-Res Preview cache
-            ClearCache();
-
-            // 6. Dispose the bitmaps on a background thread to avoid UI lag/locking
-            Task.Run(async () =>
-            {
-                // Wait 1 second to ensure the UI has fully removed the images from the Visual Tree
-                await Task.Delay(1000);
-
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    foreach (var i in imagesToDispose)
-                    {
-                        i.Bitmap?.Dispose();
-                    }
-                    // Force a GC collection to reclaim the memory
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                });
-            });
+            _folderCache.Remove(_currentBrowseFolderPath);
+            _folderCacheOrder.Remove(_currentBrowseFolderPath);
         }
+    }
+
+    // 3. Clear the UI list IMMEDIATELY
+    // FIX: Do NOT iterate and Dispose. Just Clear.
+    Images.Clear();
+    HasNoImages = true;
+
+    // 4. Clear internal High-Res Preview cache
+    ClearCache();
+
+    // 5. Trigger GC to clean up
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+}
     }
 }

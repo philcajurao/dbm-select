@@ -1,51 +1,51 @@
-﻿using MiniExcelLibs.Attributes; // ✅ Required for custom headers
+﻿using MiniExcelLibs.Attributes;
 
 namespace dbm_select.Models
 {
     public class OrderLogItem
     {
-        // 1. STATUS (Default: DONE CHOOSING)
+        // 1. STATUS
         [ExcelColumn(Name = "STATUS", Width = 20, Index = 0)]
         public string Status { get; set; } = "DONE CHOOSING";
 
         // 2. Name
         [ExcelColumn(Name = "Name", Width = 30, Index = 1)]
-        public string Name { get; set; } = ""; // Renamed from Client for clarity
+        public string Name { get; set; } = "";
 
-        // 3. Email
-        [ExcelColumn(Name = "Email", Width = 30, Index = 2)]
+        // 3. Date Submitted (Moved to 3rd Column)
+        [ExcelColumn(Name = "Date Submitted", Width = 25, Index = 2)]
+        public string TimeStamp { get; set; } = "";
+
+        // 4. Email
+        [ExcelColumn(Name = "Email", Width = 30, Index = 3)]
         public string Email { get; set; } = "";
 
-        // 4. Package
-        [ExcelColumn(Name = "Package", Width = 15, Index = 3)]
+        // 5. Package
+        [ExcelColumn(Name = "Package", Width = 15, Index = 4)]
         public string Package { get; set; } = "";
 
-        // 5. 8x10
-        [ExcelColumn(Name = "8x10", Width = 40, Index = 4)]
-        public string Box_8x10 { get; set; } = "";
+        // 6. Large Print
+        [ExcelColumn(Name = "Large Print", Width = 40, Index = 5)]
+        public string Box_LargePrint { get; set; } = "";
 
-        // 6. Barong/Filipiniana
-        [ExcelColumn(Name = "Barong/Filipiniana", Width = 40, Index = 5)]
+        // 7. Barong/Filipiniana
+        [ExcelColumn(Name = "Barong/Filipiniana", Width = 40, Index = 6)]
         public string Box_Barong { get; set; } = "";
 
-        // 7. Creative
-        [ExcelColumn(Name = "Creative", Width = 40, Index = 6)]
+        // 8. Creative
+        [ExcelColumn(Name = "Creative", Width = 40, Index = 7)]
         public string Box_Creative { get; set; } = "";
 
-        // 8. Any Photo
-        [ExcelColumn(Name = "Any Photo", Width = 40, Index = 7)]
+        // 9. Any Photo
+        [ExcelColumn(Name = "Any Photo", Width = 40, Index = 8)]
         public string Box_Any { get; set; } = "";
 
-        // 9. instax
-       [ExcelColumn(Name = "Solo/Group", Width = 40, Index = 8)]
+        // 10. Solo/Group
+        [ExcelColumn(Name = "Solo/Group", Width = 40, Index = 9)]
         public string Box_SoloGroup { get; set; } = "";
 
-        // 10. Barkada (NEW OPTIONAL SLOT)
-        [ExcelColumn(Name = "Barkada", Width = 40, Index = 9)]
+        // 11. Barkada
+        [ExcelColumn(Name = "Barkada", Width = 40, Index = 10)]
         public string Box_Barkada { get; set; } = "";
-
-        // 11. TimeStamp (Moved Index from 9 to 10)
-        [ExcelColumn(Name = "TimeStamp", Width = 25, Index = 10)]
-        public string TimeStamp { get; set; } = "";
     }
 }
