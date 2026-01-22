@@ -45,31 +45,41 @@ namespace dbm_select.ViewModels
         private CancellationTokenSource? _loadImagesCts;
 
         public MainWindowViewModel()
-        {
-            if (Design.IsDesignMode) return;
+{
+    if (Design.IsDesignMode) return;
 
-            if (!LoadSettings())
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string baseFolder = Path.Combine(documentsPath, FolderNameConstants.DBM_SELECT);
-                string logsFolder = Path.Combine(baseFolder, FolderNameConstants.LOGS);
+    // 1. Try to load settings
+    LoadSettings();
 
-                if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
-                if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+    // 2. Check if Paths are missing (First run OR Broken settings)
+    if (string.IsNullOrEmpty(OutputFolderPath) || string.IsNullOrEmpty(ExcelFolderPath))
+    {
+        // Define Defaults
+        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string baseFolder = Path.Combine(documentsPath, "DBM Select"); // Use your Constants
+        string logsFolder = Path.Combine(baseFolder, "Logs"); // Use your Constants
 
-                OutputFolderPath = baseFolder;
-                ExcelFolderPath = logsFolder;
-                ExcelFileName = FileNameConstants.CLIENT_LOGS;
-            }
+        if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
+        if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
 
-            string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
-                ? _currentBrowseFolderPath
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+        // Apply Defaults to Properties
+        OutputFolderPath = baseFolder;
+        ExcelFolderPath = logsFolder;
+        ExcelFileName = "ClientLogs"; // Use your Constants
 
-            _ = LoadImages(folderToLoad);
+        // 3. Save immediately so we don't ask again next time
+        SaveSettings();
+    }
 
-            UpdateVisibility(PackgeConstants.Basic);
-        }
+    // Load initial images
+    string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
+        ? _currentBrowseFolderPath
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+
+    _ = LoadImages(folderToLoad);
+
+    UpdateVisibility(PackgeConstants.Basic);
+}
 
         // --- PROPERTIES (Unchanged) ---
         private string _snapOutputFolder = string.Empty;
