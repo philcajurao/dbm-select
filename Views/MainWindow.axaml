@@ -430,16 +430,25 @@
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                     </ExperimentalAcrylicBorder.Material>
-
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="20" VerticalAlignment="Center">
-                        <StackPanel Grid.Column="0" Spacing="5">
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="20" RowSpacing="15" VerticalAlignment="Center">
+                            
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
                             <TextBlock Text="Email Address" FontSize="10" Foreground="#ccc"/>
                             <TextBox Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="5">
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5">
                             <TextBlock Text="Client Name" FontSize="10" Foreground="#ccc"/>
                             <TextBox Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5">
+                            <TextBlock Text="School / University" FontSize="10" Foreground="#ccc"/>
+                            <TextBox Text="{Binding ClientSchool}" Watermark="e.g. UP Diliman" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                            <TextBlock Text="Course / Program" FontSize="10" Foreground="#ccc"/>
+                            <TextBox Text="{Binding ClientCourse}" Watermark="e.g. BS Computer Science" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
                     </Grid>
                 </ExperimentalAcrylicBorder>
 

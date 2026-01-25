@@ -102,6 +102,8 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
+        [ObservableProperty] private string? _clientSchool;
+        [ObservableProperty] private string? _clientCourse;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
@@ -769,9 +771,12 @@ namespace dbm_select.ViewModels
         [RelayCommand]
         public void Submit()
         {
-            if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
+            if (string.IsNullOrWhiteSpace(ClientName) || 
+                string.IsNullOrWhiteSpace(ClientEmail) ||
+                string.IsNullOrWhiteSpace(ClientSchool) || 
+                string.IsNullOrWhiteSpace(ClientCourse))
             {
-                ErrorMessage = "Please enter both the Client Name and Email Address.";
+                ErrorMessage = "Please fill in all client details:\nName, Email, School, and Course.";
                 IsErrorDialogVisible = true;
                 return;
             }
@@ -943,6 +948,8 @@ public async Task ProceedFromAcknowledgement()
                 Status = "DONE CHOOSING",
                 Name = safeClientName,
                 Email = ClientEmail ?? string.Empty,
+                School = ClientSchool ?? string.Empty,
+                Course = ClientCourse ?? string.Empty,
                 Package = SelectedPackage,
                 Box_LargePrint = Image8x10?.FileName ?? "Empty",
                 Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
@@ -1121,6 +1128,8 @@ private void UpdateVisibility(string pkg)
     // 1. Unbind UI Properties
     ClientName = string.Empty;
     ClientEmail = string.Empty;
+    ClientSchool = string.Empty;
+    ClientCourse = string.Empty;
     SelectedPackage = "Basic";
     
     // Reset Checkboxes
