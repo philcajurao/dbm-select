@@ -44,6 +44,147 @@ namespace dbm_select.ViewModels
         private readonly ConcurrentQueue<ImageItem> _upgradeQueue = new();
         private CancellationTokenSource? _loadImagesCts;
 
+        public List<string> AntipoloSchools { get; } = new()
+        {
+            "All Nations College",
+            "AMA Computer College - Antipolo",
+            "Antipolo City Senior High School",
+            "Antipolo Faith Christian School",
+            "Antipolo Immaculate Conception School",
+            "Antipolo Institute of Technology",
+            "Antipolo Lady of Lourdes School",
+            "Antipolo National High School",
+            "Assumption Antipolo",
+            "Bagong Nayon II National High School",
+            "Benilde Antipolo",
+            "Binayoyo National High School",
+            "Calawis National High School",
+            "College of San Benildo - Rizal",
+            "Cupang National High School",
+            "De La Salle - College of Saint Benilde Antipolo",
+            "Dalig National High School",
+            "Dela Paz National High School",
+            "Eastern Rizal Miners College",
+            "Faith Academy",
+            "Harper & Hillwood International School",
+            "Holy Spirit Integrated School",
+            "ICCT Colleges - Antipolo",
+            "International Christian College of Manila",
+            "La Salle College Antipolo",
+            "Marcelino M. Santos National High School",
+            "Maximo L. Gatlabayan Memorial National High School",
+            "Mayamot National High School",
+            "Mambugan National High School",
+            "Muntindilaw National High School",
+            "Nazareth Christian School of Antipolo",
+            "Nuestra Señora de la Paz y Buen Viaje",
+            "Old Boso-Boso National High School",
+            "Our Lady of Fatima University - Antipolo",
+            "PAREF Rosehill School",
+            "Peace Village National High School",
+            "Polytechnic University of the Philippines (PUP)", 
+            "Rizal Technological University (RTU) - Antipolo", 
+            "San Benildo Integrated School",
+            "San Isidro National High School",
+            "San Jose National High School",
+            "San Juan National High School",
+            "San Roque National High School",
+            "Southeast Asia Interdisciplinary Development Institute (SAIDI)",
+            "STI College - Antipolo",
+            "STI College - Ortigas-Cainta", 
+            "St. John's Wort Montessori School",
+            "Sumulong Memorial High School",
+            "Technological Institute of the Philippines (TIP)", 
+            "Unciano Colleges",
+            "University of the Philippines - Diliman (UP Diliman)", 
+            "University of Rizal System - Antipolo",
+            "World Citi Colleges - Antipolo",
+            "WCC Aeronautical College"
+        };
+
+        public List<string> RizalCourses { get; } = new()
+        {
+            // Arts & Sciences
+            "Bachelor of Arts in Communication",
+            "Bachelor of Arts in English Language",
+            "Bachelor of Arts in History",
+            "Bachelor of Arts in Political Science",
+            "Bachelor of Arts in Psychology",
+            
+            // Business & Accountancy
+            "Bachelor of Science in Accountancy",
+            "Bachelor of Science in Accounting Information System",
+            "Bachelor of Science in Business Administration",
+            "Bachelor of Science in Customs Administration",
+            "Bachelor of Science in Entrepreneurship",
+            "Bachelor of Science in Internal Auditing",
+            "Bachelor of Science in Management Accounting",
+            "Bachelor of Science in Office Administration",
+            "Bachelor of Science in Public Administration",
+
+            // Computer Studies
+            "Bachelor of Science in Computer Science",
+            "Bachelor of Science in Entertainment and Multimedia Computing",
+            "Bachelor of Science in Information Systems",
+            "Bachelor of Science in Information Technology",
+
+            // Criminal Justice
+            "Bachelor of Science in Criminology",
+            "Bachelor of Science in Industrial Security Management",
+
+            // Education
+            "Bachelor of Early Childhood Education",
+            "Bachelor of Elementary Education",
+            "Bachelor of Physical Education",
+            "Bachelor of Secondary Education",
+            "Bachelor of Special Needs Education",
+            "Bachelor of Technical-Vocational Teacher Education",
+            "Teacher Certificate Program",
+
+            // Engineering & Architecture
+            "Bachelor of Science in Architecture",
+            "Bachelor of Science in Civil Engineering",
+            "Bachelor of Science in Computer Engineering",
+            "Bachelor of Science in Electrical Engineering",
+            "Bachelor of Science in Electronics Engineering",
+            "Bachelor of Science in Industrial Engineering",
+            "Bachelor of Science in Mechanical Engineering",
+
+            // Health Sciences
+            "Bachelor of Science in Biology",
+            "Bachelor of Science in Medical Technology",
+            "Bachelor of Science in Midwifery",
+            "Bachelor of Science in Nursing",
+            "Bachelor of Science in Pharmacy",
+            "Bachelor of Science in Physical Therapy",
+            "Bachelor of Science in Psychology",
+            "Bachelor of Science in Radiologic Technology",
+            "Bachelor of Science in Respiratory Therapy",
+            "Doctor of Dental Medicine",
+            "Diploma in Midwifery",
+
+            // Hospitality & Tourism
+            "Bachelor of Science in Hospitality Management",
+            "Bachelor of Science in Tourism Management",
+            
+            // Maritime & Aeronautics
+            "Bachelor of Science in Aeronautical Engineering",
+            "Bachelor of Science in Aircraft Maintenance Technology",
+            "Bachelor of Science in Marine Engineering",
+            "Bachelor of Science in Marine Transportation",
+
+            // Senior High School Strands
+            "Senior High School - ABM (Accountancy, Business and Management)",
+            "Senior High School - GAS (General Academic Strand)",
+            "Senior High School - HUMSS (Humanities and Social Sciences)",
+            "Senior High School - STEM (Science, Technology, Engineering and Mathematics)",
+            "Senior High School - TVL (Technical-Vocational-Livelihood)",
+            
+            // Law
+            "Juris Doctor",
+        };
+
+
         public MainWindowViewModel()
 {
     if (Design.IsDesignMode) return;

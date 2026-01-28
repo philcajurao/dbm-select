@@ -441,12 +441,30 @@
                             <TextBox Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5">
-                            <TextBlock Text="School / University" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Text="{Binding ClientSchool}" Watermark="e.g. UP Diliman" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="School / University" FontSize="10" Foreground="#ccc"/>
+                                <TextBlock Text="(Type N/A if none)" FontSize="9" Foreground="#666" VerticalAlignment="Center" FontStyle="Italic"/>
+                            </StackPanel>
+                            
+                            <AutoCompleteBox Text="{Binding ClientSchool}" 
+                                            ItemsSource="{Binding AntipoloSchools}"
+                                            FilterMode="StartsWith"
+                                            Watermark="e.g. La Salle College Antipolo" 
+                                            HorizontalAlignment="Stretch"
+                                            CornerRadius="4"/>
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
-                            <TextBlock Text="Course / Program" FontSize="10" Foreground="#ccc"/>
-                            <TextBox Text="{Binding ClientCourse}" Watermark="e.g. BS Computer Science" Cursor="IBeam" HorizontalAlignment="Stretch"/>
+                       <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="Course / Program" FontSize="10" Foreground="#ccc"/>
+                                <TextBlock Text="(Type N/A if none)" FontSize="9" Foreground="#666" VerticalAlignment="Center" FontStyle="Italic"/>
+                            </StackPanel>
+                            
+                            <AutoCompleteBox Text="{Binding ClientCourse}" 
+                                            ItemsSource="{Binding RizalCourses}"
+                                            FilterMode="StartsWith"
+                                            Watermark="e.g. BSCS (or type N/A)"
+                                            HorizontalAlignment="Stretch"
+                                            CornerRadius="4"/>
                         </StackPanel>
 
                     </Grid>
