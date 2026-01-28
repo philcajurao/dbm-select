@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using Avalonia.Threading;
 using dbm_select.Models;
 using dbm_select.ViewModels;
 using System;
@@ -27,81 +28,91 @@ namespace dbm_select.Views
         }
 
         // Handle Arrow Key Navigation for Grid Layout (Windows Explorer Style)
-        private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
+        // MainWindow.axaml.cs
+
+private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
+{
+    // 1. Safety Checks
+    if (sender is not ListBox listBox || listBox.ItemCount == 0) return;
+    
+    // Only handle arrow keys
+    if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return;
+
+    int currentIndex = listBox.SelectedIndex;
+    if (currentIndex < 0) currentIndex = 0;
+
+    // 2. Dynamic Column Detection
+    int columns = 1;
+    var container0 = listBox.ContainerFromIndex(0) as Control;
+    
+    if (container0 != null)
+    {
+        double firstRowTop = container0.Bounds.Top;
+        // Scan up to 20 items to find the row break
+        for (int i = 1; i < Math.Min(listBox.ItemCount, 20); i++)
         {
-            if (sender is not ListBox listBox || listBox.ItemCount == 0 || listBox.SelectedItem == null) return;
-
-            if (e.Key != Key.Up && e.Key != Key.Down && e.Key != Key.Left && e.Key != Key.Right) return;
-
-            double listWidth = listBox.Bounds.Width;
-            double itemWidth = 132;
-
-            int currentIndex = listBox.SelectedIndex;
-            if (currentIndex < 0) currentIndex = 0;
-
-            var container = listBox.ContainerFromIndex(currentIndex) as Control;
-            if (container != null)
+            var nextContainer = listBox.ContainerFromIndex(i) as Control;
+            if (nextContainer != null && nextContainer.Bounds.Top > firstRowTop + 5)
             {
-                itemWidth = container.Bounds.Width;
-            }
-
-            if (itemWidth < 50) itemWidth = 132;
-
-            int columns = (int)(listWidth / itemWidth);
-            if (columns < 1) columns = 1;
-
-            int newIndex = currentIndex;
-            bool handled = false;
-
-            switch (e.Key)
-            {
-                case Key.Left:
-                    if (currentIndex > 0)
-                    {
-                        newIndex = currentIndex - 1;
-                        handled = true;
-                    }
-                    break;
-
-                case Key.Right:
-                    if (currentIndex < listBox.ItemCount - 1)
-                    {
-                        newIndex = currentIndex + 1;
-                        handled = true;
-                    }
-                    break;
-
-                case Key.Up:
-                    if (currentIndex - columns >= 0)
-                    {
-                        newIndex = currentIndex - columns;
-                        handled = true;
-                    }
-                    break;
-
-                case Key.Down:
-                    if (currentIndex + columns < listBox.ItemCount)
-                    {
-                        newIndex = currentIndex + columns;
-                        handled = true;
-                    }
-                    break;
-            }
-
-            if (handled)
-            {
-                e.Handled = true;
-                if (newIndex != currentIndex)
-                {
-                    listBox.SelectedIndex = newIndex;
-                    var itemToScroll = listBox.Items[newIndex];
-                    if (itemToScroll != null)
-                    {
-                        listBox.ScrollIntoView(itemToScroll);
-                    }
-                }
+                columns = i;
+                break;
             }
         }
+    }
+    else
+    {
+        // Fallback calculation
+        double availableWidth = listBox.Bounds.Width - 20; 
+        double itemWidth = 120; 
+        columns = (int)(availableWidth / itemWidth);
+        if (columns < 1) columns = 1;
+    }
+
+    // 3. Calculate New Index
+    int newIndex = currentIndex;
+    bool handled = false;
+
+    switch (e.Key)
+    {
+        case Key.Left:
+            if (currentIndex > 0) { newIndex = currentIndex - 1; handled = true; }
+            break;
+        case Key.Right:
+            if (currentIndex < listBox.ItemCount - 1) { newIndex = currentIndex + 1; handled = true; }
+            break;
+        case Key.Up:
+            if (currentIndex - columns >= 0) { newIndex = currentIndex - columns; handled = true; }
+            break;
+        case Key.Down:
+            if (currentIndex + columns < listBox.ItemCount) { newIndex = currentIndex + columns; handled = true; }
+            break;
+    }
+
+    // 4. Apply Changes
+    if (handled)
+    {
+        e.Handled = true; // Stop default behavior
+
+        if (newIndex != currentIndex)
+        {
+            listBox.SelectedIndex = newIndex;
+
+            // FIX: Null check to satisfy the compiler
+            var item = listBox.Items[newIndex];
+            if (item != null)
+            {
+                listBox.ScrollIntoView(item);
+            }
+
+            // FIX: Force focus update on the UI Thread
+            Dispatcher.UIThread.Post(() =>
+            {
+                var container = listBox.ContainerFromIndex(newIndex) as Control;
+                container?.Focus();
+            }, DispatcherPriority.Input);
+        }
+    }
+}
 
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)
