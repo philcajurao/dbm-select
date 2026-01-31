@@ -44,6 +44,10 @@ namespace dbm_select.ViewModels
         private readonly ConcurrentQueue<ImageItem> _upgradeQueue = new();
         private CancellationTokenSource? _loadImagesCts;
 
+        [ObservableProperty] private bool _isClientTypeDialogVisible = true; // Show on start
+        [ObservableProperty] private bool _isNonStudent; // For the "N/A" option
+        [ObservableProperty] private string _clientTypeLabel = "College"; // For the top-left display button
+
         public List<string> AntipoloSchools { get; } = new()
         {
             "All Nations College",
@@ -336,6 +340,24 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
         [ObservableProperty] private bool _hasNoImages = true;
         [ObservableProperty] private bool _isLoadingImages;
+        [ObservableProperty] private bool _isSeniorHigh = false;
+
+
+        partial void OnIsSeniorHighChanged(bool value)
+        {
+            if (value) // If switching TO Senior High
+            {
+                // 1. If Package D was selected, force it back to Basic
+                if (SelectedPackage == "D")
+                {
+                    UpdatePackage("Basic");
+                }
+                
+                // 2. Clear or Auto-fill College fields so they aren't stuck
+                ClientSchool = string.Empty;
+                ClientCourse = string.Empty;
+            }
+        }
 
         public ObservableCollection<ImageItem> Images { get; } = new();
 
@@ -912,15 +934,25 @@ namespace dbm_select.ViewModels
         [RelayCommand]
         public void Submit()
         {
-            if (string.IsNullOrWhiteSpace(ClientName) || 
-                string.IsNullOrWhiteSpace(ClientEmail) ||
-                string.IsNullOrWhiteSpace(ClientSchool) || 
-                string.IsNullOrWhiteSpace(ClientCourse))
+          // 1. Check Name and Email (Always Required)
+            if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
             {
-                ErrorMessage = "Please fill in all client details:\nName, Email, School, and Course.";
+                ErrorMessage = "Please fill in Client Name and Email Address.";
                 IsErrorDialogVisible = true;
                 return;
             }
+
+            // 2. Check School/Course ONLY if NOT Senior High AND NOT Non-Student
+            if (!IsSeniorHigh && !IsNonStudent) 
+            {
+                if (string.IsNullOrWhiteSpace(ClientSchool) || string.IsNullOrWhiteSpace(ClientCourse))
+                {
+                    ErrorMessage = "Please fill in School and Course/Program.";
+                    IsErrorDialogVisible = true;
+                    return;
+                }
+            }
+
             if (!IsValidEmail(ClientEmail))
             {
                 ErrorMessage = "The Email Address format is invalid.\n(e.g., user@example.com)";
@@ -943,6 +975,49 @@ namespace dbm_select.ViewModels
                 return;
             }
             IsSubmitConfirmationVisible = true;
+        }
+
+
+        [RelayCommand]
+        public void SelectClientType(string type)
+        {
+            // Reset flags
+            IsSeniorHigh = false;
+            IsNonStudent = false;
+
+            // Clear inputs for ALL modes so they start fresh
+            ClientSchool = string.Empty;
+            ClientCourse = string.Empty;
+
+            switch (type)
+            {
+                case "SHS":
+                    IsSeniorHigh = true;
+                    ClientTypeLabel = "Senior High";
+                    if (SelectedPackage == "D") UpdatePackage("Basic");
+                    break;
+
+                case "NA":
+                    IsNonStudent = true;
+                    ClientTypeLabel = "N/A (Others)";
+                    // Logic: We DO NOT fill ClientSchool/ClientCourse with "N/A".
+                    // The inputs will be hidden by the View, and the Submit command 
+                    // will skip validation because IsNonStudent is true.
+                    break;
+
+                case "College":
+                default:
+                    ClientTypeLabel = "College";
+                    break;
+            }
+
+            IsClientTypeDialogVisible = false;
+        }
+
+        [RelayCommand]
+        public void ReopenClientTypeSelection()
+        {
+            IsClientTypeDialogVisible = true;
         }
 
         [RelayCommand] public void ConfirmSubmit() { IsSubmitConfirmationVisible = false; IsImportantNotesDialogVisible = true; }
@@ -980,6 +1055,12 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void SaveAndCloseSettings() { SaveSettings(); IsSettingsDialogVisible = false; }
         [RelayCommand] public void OpenAbout() { IsAboutDialogVisible = true; }
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
+
+        [RelayCommand]
+        public void SetClientType(string type)
+        {
+            IsSeniorHigh = (type == "SHS");
+        }
 
         [RelayCommand]
 public void ClearSlot(string category)
@@ -1084,13 +1165,30 @@ public async Task ProceedFromAcknowledgement()
                 catch { }
             }
 
+            string finalSchool = ClientSchool ?? "";
+                    string finalCourse = ClientCourse ?? "";
+
+                    if (IsSeniorHigh)
+                    {
+                        finalSchool = "Senior High School";
+                        finalCourse = "N/A";
+                    }
+                    else if (IsNonStudent)
+                    {
+                        finalSchool = "N/A";
+                        finalCourse = "N/A";
+                    }
+
             var newItem = new OrderLogItem
             {
                 Status = "DONE CHOOSING",
                 Name = safeClientName,
                 Email = ClientEmail ?? string.Empty,
-                School = ClientSchool ?? string.Empty,
-                Course = ClientCourse ?? string.Empty,
+                
+                // LOGIC CHANGE HERE:
+                School = finalSchool,
+                Course = finalCourse,
+                
                 Package = SelectedPackage,
                 Box_LargePrint = Image8x10?.FileName ?? "Empty",
                 Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
@@ -1302,6 +1400,14 @@ private void UpdateVisibility(string pkg)
     // 5. Trigger GC to clean up the orphaned bitmaps safely
     GC.Collect();
     GC.WaitForPendingFinalizers();
+
+    // ---  RESET CLIENT MODE ---
+    // IsSeniorHigh = false;
+    // IsNonStudent = false;
+    // ClientTypeLabel = "College"; // Default text or "Select Mode"
+    
+    // ---  SHOW STARTUP QUESTION AGAIN ---
+    // IsClientTypeDialogVisible = true;
 }
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }

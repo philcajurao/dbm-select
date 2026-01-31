@@ -233,16 +233,47 @@
                        Margin="0,0,0,5"/>
                 
                 <StackPanel Grid.Row="1" Spacing="5" Margin="0,0,0,10">
+
+                    <Button Command="{Binding ReopenClientTypeSelectionCommand}"
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        BorderBrush="#555555"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="20,8"
+                        Cursor="Hand"
+                        Margin="0,0,0,20">
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PathIcon Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" 
+                                    Width="14" Height="14" Foreground="#cccccc"/>
+
+                            <TextBlock Text="{Binding ClientTypeLabel, StringFormat='Mode: {0}'}" 
+                                    Foreground="#e0e0e0" 
+                                    FontSize="12" 
+                                    FontWeight="SemiBold"
+                                    VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#33ffffff"/>
+                                <Setter Property="BorderBrush" Value="#888888"/>
+                            </Style>
+                        </Button.Styles>
+                    </Button>
+
                     <TextBlock Text="{Binding SelectedPackageDisplayName}"
-                               FontSize="20"
-                               FontWeight="Black"
-                               Foreground="#ff8800"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"/>
+                            FontSize="20"
+                            FontWeight="Black"
+                            Foreground="#ff8800"
+                            HorizontalAlignment="Center"
+                            TextAlignment="Center"/>
+
                     <TextBlock Text="Drag photos to their matching size slots"
-                               FontSize="11"
-                               Foreground="#888"
-                               HorizontalAlignment="Center"/>
+                            FontSize="11"
+                            Foreground="#888"
+                            HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <Viewbox Grid.Row="2" Stretch="{Binding LayoutStretch}" StretchDirection="DownOnly">
@@ -430,17 +461,27 @@
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                     </ExperimentalAcrylicBorder.Material>
+                    
                     <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="20" RowSpacing="15" VerticalAlignment="Center">
-                            
+    
                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
                             <TextBlock Text="Email Address" FontSize="10" Foreground="#ccc"/>
                             <TextBox Text="{Binding ClientEmail}" Watermark="e.g. client@email.com" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
+                        
                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5">
                             <TextBlock Text="Client Name" FontSize="10" Foreground="#ccc"/>
                             <TextBox Text="{Binding ClientName}" Watermark="e.g. John Doe" Cursor="IBeam" HorizontalAlignment="Stretch"/>
                         </StackPanel>
+
                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5">
+                            <StackPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="!IsSeniorHigh"/>
+                                    <Binding Path="!IsNonStudent"/>
+                                </MultiBinding>
+                            </StackPanel.IsVisible>
+                            
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <TextBlock Text="School / University" FontSize="10" Foreground="#ccc"/>
                                 <TextBlock Text="(Type N/A if none)" FontSize="9" Foreground="#666" VerticalAlignment="Center" FontStyle="Italic"/>
@@ -453,7 +494,15 @@
                                             HorizontalAlignment="Stretch"
                                             CornerRadius="4"/>
                         </StackPanel>
-                       <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                        
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                            <StackPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="!IsSeniorHigh"/>
+                                    <Binding Path="!IsNonStudent"/>
+                                </MultiBinding>
+                            </StackPanel.IsVisible>
+
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <TextBlock Text="Course / Program" FontSize="10" Foreground="#ccc"/>
                                 <TextBlock Text="(Type N/A if none)" FontSize="9" Foreground="#666" VerticalAlignment="Center" FontStyle="Italic"/>
@@ -550,7 +599,7 @@
                                     <RadioButton GroupName="Package Group" Content="A" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgASelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="A" Cursor="Hand"/>
                                     <RadioButton GroupName="Package Group" Content="B" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgBSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="B" Cursor="Hand"/>
                                     <RadioButton GroupName="Package Group" Content="C" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgCSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="C" Cursor="Hand"/>
-                                    <RadioButton GroupName="Package Group" Content="D" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgDSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="D" Cursor="Hand"/>
+                                    <RadioButton GroupName="Package Group" Content="D" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgDSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="D" Cursor="Hand" IsVisible="{Binding !IsSeniorHigh}"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -883,6 +932,69 @@
                         <TextBlock Text="Thank you for choosing us!" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
                         <TextBlock Text="Your photos are now being carefully processed to ensure premium quality. This takes time and proper care, so we appreciate your patience. We will contact you as soon as your order is ready." FontSize="14" Foreground="#d3d3d3" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
                         <Button Content="OK" Command="{Binding CloseThankYouDialogCommand}" Classes="dialog-btn success" HorizontalAlignment="Center" Width="100"/>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" 
+            Background="#E6000000" 
+            IsVisible="{Binding IsClientTypeDialogVisible}" 
+            ZIndex="500">
+            
+            <Border CornerRadius="12" BorderBrush="#555555" BorderThickness="1" 
+                    BoxShadow="0 20 60 20 #000000" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="800">
+                <ExperimentalAcrylicBorder CornerRadius="12" Padding="40">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.95" MaterialOpacity="0.95" />
+                    </ExperimentalAcrylicBorder.Material>
+                    
+                    <StackPanel Spacing="30">
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <Image Source="avares://dbm-select/Assets/LOGO.png" Height="80" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <TextBlock Text="Welcome to DBM Select" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Please select your category to begin:" FontSize="16" Foreground="#aaa" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*, 20, *, 20, *">
+                            <Button Grid.Column="0" Command="{Binding SelectClientTypeCommand}" CommandParameter="College" 
+                                    HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
+                                    BorderBrush="#444" BorderThickness="1" Cursor="Hand">
+                                <StackPanel VerticalAlignment="Center" Spacing="15">
+                                    <PathIcon Data="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" 
+                                            Width="40" Height="40" Foreground="#ff8800"/>
+                                    <TextBlock Text="COLLEGE" FontWeight="Bold" FontSize="18" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="For graduating college students." FontSize="11" Foreground="#888" 
+                                            TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="2" Command="{Binding SelectClientTypeCommand}" CommandParameter="SHS" 
+                                    HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
+                                    BorderBrush="#444" BorderThickness="1" Cursor="Hand">
+                                <StackPanel VerticalAlignment="Center" Spacing="15">
+                                    <PathIcon Data="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" 
+                                            Width="40" Height="40" Foreground="#5cb85c"/>
+                                    <TextBlock Text="SENIOR HIGH" FontWeight="Bold" FontSize="18" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="For SHS graduates." FontSize="11" Foreground="#888" 
+                                            TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="4" Command="{Binding SelectClientTypeCommand}" CommandParameter="NA" 
+                                    HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
+                                    BorderBrush="#444" BorderThickness="1" Cursor="Hand">
+                                <StackPanel VerticalAlignment="Center" Spacing="15">
+                                    <PathIcon Data="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" 
+                                            Width="40" Height="40" Foreground="#5bc0de"/>
+                                    <TextBlock Text="OTHERS / N/A" FontWeight="Bold" FontSize="18" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="For personal shoots, freelancers, or non-graduates." FontSize="11" Foreground="#888" 
+                                            TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        
                     </StackPanel>
                 </ExperimentalAcrylicBorder>
             </Border>
