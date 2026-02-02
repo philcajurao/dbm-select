@@ -1020,7 +1020,7 @@
 
                         <Grid Grid.Row="1" IsVisible="{Binding !IsModalLoading}">
                             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0">
                                      <Panel>
 
 
@@ -1338,7 +1338,7 @@
 
 
 
-<StackPanel Spacing="15" IsVisible="{Binding IsBasicSelected}" VerticalAlignment="Center" HorizontalAlignment="Left">
+<StackPanel Spacing="15" IsVisible="{Binding IsBasicSelected}" VerticalAlignment="Center" Margin="0,0,0,15" HorizontalAlignment="Center">
     <Border BorderBrush="#333" BorderThickness="1" BoxShadow="0 2 10 2 #000000aa">
         <Panel Width="400" Height="500" Background="#141414">
             <TextBlock Text="8x10 Empty" Foreground="#444" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding PreviewImage8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
@@ -1347,8 +1347,33 @@
     </Border>
     <TextBlock Text="SOFT COPY AND EDIT ONLY" FontSize="18" Foreground="#d3d3d3" HorizontalAlignment="Center" FontWeight="Bold"/>
 </StackPanel>
-                                    </Panel>
-                                </Grid>
+                                   </Panel>
+
+    <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,0,0,0" IsVisible="{Binding !IsNonStudent}">
+        
+        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="12,6" IsVisible="{Binding ClientSchool, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="SCHOOL:" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ClientSchool}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="12,6">
+            <Border.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!IsSeniorHigh"/>
+                    <Binding Path="ClientCourse" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
+                </MultiBinding>
+            </Border.IsVisible>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="COURSE:" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ClientCourse}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+        
+    </StackPanel>
+
+</StackPanel>
                             </ScrollViewer>
                         </Grid>
 
