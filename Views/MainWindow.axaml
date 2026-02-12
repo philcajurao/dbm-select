@@ -1349,25 +1349,25 @@
 </StackPanel>
                                    </Panel>
 
-    <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,0,0,0" IsVisible="{Binding !IsNonStudent}">
+    <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center" Margin="0,-3,0,10" IsVisible="{Binding !IsNonStudent}">
         
-        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="12,6" IsVisible="{Binding ClientSchool, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="SCHOOL:" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding ClientSchool}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="6" Padding="16,8" IsVisible="{Binding ClientSchool, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="SCHOOL:" Foreground="#aaa" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ClientSchool}" Foreground="#ffffff" FontSize="22" FontWeight="Black" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
 
-        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="12,6">
+        <Border Background="#222" BorderBrush="#444" BorderThickness="1" CornerRadius="6" Padding="16,8">
             <Border.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="!IsSeniorHigh"/>
                     <Binding Path="ClientCourse" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
                 </MultiBinding>
             </Border.IsVisible>
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="COURSE:" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding ClientCourse}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="COURSE:" Foreground="#aaa" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ClientCourse}" Foreground="#ffffff" FontSize="22" FontWeight="Black" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
         
