@@ -261,7 +261,7 @@ namespace dbm_select.ViewModels
             get
             {
                 if (IsPkgDSelected) return "11x14";
-                if (IsPkgCSelected) return "10x12";
+                if (IsPkgCSelected) return IsSeniorHigh ? "8x10" : "10x12";
                 return "8x10";
             }
         }
@@ -340,7 +340,7 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
         [ObservableProperty] private bool _hasNoImages = true;
         [ObservableProperty] private bool _isLoadingImages;
-        [ObservableProperty] private bool _isSeniorHigh = false;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(LargePrintLabel))] private bool _isSeniorHigh = false;
 
 
         partial void OnIsSeniorHighChanged(bool value)
