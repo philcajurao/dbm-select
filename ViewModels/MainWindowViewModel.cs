@@ -32,7 +32,7 @@ namespace dbm_select.ViewModels
         private readonly Dictionary<string, ImageItem> _highResCache = [];
         private readonly List<string> _cacheOrder = [];
         private readonly object _cacheLock = new();
-        private ImageItem? _lastHighResPreview; 
+        private ImageItem? _lastHighResPreview;
 
         // --- FOLDER CACHE (Instant Load) ---
         private readonly Dictionary<string, List<ImageItem>> _folderCache = new();
@@ -44,32 +44,194 @@ namespace dbm_select.ViewModels
         private readonly ConcurrentQueue<ImageItem> _upgradeQueue = new();
         private CancellationTokenSource? _loadImagesCts;
 
-        public MainWindowViewModel()
+        [ObservableProperty] private bool _isClientTypeDialogVisible = true; // Show on start
+        [ObservableProperty] private bool _isNonStudent; // For the "N/A" option
+        [ObservableProperty] private string _clientTypeLabel = "College"; // For the top-left display button
+
+        public List<string> AntipoloSchools { get; } = new()
         {
-            if (Design.IsDesignMode) return;
+            "All Nations College",
+            "AMA Computer College - Antipolo",
+            "Antipolo City Senior High School",
+            "Antipolo Faith Christian School",
+            "Antipolo Immaculate Conception School",
+            "Antipolo Institute of Technology",
+            "Antipolo Lady of Lourdes School",
+            "Antipolo National High School",
+            "Assumption Antipolo",
+            "Bagong Nayon II National High School",
+            "Benilde Antipolo",
+            "Binayoyo National High School",
+            "Calawis National High School",
+            "College of San Benildo - Rizal",
+            "Cupang National High School",
+            "De La Salle - College of Saint Benilde Antipolo",
+            "Dalig National High School",
+            "Dela Paz National High School",
+            "Eastern Rizal Miners College",
+            "Faith Academy",
+            "Harper & Hillwood International School",
+            "Holy Spirit Integrated School",
+            "ICCT Colleges - Antipolo",
+            "International Christian College of Manila",
+            "La Salle College Antipolo",
+            "Marcelino M. Santos National High School",
+            "Maximo L. Gatlabayan Memorial National High School",
+            "Mayamot National High School",
+            "Mambugan National High School",
+            "Muntindilaw National High School",
+            "Nazareth Christian School of Antipolo",
+            "Nuestra Señora de la Paz y Buen Viaje",
+            "Old Boso-Boso National High School",
+            "Our Lady of Fatima University - Antipolo",
+            "PAREF Rosehill School",
+            "Peace Village National High School",
+            "Polytechnic University of the Philippines (PUP)", 
+            "Rizal Technological University (RTU) - Antipolo", 
+            "San Benildo Integrated School",
+            "San Isidro National High School",
+            "San Jose National High School",
+            "San Juan National High School",
+            "San Roque National High School",
+            "Southeast Asia Interdisciplinary Development Institute (SAIDI)",
+            "STI College - Antipolo",
+            "STI College - Ortigas-Cainta", 
+            "St. John's Wort Montessori School",
+            "Sumulong Memorial High School",
+            "Technological Institute of the Philippines (TIP)", 
+            "Unciano Colleges",
+            "University of the Philippines - Diliman (UP Diliman)", 
+            "University of Rizal System - Antipolo",
+            "World Citi Colleges - Antipolo",
+            "WCC Aeronautical College"
+        };
 
-            if (!LoadSettings())
-            {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string baseFolder = Path.Combine(documentsPath, FolderNameConstants.DBM_SELECT);
-                string logsFolder = Path.Combine(baseFolder, FolderNameConstants.LOGS);
+        public List<string> RizalCourses { get; } = new()
+        {
+            // Arts & Sciences
+            "Bachelor of Arts in Communication",
+            "Bachelor of Arts in English Language",
+            "Bachelor of Arts in History",
+            "Bachelor of Arts in Political Science",
+            "Bachelor of Arts in Psychology",
+            
+            // Business & Accountancy
+            "Bachelor of Science in Accountancy",
+            "Bachelor of Science in Accounting Information System",
+            "Bachelor of Science in Business Administration",
+            "Bachelor of Science in Customs Administration",
+            "Bachelor of Science in Entrepreneurship",
+            "Bachelor of Science in Internal Auditing",
+            "Bachelor of Science in Management Accounting",
+            "Bachelor of Science in Office Administration",
+            "Bachelor of Science in Public Administration",
 
-                if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
-                if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+            // Computer Studies
+            "Bachelor of Science in Computer Science",
+            "Bachelor of Science in Entertainment and Multimedia Computing",
+            "Bachelor of Science in Information Systems",
+            "Bachelor of Science in Information Technology",
 
-                OutputFolderPath = baseFolder;
-                ExcelFolderPath = logsFolder;
-                ExcelFileName = FileNameConstants.CLIENT_LOGS;
-            }
+            // Criminal Justice
+            "Bachelor of Science in Criminology",
+            "Bachelor of Science in Industrial Security Management",
 
-            string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
-                ? _currentBrowseFolderPath
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+            // Education
+            "Bachelor of Early Childhood Education",
+            "Bachelor of Elementary Education",
+            "Bachelor of Physical Education",
+            "Bachelor of Secondary Education",
+            "Bachelor of Special Needs Education",
+            "Bachelor of Technical-Vocational Teacher Education",
+            "Teacher Certificate Program",
 
-            _ = LoadImages(folderToLoad);
+            // Engineering & Architecture
+            "Bachelor of Science in Architecture",
+            "Bachelor of Science in Civil Engineering",
+            "Bachelor of Science in Computer Engineering",
+            "Bachelor of Science in Electrical Engineering",
+            "Bachelor of Science in Electronics Engineering",
+            "Bachelor of Science in Industrial Engineering",
+            "Bachelor of Science in Mechanical Engineering",
 
-            UpdateVisibility(PackgeConstants.Basic);
-        }
+            // Health Sciences
+            "Bachelor of Science in Biology",
+            "Bachelor of Science in Medical Technology",
+            "Bachelor of Science in Midwifery",
+            "Bachelor of Science in Nursing",
+            "Bachelor of Science in Pharmacy",
+            "Bachelor of Science in Physical Therapy",
+            "Bachelor of Science in Psychology",
+            "Bachelor of Science in Radiologic Technology",
+            "Bachelor of Science in Respiratory Therapy",
+            "Doctor of Dental Medicine",
+            "Diploma in Midwifery",
+
+            // Hospitality & Tourism
+            "Bachelor of Science in Hospitality Management",
+            "Bachelor of Science in Tourism Management",
+            
+            // Maritime & Aeronautics
+            "Bachelor of Science in Aeronautical Engineering",
+            "Bachelor of Science in Aircraft Maintenance Technology",
+            "Bachelor of Science in Marine Engineering",
+            "Bachelor of Science in Marine Transportation",
+
+            // Senior High School Strands
+            "Senior High School - ABM (Accountancy, Business and Management)",
+            "Senior High School - GAS (General Academic Strand)",
+            "Senior High School - HUMSS (Humanities and Social Sciences)",
+            "Senior High School - STEM (Science, Technology, Engineering and Mathematics)",
+            "Senior High School - TVL (Technical-Vocational-Livelihood)",
+            
+            // Law
+            "Juris Doctor",
+        };
+
+
+        public MainWindowViewModel()
+{
+    if (Design.IsDesignMode) return;
+
+    // 1. Try to load settings
+    LoadSettings();
+
+    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    
+    // 2. Enforce Defaults for Missing Settings
+    bool missingSettings = false;
+
+    if (string.IsNullOrEmpty(OutputFolderPath))
+    {
+        string baseFolder = Path.Combine(documentsPath, "DBM Select");
+        if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
+        OutputFolderPath = baseFolder;
+        missingSettings = true;
+    }
+
+    if (string.IsNullOrEmpty(ExcelFolderPath))
+    {
+        string baseFolder = Path.Combine(documentsPath, "DBM Select");
+        string logsFolder = Path.Combine(baseFolder, "Logs");
+        if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+        ExcelFolderPath = logsFolder;
+        missingSettings = true;
+    }
+
+    if (missingSettings)
+    {
+        SaveSettings();
+    }
+
+    // Load initial images
+    string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
+        ? _currentBrowseFolderPath
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+
+    _ = LoadImages(folderToLoad);
+
+    UpdateVisibility(PackgeConstants.Basic);
+}
 
         // --- PROPERTIES (Unchanged) ---
         private string _snapOutputFolder = string.Empty;
@@ -87,22 +249,46 @@ namespace dbm_select.ViewModels
 
         private void CheckSettingsDirty()
         {
-            IsSettingsDirty = OutputFolderPath != _snapOutputFolder || ExcelFolderPath != _snapExcelFolder || ExcelFileName != _snapExcelFileName;
+            IsSettingsDirty = OutputFolderPath != _snapOutputFolder ||
+                              ExcelFolderPath != _snapExcelFolder || 
+                              ExcelFileName != _snapExcelFileName;
         }
 
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
+        [ObservableProperty] private string? _clientSchool;
+        [ObservableProperty] private string? _clientCourse;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
         private string _selectedPackage = PackgeConstants.Basic;
         public string SelectedPackageDisplayName => SelectedPackage == PackgeConstants.Basic ? PackgeConstants.BasicPackage : $"Package {SelectedPackage}";
 
-        [ObservableProperty] private bool _isBasicSelected = true;
-        [ObservableProperty] private bool _isPkgASelected;
-        [ObservableProperty] private bool _isPkgBSelected;
-        [ObservableProperty] private bool _isPkgCSelected;
-        [ObservableProperty] private bool _isPkgDSelected;
+
+        public string LargePrintLabel
+        {
+            get
+            {
+                if (IsPkgDSelected) return "11x14";
+                if (IsPkgCSelected) return IsSeniorHigh ? "8x10" : "10x12";
+                return "8x10";
+            }
+        }
+
+        [ObservableProperty] 
+        private bool _isBasicSelected = true;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgASelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgBSelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgCSelected;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))] 
+        private bool _isPkgDSelected;
 
         [ObservableProperty] private ImageItem? _selectedImage;
 
@@ -122,19 +308,22 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private ImageItem? _previewImageBarong;
         [ObservableProperty] private ImageItem? _previewImageCreative;
         [ObservableProperty] private ImageItem? _previewImageAny;
-        [ObservableProperty] private ImageItem? _previewImageInstax;
+        [ObservableProperty] private ImageItem? _previewImageSoloGroup;
+        [ObservableProperty] private ImageItem? _previewImageBarkada;
         [ObservableProperty] private bool _isModalLoading;
 
         [ObservableProperty] private ImageItem? _image8x10;
         [ObservableProperty] private ImageItem? _imageBarong;
         [ObservableProperty] private ImageItem? _imageCreative;
         [ObservableProperty] private ImageItem? _imageAny;
-        [ObservableProperty] private ImageItem? _imageInstax;
+        [ObservableProperty] private ImageItem? _imageSoloGroup;
+        [ObservableProperty] private ImageItem? _imageBarkada;
 
         [ObservableProperty] private bool _isBarongVisible;
         [ObservableProperty] private bool _isCreativeVisible;
         [ObservableProperty] private bool _isAnyVisible;
-        [ObservableProperty] private bool _isInstaxVisible;
+        [ObservableProperty] private bool _isSoloGroupVisible;
+        [ObservableProperty] private bool _isBarkadaVisible;
 
         [ObservableProperty] private bool _isSingleLargeLayout;
         [ObservableProperty] private bool _isDoubleLargeLayout;
@@ -160,6 +349,24 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
         [ObservableProperty] private bool _hasNoImages = true;
         [ObservableProperty] private bool _isLoadingImages;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(LargePrintLabel))] private bool _isSeniorHigh = false;
+
+
+        partial void OnIsSeniorHighChanged(bool value)
+        {
+            if (value) // If switching TO Senior High
+            {
+                // 1. If Package D was selected, force it back to Basic
+                if (SelectedPackage == "D")
+                {
+                    UpdatePackage("Basic");
+                }
+                
+                // 2. Clear or Auto-fill College fields so they aren't stuck
+                ClientSchool = string.Empty;
+                ClientCourse = string.Empty;
+            }
+        }
 
         public ObservableCollection<ImageItem> Images { get; } = new();
 
@@ -180,11 +387,11 @@ namespace dbm_select.ViewModels
             var token = _loadImagesCts.Token;
 
             // 2. Cleanup Memory & Queue
-            _upgradeQueue.Clear(); 
+            _upgradeQueue.Clear();
             Images.Clear();
             HasNoImages = false;
             IsLoadingImages = true;
-            
+
             // Force GC to clear previous folder's bitmaps before loading new ones
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -198,25 +405,25 @@ namespace dbm_select.ViewModels
             if (_folderCache.ContainsKey(folderPath))
             {
                 var cachedImages = _folderCache[folderPath];
-                
+
                 // Refresh LRU
                 _folderCacheOrder.Remove(folderPath);
                 _folderCacheOrder.Add(folderPath);
 
                 if (cachedImages.Count == 0) HasNoImages = true;
-                
+
                 // Add all to UI instantly
-                foreach(var img in cachedImages) Images.Add(img);
-                
+                foreach (var img in cachedImages) Images.Add(img);
+
                 IsLoadingImages = false;
-                return; 
+                return;
             }
 
             // 4. LOAD FROM DISK
             await Task.Run(async () =>
             {
                 var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png" };
-                
+
                 var files = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                                      .Where(s => supportedExtensions.Contains(Path.GetExtension(s)))
                                      .OrderBy(f => f)
@@ -239,39 +446,33 @@ namespace dbm_select.ViewModels
                 {
                     if (token.IsCancellationRequested) return;
 
-                    try
+                    var item = new ImageItem
                     {
-                        // Tiny load (40px)
-                        var tinyBmp = LoadBitmapWithOrientation(file, 40); 
+                        FileName = Path.GetFileName(file) ?? "Unknown",
+                        FullPath = file,
+                        Bitmap = null // Instantly pushed to UI as empty shell
+                    };
 
-                        if (tinyBmp != null)
-                        {
-                            var item = new ImageItem
-                            {
-                                FileName = Path.GetFileName(file) ?? "Unknown",
-                                FullPath = file,
-                                Bitmap = tinyBmp
-                            };
+                    currentFolderItems.Add(item);
+                    batch.Add(item);
 
-                            currentFolderItems.Add(item);
-                            batch.Add(item);
-                            
-                            // Enqueue for background worker to upgrade later
-                            _upgradeQueue.Enqueue(item);
-                        }
-                    }
-                    catch { }
+                    // Enqueue for background worker to generate the high-quality 200px thumbnail
+                    _upgradeQueue.Enqueue(item);
 
-                    // Update UI in batches of 10 to prevent freezing
-                    if (batch.Count >= 10)
+                    // Update UI in batches of 50 for near-instant rendering
+                    if (batch.Count >= 50)
                     {
                         var chunk = batch.ToList();
                         batch.Clear();
-                        await Dispatcher.UIThread.InvokeAsync(() => 
+
+                        // Yield briefly to let the UI thread breathe
+                        await Task.Delay(25, token);
+
+                        await Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             foreach (var i in chunk) Images.Add(i);
                         }, DispatcherPriority.Background);
-                        
+
                         // Start the upgrade worker if not running
                         _ = ProcessUpgradeQueue(token);
                     }
@@ -280,7 +481,7 @@ namespace dbm_select.ViewModels
                 // Add remaining items
                 if (batch.Count > 0)
                 {
-                    await Dispatcher.UIThread.InvokeAsync(() => 
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         foreach (var i in batch) Images.Add(i);
                     });
@@ -299,7 +500,7 @@ namespace dbm_select.ViewModels
                             var oldest = _folderCacheOrder[0];
                             if (_folderCache.TryGetValue(oldest, out var oldList))
                             {
-                                foreach(var img in oldList) img.Bitmap?.Dispose();
+                                foreach (var img in oldList) img.Bitmap?.Dispose();
                             }
                             _folderCache.Remove(oldest);
                             _folderCacheOrder.RemoveAt(0);
@@ -315,40 +516,72 @@ namespace dbm_select.ViewModels
 
         // --- BACKGROUND WORKER FOR UPGRADES ---
         // This runs sequentially on a background thread, ensuring we don't overload the system
+        private int _activeWorkers = 0;
         private async Task ProcessUpgradeQueue(CancellationToken token)
         {
-            // Simple locking mechanism to ensure only one worker runs per token
-            // Note: In a real producer/consumer, we'd use Channels, but this is sufficient here.
-            
-            while (!_upgradeQueue.IsEmpty)
+            // Limit the number of concurrent background workers (e.g. to avoid thread starvation)
+            int maxWorkers = Math.Max(2, Environment.ProcessorCount / 2);
+            if (Interlocked.Increment(ref _activeWorkers) > maxWorkers)
             {
-                if (token.IsCancellationRequested) return;
+                Interlocked.Decrement(ref _activeWorkers);
+                return;
+            }
 
-                if (_upgradeQueue.TryDequeue(out var item))
+            try
+            {
+                while (!_upgradeQueue.IsEmpty)
                 {
-                    try 
+                    if (token.IsCancellationRequested) return;
+
+                    if (_upgradeQueue.TryDequeue(out var item))
                     {
-                        // Check if already high quality (e.g. from previous run)
-                        if (item.Bitmap != null && item.Bitmap.PixelSize.Width > 100) continue;
-
-                        // Heavy Load
-                        var highResBmp = await Task.Run(() => LoadBitmapWithOrientation(item.FullPath, 200), token);
-
-                        if (highResBmp != null && !token.IsCancellationRequested)
+                        try
                         {
-                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            // Step 1: Rapid Native Pre-filling (if still completely empty)
+                            if (item.Bitmap == null)
                             {
-                                var old = item.Bitmap;
-                                item.Bitmap = highResBmp; // UI Snaps here
-                                old?.Dispose();
-                            }, DispatcherPriority.Background);
+                                Bitmap? tinyBmp = null;
+                                try
+                                {
+                                    using var stream = File.OpenRead(item.FullPath);
+                                    tinyBmp = Bitmap.DecodeToWidth(stream, 80);
+                                }
+                                catch { }
+
+                                if (tinyBmp != null && !token.IsCancellationRequested)
+                                {
+                                    await Dispatcher.UIThread.InvokeAsync(() =>
+                                    {
+                                        if (item.Bitmap == null) item.Bitmap = tinyBmp; // Fast UI visual
+                                    }, DispatcherPriority.Background);
+                                }
+                            }
+
+                            // Step 2: Smooth Skia Upgrading (Upgrade to 200px)
+                            // We MUST run this if the image is still null (Native extract failed) OR if it's the tiny 80px native one.
+                            if (item.Bitmap != null && item.Bitmap.Size.Width >= 150) continue;
+
+                            // Heavy Load (Load straight to 200px thumbnail)
+                            var highResBmp = await Task.Run(() => LoadBitmapWithOrientation(item.FullPath, 200), token);
+
+                            if (highResBmp != null && !token.IsCancellationRequested)
+                            {
+                                await Dispatcher.UIThread.InvokeAsync(() =>
+                                {
+                                    item.Bitmap = highResBmp; // UI Snaps here
+                                }, DispatcherPriority.Background);
+                            }
                         }
+                        catch { }
                     }
-                    catch { }
+
+                    // Small breathe between heavy decodes
+                    await Task.Delay(10, token);
                 }
-                
-                // Small breathe between heavy decodes
-                await Task.Delay(5, token);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeWorkers);
             }
         }
 
@@ -360,7 +593,7 @@ namespace dbm_select.ViewModels
             if (_lastHighResPreview != null)
             {
                 bool isInCache = false;
-                lock(_cacheLock) { isInCache = _highResCache.ContainsValue(_lastHighResPreview); }
+                lock (_cacheLock) { isInCache = _highResCache.ContainsValue(_lastHighResPreview); }
                 if (!isInCache) _lastHighResPreview.Bitmap?.Dispose();
                 _lastHighResPreview = null;
             }
@@ -380,9 +613,9 @@ namespace dbm_select.ViewModels
                 return;
             }
 
-            PreviewImage = new ImageItem 
-            { 
-                Bitmap = selectedItem.Bitmap, 
+            PreviewImage = new ImageItem
+            {
+                Bitmap = selectedItem.Bitmap,
                 FileName = selectedItem.FileName,
                 FullPath = selectedItem.FullPath
             };
@@ -391,7 +624,7 @@ namespace dbm_select.ViewModels
 
             try
             {
-                var highResItem = await Task.Run(() => 
+                var highResItem = await Task.Run(() =>
                     GenerateHighQualityPreview(selectedItem.FullPath, token), token);
 
                 if (token.IsCancellationRequested)
@@ -416,19 +649,31 @@ namespace dbm_select.ViewModels
 
         // --- CACHE HELPERS ---
         private void AddToCache(string path, ImageItem item)
+{
+    lock (_cacheLock)
+    {
+        if (_highResCache.ContainsKey(path)) 
+        { 
+            _cacheOrder.Remove(path); 
+            _cacheOrder.Add(path); 
+            return; 
+        }
+
+        if (_cacheOrder.Count >= MaxCacheSize)
         {
-            lock (_cacheLock)
-            {
-                if (_highResCache.ContainsKey(path)) { _cacheOrder.Remove(path); _cacheOrder.Add(path); return; }
-                if (_cacheOrder.Count >= MaxCacheSize)
-                {
-                    string oldest = _cacheOrder[0];
-                    _cacheOrder.RemoveAt(0);
-                    if (_highResCache.TryGetValue(oldest, out var old)) { if (old != PreviewImage) old.Bitmap?.Dispose(); _highResCache.Remove(oldest); }
-                }
-                _highResCache[path] = item; _cacheOrder.Add(path);
+            string oldest = _cacheOrder[0];
+            _cacheOrder.RemoveAt(0);
+            
+            if (_highResCache.TryGetValue(oldest, out var old)) 
+            { 
+                // FIX: Do NOT Dispose 'old'. Just remove it.
+                _highResCache.Remove(oldest); 
             }
         }
+        _highResCache[path] = item; 
+        _cacheOrder.Add(path);
+    }
+}
 
         private ImageItem? GetFromCache(string path)
         {
@@ -441,8 +686,13 @@ namespace dbm_select.ViewModels
 
         private void ClearCache()
         {
-            lock (_cacheLock) { foreach (var i in _highResCache.Values) i.Bitmap?.Dispose(); _highResCache.Clear(); _cacheOrder.Clear(); }
-            // Note: We do NOT clear _folderCache here, that is persistent across browsing.
+           lock (_cacheLock) 
+    { 
+        // FIX: Do NOT call .Dispose() here. 
+        // Just clear the list so the Garbage Collector can clean up safely later.
+        _highResCache.Clear(); 
+        _cacheOrder.Clear(); 
+    }
         }
 
         // ---------------------------------------------------------
@@ -463,7 +713,7 @@ namespace dbm_select.ViewModels
                     {
                         var cacheDir = Path.Combine(dir, ".dbm_thumbs");
                         cachePath = Path.Combine(cacheDir, name + ".dbm");
-                        
+
                         if (File.Exists(cachePath)) return new Bitmap(cachePath);
                     }
                 }
@@ -489,16 +739,32 @@ namespace dbm_select.ViewModels
 
                 var bitmapInfo = new SKImageInfo(supportedDimensions.Width, supportedDimensions.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
                 using var bitmap = new SKBitmap(bitmapInfo);
-                
+
                 var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
                 if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput) return null;
 
-                SKBitmap finalBitmap = bitmap;
+                SKBitmap currentBitmap = bitmap;
                 bool needsDispose = false;
+
+                // Explicit downscaling if the codec's downscale capability is insufficient (e.g. 1/8th limit in JPEG)
+                if (targetWidth.HasValue && currentBitmap.Width > targetWidth.Value * 1.5f)
+                {
+                    float actualScale = (float)targetWidth.Value / currentBitmap.Width;
+                    int newW = targetWidth.Value;
+                    int newH = (int)(currentBitmap.Height * actualScale);
+
+                    var scaledBitmap = new SKBitmap(newW, newH, SKColorType.Bgra8888, SKAlphaType.Premul);
+                    currentBitmap.ScalePixels(scaledBitmap, SKFilterQuality.Low);
+                    currentBitmap = scaledBitmap;
+                    needsDispose = true;
+                }
+
+                SKBitmap finalBitmap = currentBitmap;
 
                 if (codec.EncodedOrigin != SKEncodedOrigin.TopLeft)
                 {
-                    finalBitmap = RotateBitmap(bitmap, codec.EncodedOrigin);
+                    finalBitmap = RotateBitmap(currentBitmap, codec.EncodedOrigin);
+                    if (needsDispose) currentBitmap.Dispose();
                     needsDispose = true;
                 }
 
@@ -513,7 +779,7 @@ namespace dbm_select.ViewModels
                             var di = Directory.CreateDirectory(dir);
                             di.Attributes |= FileAttributes.Hidden;
                         }
-                        
+
                         using var image = SKImage.FromBitmap(finalBitmap);
                         using var data = image.Encode(SKEncodedImageFormat.Jpeg, 80);
                         using var cacheStream = File.OpenWrite(cachePath);
@@ -524,7 +790,7 @@ namespace dbm_select.ViewModels
 
                 var writeableBitmap = CreateAvaloniaBitmap(finalBitmap);
                 if (needsDispose) finalBitmap.Dispose();
-                
+
                 return writeableBitmap;
             }
             catch { return null; }
@@ -538,7 +804,7 @@ namespace dbm_select.ViewModels
                 using var codec = SKCodec.Create(stream);
                 if (codec == null) return null;
 
-                int targetWidth = 1500; 
+                int targetWidth = 1500;
                 SKSizeI supportedDimensions = codec.Info.Size;
                 if (codec.Info.Width > targetWidth)
                 {
@@ -548,7 +814,7 @@ namespace dbm_select.ViewModels
 
                 var info = new SKImageInfo(supportedDimensions.Width, supportedDimensions.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
                 using var rawBitmap = new SKBitmap(info);
-                
+
                 if (codec.GetPixels(info, rawBitmap.GetPixels()) != SKCodecResult.Success) return null;
                 if (token.IsCancellationRequested) return null;
 
@@ -562,26 +828,12 @@ namespace dbm_select.ViewModels
                     needsDispose = true;
                 }
 
-                var finalInfo = new SKImageInfo(workingBitmap.Width, workingBitmap.Height);
-                using var surface = SKSurface.Create(finalInfo);
-                using var canvas = surface.Canvas;
+                // Optimization: Directly create Avalonia Bitmap without expensive matrix convolution or PNG re-encoding
+                var writeableBitmap = CreateAvaloniaBitmap(workingBitmap);
                 
-                var kernel = new float[] { -0.5f, -0.5f, -0.5f, -0.5f, 5.0f, -0.5f, -0.5f, -0.5f, -0.5f };
-                using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
-                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1), SKShaderTileMode.Clamp, false, null, null);
-
-                canvas.DrawBitmap(workingBitmap, 0, 0, paint);
-                canvas.Flush();
-
                 if (needsDispose) workingBitmap.Dispose();
 
-                using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                using var ms = new MemoryStream();
-                data.SaveTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-
-                return new ImageItem { Bitmap = new Bitmap(ms), FileName = Path.GetFileName(path), FullPath = path };
+                return new ImageItem { Bitmap = writeableBitmap, FileName = Path.GetFileName(path), FullPath = path };
             }
             catch { return null; }
         }
@@ -598,11 +850,14 @@ namespace dbm_select.ViewModels
             switch (orientation)
             {
                 case SKEncodedOrigin.BottomRight:
-                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.RotateDegrees(180, bitmap.Width/2, bitmap.Height/2); c.DrawBitmap(bitmap, 0, 0); } break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.RotateDegrees(180, bitmap.Width / 2, bitmap.Height / 2); c.DrawBitmap(bitmap, 0, 0); }
+                    break;
                 case SKEncodedOrigin.RightTop:
-                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(rotated.Width, 0); c.RotateDegrees(90); c.DrawBitmap(bitmap, 0, 0); } break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(rotated.Width, 0); c.RotateDegrees(90); c.DrawBitmap(bitmap, 0, 0); }
+                    break;
                 case SKEncodedOrigin.LeftBottom:
-                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(0, rotated.Height); c.RotateDegrees(270); c.DrawBitmap(bitmap, 0, 0); } break;
+                    rotated = new SKBitmap(info); using (var c = new SKCanvas(rotated)) { c.Translate(0, rotated.Height); c.RotateDegrees(270); c.DrawBitmap(bitmap, 0, 0); }
+                    break;
                 default: return bitmap;
             }
             return rotated;
@@ -614,12 +869,12 @@ namespace dbm_select.ViewModels
             int newW = isRotated90 ? bitmap.Height : bitmap.Width;
             int newH = isRotated90 ? bitmap.Width : bitmap.Height;
             var rotated = new SKBitmap(newW, newH, bitmap.ColorType, bitmap.AlphaType);
-            using (var c = new SKCanvas(rotated)) 
-            { 
-                c.Translate(newW / 2f, newH / 2f); 
-                c.RotateDegrees((float)angle); 
-                c.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f); 
-                c.DrawBitmap(bitmap, 0, 0); 
+            using (var c = new SKCanvas(rotated))
+            {
+                c.Translate(newW / 2f, newH / 2f);
+                c.RotateDegrees((float)angle);
+                c.Translate(-bitmap.Width / 2f, -bitmap.Height / 2f);
+                c.DrawBitmap(bitmap, 0, 0);
             }
             return rotated;
         }
@@ -641,7 +896,6 @@ namespace dbm_select.ViewModels
         {
             ClearSlot(category);
             ImageItem newSlotItem = sourceItem;
-            // Uses disk cache for 300px too if available
             var mediumBitmap = LoadBitmapWithOrientation(sourceItem.FullPath, 300);
             if (mediumBitmap != null)
                 newSlotItem = new ImageItem { FileName = sourceItem.FileName, FullPath = sourceItem.FullPath, Bitmap = mediumBitmap };
@@ -652,22 +906,25 @@ namespace dbm_select.ViewModels
                 case CategoryConstants.Barong: ImageBarong = newSlotItem; break;
                 case CategoryConstants.Creative: ImageCreative = newSlotItem; break;
                 case CategoryConstants.Any: ImageAny = newSlotItem; break;
-                case CategoryConstants.Instax: ImageInstax = newSlotItem; break;
+                case CategoryConstants.SoloGroup: ImageSoloGroup = newSlotItem; break;
+                case CategoryConstants.Barkada: ImageBarkada = newSlotItem; break;
             }
         }
+
+
 
         [RelayCommand]
         public async Task OpenPreviewPackage()
         {
             IsPreviewPackageDialogVisible = true;
             IsModalLoading = true;
-            
-            // Dispose existing previews
+
             PreviewImage8x10?.Bitmap?.Dispose(); PreviewImage8x10 = null;
             PreviewImageBarong?.Bitmap?.Dispose(); PreviewImageBarong = null;
             PreviewImageCreative?.Bitmap?.Dispose(); PreviewImageCreative = null;
             PreviewImageAny?.Bitmap?.Dispose(); PreviewImageAny = null;
-            PreviewImageInstax?.Bitmap?.Dispose(); PreviewImageInstax = null;
+            PreviewImageSoloGroup?.Bitmap?.Dispose(); PreviewImageSoloGroup = null;
+            PreviewImageBarkada?.Bitmap?.Dispose(); PreviewImageBarkada = null;
 
             try
             {
@@ -676,7 +933,7 @@ namespace dbm_select.ViewModels
                     ImageItem? Load(ImageItem? src)
                     {
                         if (src == null) return null;
-                        var bmp = LoadBitmapWithOrientation(src.FullPath, 500); 
+                        var bmp = LoadBitmapWithOrientation(src.FullPath, 500);
                         if (bmp == null) return null;
                         return new ImageItem { Bitmap = bmp, FileName = src.FileName ?? "", FullPath = src.FullPath ?? "" };
                     }
@@ -687,7 +944,8 @@ namespace dbm_select.ViewModels
                         { CategoryConstants.Barong, IsBarongVisible ? Load(ImageBarong) : null },
                         { CategoryConstants.Creative, IsCreativeVisible ? Load(ImageCreative) : null },
                         { CategoryConstants.Any, IsAnyVisible ? Load(ImageAny) : null },
-                        { CategoryConstants.Instax, IsInstaxVisible ? Load(ImageInstax) : null }
+                        { CategoryConstants.SoloGroup, IsSoloGroupVisible ? Load(ImageSoloGroup) : null },
+                        { CategoryConstants.Barkada, IsBarkadaVisible ? Load(ImageBarkada) : null }
                     };
                 });
 
@@ -695,7 +953,8 @@ namespace dbm_select.ViewModels
                 PreviewImageBarong = results[CategoryConstants.Barong];
                 PreviewImageCreative = results[CategoryConstants.Creative];
                 PreviewImageAny = results[CategoryConstants.Any];
-                PreviewImageInstax = results[CategoryConstants.Instax];
+                PreviewImageSoloGroup = results[CategoryConstants.SoloGroup];
+                PreviewImageBarkada = results[CategoryConstants.Barkada];
             }
             catch { IsPreviewPackageDialogVisible = false; }
             finally { IsModalLoading = false; }
@@ -708,12 +967,25 @@ namespace dbm_select.ViewModels
         [RelayCommand]
         public void Submit()
         {
+          // 1. Check Name and Email (Always Required)
             if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
             {
-                ErrorMessage = "Please enter both the Client Name and Email Address.";
+                ErrorMessage = "Please fill in Client Name and Email Address.";
                 IsErrorDialogVisible = true;
                 return;
             }
+
+            // 2. Check School/Course ONLY if NOT Senior High AND NOT Non-Student
+            if (!IsSeniorHigh && !IsNonStudent) 
+            {
+                if (string.IsNullOrWhiteSpace(ClientSchool) || string.IsNullOrWhiteSpace(ClientCourse))
+                {
+                    ErrorMessage = "Please fill in School and Course/Program.";
+                    IsErrorDialogVisible = true;
+                    return;
+                }
+            }
+
             if (!IsValidEmail(ClientEmail))
             {
                 ErrorMessage = "The Email Address format is invalid.\n(e.g., user@example.com)";
@@ -726,7 +998,8 @@ namespace dbm_select.ViewModels
             else if (IsBarongVisible && ImageBarong == null) isMissing = true;
             else if (IsCreativeVisible && ImageCreative == null) isMissing = true;
             else if (IsAnyVisible && ImageAny == null) isMissing = true;
-            else if (IsInstaxVisible && ImageInstax == null) isMissing = true;
+            // UPDATED CHECK
+            else if (IsSoloGroupVisible && ImageSoloGroup == null) isMissing = true;
 
             if (isMissing)
             {
@@ -735,6 +1008,103 @@ namespace dbm_select.ViewModels
                 return;
             }
             IsSubmitConfirmationVisible = true;
+        }
+
+
+        [ObservableProperty] private bool _isModeChangeDialogVisible;
+        private string _pendingClientType = string.Empty;
+
+        [RelayCommand]
+        public void SelectClientType(string type)
+        {
+            string currentType = "";
+            if (IsSeniorHigh) currentType = "SHS";
+            else if (IsNonStudent) currentType = "NA";
+            else currentType = "College";
+
+            bool hasImages = Image8x10 != null || ImageBarong != null || 
+                             ImageCreative != null || ImageAny != null || 
+                             ImageSoloGroup != null || ImageBarkada != null;
+
+            if (type == currentType)
+            {
+                IsClientTypeDialogVisible = false;
+            }
+            else if (hasImages)
+            {
+                // Changing to a different mode AND there are images at risk of being wiped
+                _pendingClientType = type;
+                IsClientTypeDialogVisible = false;
+                IsModeChangeDialogVisible = true;
+            }
+            else
+            {
+                // No images at risk, apply immediately
+                ApplyClientType(type);
+                IsClientTypeDialogVisible = false;
+                UpdateVisibility(SelectedPackage);
+            }
+        }
+
+        [RelayCommand]
+        private void ConfirmModeChange()
+        {
+            // Clear current images placed in the slots
+            Image8x10 = null;
+            ImageBarong = null;
+            ImageCreative = null;
+            ImageAny = null;
+            ImageSoloGroup = null;
+            ImageBarkada = null;
+            SelectedImage = null;
+            PreviewImage = null;
+
+            // Apply mode change
+            ApplyClientType(_pendingClientType);
+            IsModeChangeDialogVisible = false;
+            _pendingClientType = string.Empty;
+            
+            // Re-evalute layouts because mode branch switched (i.e. SHS vs College)
+            UpdateVisibility(SelectedPackage);
+        }
+
+        [RelayCommand]
+        private void CancelModeChange()
+        {
+            IsModeChangeDialogVisible = false;
+            _pendingClientType = string.Empty;
+        }
+
+        private void ApplyClientType(string type)
+        {
+            // Reset flags
+            IsSeniorHigh = false;
+            IsNonStudent = false;
+
+            // Clear inputs for ALL modes so they start fresh
+            ClientSchool = string.Empty;
+            ClientCourse = string.Empty;
+
+            switch (type)
+            {
+                case "SHS":
+                    IsSeniorHigh = true;
+                    ClientTypeLabel = "Senior High";
+                    break;
+                case "NA":
+                    IsNonStudent = true;
+                    ClientTypeLabel = "N/A (Others)";
+                    break;
+                default:
+                    ClientTypeLabel = "College";
+                    break;
+            }
+        }
+
+        [RelayCommand]
+        public void ReopenClientTypeSelection()
+        {
+            IsClientTypeDialogVisible = true;
         }
 
         [RelayCommand] public void ConfirmSubmit() { IsSubmitConfirmationVisible = false; IsImportantNotesDialogVisible = true; }
@@ -774,54 +1144,82 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
 
         [RelayCommand]
-        public void ClearSlot(string category)
+        public void SetClientType(string type)
         {
-            switch (category)
-            {
-                case CategoryConstants.EightByTen: Image8x10?.Bitmap?.Dispose(); Image8x10 = null; break;
-                case CategoryConstants.Barong: ImageBarong?.Bitmap?.Dispose(); ImageBarong = null; break;
-                case CategoryConstants.Creative: ImageCreative?.Bitmap?.Dispose(); ImageCreative = null; break;
-                case CategoryConstants.Any: ImageAny?.Bitmap?.Dispose(); ImageAny = null; break;
-                case CategoryConstants.Instax: ImageInstax?.Bitmap?.Dispose(); ImageInstax = null; break;
-            }
-            GC.Collect();
+            IsSeniorHigh = (type == "SHS");
         }
 
         [RelayCommand]
+public void ClearSlot(string category)
+{
+    // FIX: Just set to null. Do NOT call .Dispose().
+    // The Garbage Collector will free the memory automatically when it's safe.
+    switch (category)
+    {
+        case CategoryConstants.EightByTen:
+            Image8x10 = null;
+            break;
+        case CategoryConstants.Barong:
+            ImageBarong = null;
+            break;
+        case CategoryConstants.Creative:
+            ImageCreative = null;
+            break;
+        case CategoryConstants.Any:
+            ImageAny = null;
+            break;
+        case CategoryConstants.SoloGroup:
+            ImageSoloGroup = null;
+            break;
+        case CategoryConstants.Barkada:
+            ImageBarkada = null;
+            break;
+    }
+
+    // Optional: Hint to GC to clean up if it wants to, but don't force it aggressively
+    GC.Collect();
+}
+
+       [RelayCommand]
 public async Task ProceedFromAcknowledgement()
 {
-    // 1. Close the dialog and show loading spinner
+    // 1. Close dialog & show loader
     IsAcknowledgementDialogVisible = false;
     IsLoadingSubmit = true;
 
-    // 2. STOP any background image loading immediately to free up resources/files
+    // 2. Stop any active loading (just in case)
     _loadImagesCts?.Cancel();
-
-    // Small delay to ensure UI updates and previous tasks stop
+    
+    // Tiny delay to let UI breathe
     await Task.Delay(500);
 
     try
     {
+        // ---------------------------------------------------------
+        // PART 1: BACKGROUND WORK (File I/O)
+        // ---------------------------------------------------------
         await Task.Run(() =>
         {
             // --- A. VALIDATION & SETUP ---
-            if (string.IsNullOrWhiteSpace(OutputFolderPath))
+            string targetFolder = OutputFolderPath;
+
+            if (string.IsNullOrWhiteSpace(targetFolder))
                 throw new DirectoryNotFoundException("The output folder path is not set in Settings.");
 
-            if (!Directory.Exists(OutputFolderPath))
-                Directory.CreateDirectory(OutputFolderPath);
+            if (!Directory.Exists(targetFolder))
+                Directory.CreateDirectory(targetFolder);
 
-            // Sanitize Client Name for Folder Creation
+            // Sanitize Name
             string safeClientName = (ClientName ?? "Unknown").ToUpper();
             foreach (char c in Path.GetInvalidFileNameChars())
                 safeClientName = safeClientName.Replace(c, '_');
 
-            string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
+            string specificFolder = Path.Combine(targetFolder, $"{SelectedPackage}-{safeClientName}");
             if (!Directory.Exists(specificFolder))
                 Directory.CreateDirectory(specificFolder);
 
             // --- B. SAVE IMAGES ---
-            SaveImageToFile(Image8x10, " 8x10 ", specificFolder);
+            SaveImageToFile(Image8x10, $" {LargePrintLabel} ", specificFolder);
 
             if (IsBarongVisible)
                 SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
@@ -830,10 +1228,13 @@ public async Task ProceedFromAcknowledgement()
                 SaveImageToFile(ImageCreative, " Creative ", specificFolder);
 
             if (IsAnyVisible)
-                SaveImageToFile(ImageAny, " Any ", specificFolder);
+                SaveImageToFile(ImageAny, $" {AnySlotLabel} ", specificFolder);
 
-            if (IsInstaxVisible)
-                SaveImageToFile(ImageInstax, " Instax ", specificFolder);
+            if (IsSoloGroupVisible)
+                SaveImageToFile(ImageSoloGroup, " Solo Group ", specificFolder);
+
+            if (IsBarkadaVisible && ImageBarkada != null)
+                SaveImageToFile(ImageBarkada, " Barkada ", specificFolder);
 
             // --- C. EXCEL LOGGING ---
             string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
@@ -842,79 +1243,78 @@ public async Task ProceedFromAcknowledgement()
             if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
                 Directory.CreateDirectory(excelDir);
 
-            // Create new log item
-            // (Note: I condensed the logic here to match your previous flow properly)
             var allRows = new List<OrderLogItem>();
 
-            // 1. Try reading existing file
             if (File.Exists(excelPath))
             {
                 try
                 {
                     allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
                 }
-                catch (IOException)
-                {
-                   // If reading fails, we just proceed with the new list
-                }
+                catch { }
             }
+
+            string finalSchool = ClientSchool ?? "";
+                    string finalCourse = ClientCourse ?? "";
+
+                    if (IsSeniorHigh)
+                    {
+                        finalSchool = "Senior High School";
+                        finalCourse = "N/A";
+                    }
+                    else if (IsNonStudent)
+                    {
+                        finalSchool = "N/A";
+                        finalCourse = "N/A";
+                    }
 
             var newItem = new OrderLogItem
             {
                 Status = "DONE CHOOSING",
                 Name = safeClientName,
                 Email = ClientEmail ?? string.Empty,
+                School = finalSchool,
+                Course = finalCourse,
                 Package = SelectedPackage,
-                Box_8x10 = Image8x10?.FileName ?? "Empty",
+                Box_LargePrint = Image8x10?.FileName ?? "Empty",
                 Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
                 Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
                 Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
-                Box_Instax = IsInstaxVisible ? ImageInstax?.FileName ?? "Empty" : "N/A",
+                Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
                 TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
-            
+
             allRows.Add(newItem);
 
-            // 2. Save Excel (Manual Overwrite Safety)
-            try
-            {
-                if (File.Exists(excelPath))
-                {
-                    File.Delete(excelPath);
-                }
+            if (File.Exists(excelPath)) File.Delete(excelPath);
+            MiniExcel.SaveAs(excelPath, allRows);
 
-                MiniExcel.SaveAs(excelPath, allRows);
-            }
-            catch (IOException)
-            {
-                throw new IOException($"Could not save to Excel. Please ensure '{ExcelFileName}.xlsx' is closed.");
-            }
-        }); // <--- THIS WAS MISSING (Closes Task.Run)
+        }); 
 
-        // --- D. CLEANUP & RESET (Main Thread) ---
+        // ---------------------------------------------------------
+        // PART 2: UI UPDATES
+        // ---------------------------------------------------------
+        
+        // Only reset the input slots and text fields
         ResetData();
 
-        // Use the new safe ClearBrowserImages method
-        ClearBrowserImages();
-
+        // REMOVED: ClearBrowserImages(); 
+        // REMOVED: LoadImages(...);
+        
+        // This keeps the photos on the right side visible!
         IsLoadingSubmit = false;
         IsThankYouDialogVisible = true;
-
-        // Reload folder images fresh
-        _ = LoadImages(_currentBrowseFolderPath);
-    } // <--- THIS WAS MISSING (Closes the Try block)
+    }
     catch (IOException ioEx)
     {
-        // Handle file locking specifically
         IsLoadingSubmit = false;
-        ErrorMessage = ioEx.Message; 
+        ErrorMessage = $"File Error: {ioEx.Message}\n(Check if the Excel file is open)";
         IsErrorDialogVisible = true;
     }
     catch (Exception ex)
     {
-        // Handle any other crashes
         IsLoadingSubmit = false;
-        ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+        ErrorMessage = $"An error occurred: {ex.Message}";
         IsErrorDialogVisible = true;
     }
 }
@@ -932,20 +1332,20 @@ public async Task ProceedFromAcknowledgement()
             if (!_appsettings.LoadSettings())
                 return false;
 
-            if (!string.IsNullOrEmpty(_appsettings.LastOutputFolder)) 
-                OutputFolderPath = _appsettings.LastOutputFolder; 
-                    
-            if (!string.IsNullOrEmpty(_appsettings.LastExcelFolder)) 
-                ExcelFolderPath = _appsettings.LastExcelFolder; 
-            else ExcelFolderPath = OutputFolderPath; 
-                            
-            if (!string.IsNullOrEmpty(_appsettings.LastExcelFileName)) 
-                ExcelFileName = _appsettings.LastExcelFileName; 
-            
-            if (!string.IsNullOrEmpty(_appsettings.LastBrowseFolder)) 
-                _currentBrowseFolderPath = _appsettings.LastBrowseFolder; 
-                            
-            return true; 
+            if (!string.IsNullOrEmpty(_appsettings.LastOutputFolder))
+                OutputFolderPath = _appsettings.LastOutputFolder;
+
+            if (!string.IsNullOrEmpty(_appsettings.LastExcelFolder))
+                ExcelFolderPath = _appsettings.LastExcelFolder;
+            else ExcelFolderPath = OutputFolderPath;
+
+            if (!string.IsNullOrEmpty(_appsettings.LastExcelFileName))
+                ExcelFileName = _appsettings.LastExcelFileName;
+
+            if (!string.IsNullOrEmpty(_appsettings.LastBrowseFolder))
+                _currentBrowseFolderPath = _appsettings.LastBrowseFolder;
+
+            return true;
         }
         private void SaveSettings()
         {
@@ -956,86 +1356,174 @@ public async Task ProceedFromAcknowledgement()
                 _currentBrowseFolderPath);
         }
 
-        private void UpdateVisibility(string pkg)
-        {
-            IsBarongVisible = false;
-            IsCreativeVisible = false;
-            IsAnyVisible = false;
-            IsInstaxVisible = false;
-            IsSingleLargeLayout = false;
-            IsDoubleLargeLayout = false;
-            IsQuadLayout = false;
-            IsFiveLayout = false;
-            LayoutStretch = Stretch.None;
-            ScrollVisibility = ScrollBarVisibility.Auto;
+        [ObservableProperty] private string _anySlotLabel = "Any";
+        [ObservableProperty] private bool _isBarongHorizontal; // For C & D (Top Row)
+[ObservableProperty] private bool _isBarongVertical;   // For A & B (Bottom Row)
+[ObservableProperty] private bool _isSecondaryQuad; // Controls if bottom row items are small
 
-            if (pkg == "Basic")
-            {
-                IsSingleLargeLayout = true;
-                SlotsOrientation = Orientation.Vertical;
-                LayoutStretch = Stretch.Uniform;
-                ScrollVisibility = ScrollBarVisibility.Disabled;
-            }
-            else if (pkg == "A" || pkg == "B")
-            {
-                IsBarongVisible = true;
-                IsDoubleLargeLayout = true;
-                SlotsOrientation = Orientation.Vertical;
-                LayoutStretch = Stretch.Uniform;
-                ScrollVisibility = ScrollBarVisibility.Disabled;
-            }
-            else if (pkg == "C")
-            {
-                IsBarongVisible = true;
-                IsCreativeVisible = true;
-                IsAnyVisible = true;
-                IsQuadLayout = true;
-                SlotsOrientation = Orientation.Horizontal;
-                LayoutStretch = Stretch.Uniform;
-                ScrollVisibility = ScrollBarVisibility.Disabled;
-            }
-            else if (pkg == "D")
-            {
-                IsBarongVisible = true;
-                IsCreativeVisible = true;
-                IsAnyVisible = true;
-                IsInstaxVisible = true;
-                IsFiveLayout = true;
-                SlotsOrientation = Orientation.Horizontal;
-                LayoutStretch = Stretch.Uniform;
-                ScrollVisibility = ScrollBarVisibility.Disabled;
-            }
-        }
+private void UpdateVisibility(string pkg)
+{
+    // 1. Reset all flags
+    IsBarongVisible = false;
+    IsBarongHorizontal = false;
+    IsBarongVertical = false;
+    IsCreativeVisible = false;
+    IsAnyVisible = false;
+    IsSoloGroupVisible = false;
+    IsBarkadaVisible = false;
+    
+    IsSingleLargeLayout = false;
+    IsDoubleLargeLayout = false;
+    IsQuadLayout = false;
+    IsFiveLayout = false;
+    IsSecondaryQuad = false;
 
-        private void ResetData()
+    LayoutStretch = Stretch.None;
+    ScrollVisibility = ScrollBarVisibility.Auto;
+    AnySlotLabel = "Any";
+
+    if (IsSeniorHigh)
+    {
+        if (pkg == "Basic")
         {
-            ClearCache();
-            ClientName = string.Empty;
-            ClientEmail = string.Empty;
-            SelectedPackage = "Basic";
-            IsBasicSelected = true;
-            IsPkgASelected = false;
-            IsPkgBSelected = false;
-            IsPkgCSelected = false;
-            IsPkgDSelected = false;
-            SelectedImage = null;
-            PreviewImage = null;
-            Image8x10 = null;
-            ImageBarong = null;
-            ImageCreative = null;
-            ImageAny = null;
-            ImageInstax = null;
-            UpdateVisibility("Basic");
+            // 1 Slot: 8x10 Only
+            IsSingleLargeLayout = true;
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
         }
+        else if (pkg == "A" || pkg == "B")
+        {
+            // 2 Slots: 8x10 + Barong (Large Layout)
+            IsBarongVisible = true;
+            IsBarongVertical = true;
+            IsDoubleLargeLayout = true; 
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "C")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any";
+            
+            IsQuadLayout = true; 
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+    }
+    else
+    {
+        if (pkg == "Basic")
+        {
+            // 1 Slot: 8x10 Only
+            IsSingleLargeLayout = true;
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "A" || pkg == "B") 
+        {
+            // 2 Slots: 8x10 + Barong (Large Layout)
+            IsBarongVisible = true;
+            IsBarongVertical = true;
+            IsDoubleLargeLayout = true; 
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "C")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any + Barkada
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any";
+            IsBarkadaVisible = true;
+            
+            IsQuadLayout = true; 
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "D")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any + Solo/Group
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any"; 
+            
+            IsSoloGroupVisible = true;
+        
+            IsQuadLayout = false; 
+            IsFiveLayout = true;
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+    }
+}
+
+      private void ResetData()
+{
+    // 1. Unbind UI Properties
+    ClientName = string.Empty;
+    ClientEmail = string.Empty;
+    ClientSchool = string.Empty;
+    ClientCourse = string.Empty;
+    SelectedPackage = "Basic";
+    
+    // Reset Checkboxes
+    IsBasicSelected = true;
+    IsPkgASelected = false;
+    IsPkgBSelected = false;
+    IsPkgCSelected = false;
+    IsPkgDSelected = false;
+
+    // 2. Remove Images from UI
+    // FIX: Just set to null. Do NOT call .Dispose().
+    Image8x10 = null;
+    ImageBarong = null;
+    ImageCreative = null;
+    ImageAny = null;
+    ImageSoloGroup = null;
+    ImageBarkada = null;
+
+    SelectedImage = null;
+    PreviewImage = null;
+
+    // 3. Reset Layout Visibility
+    IsBarkadaVisible = false;
+    UpdateVisibility("Basic");
+
+    // 4. Clear internal cache
+    ClearCache(); 
+    
+    // 5. Trigger GC to clean up the orphaned bitmaps safely
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+
+    // ---  RESET CLIENT MODE ---
+    // IsSeniorHigh = false;
+    // IsNonStudent = false;
+    // ClientTypeLabel = "College"; // Default text or "Select Mode"
+    
+    // ---  SHOW STARTUP QUESTION AGAIN ---
+    // IsClientTypeDialogVisible = true;
+}
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }
-       private void ClearBrowserImages() 
-{ 
-    // 1. Cancel any active loading background tasks first
+      private void ClearBrowserImages()
+{
+    // 1. Cancel any active loading
     _loadImagesCts?.Cancel();
 
-    // 2. Remove the current folder from Memory Cache
-    // This forces the app to reload fresh from Disk Cache (safe) instead of using disposed RAM images (unsafe)
+    // 2. Clear cache keys
     if (!string.IsNullOrEmpty(_currentBrowseFolderPath))
     {
         if (_folderCache.ContainsKey(_currentBrowseFolderPath))
@@ -1045,33 +1533,17 @@ public async Task ProceedFromAcknowledgement()
         }
     }
 
-    // 3. Snapshot the images currently in the list
-    var imagesToDispose = Images.ToList();
+    // 3. Clear the UI list IMMEDIATELY
+    // FIX: Do NOT iterate and Dispose. Just Clear.
+    Images.Clear();
+    HasNoImages = true;
 
-    // 4. Clear the observable collection (This updates the UI)
-    Images.Clear(); 
-    HasNoImages = true; 
-    
-    // 5. Clear the internal High-Res Preview cache
+    // 4. Clear internal High-Res Preview cache
     ClearCache();
 
-    // 6. Dispose the bitmaps on a background thread to avoid UI lag/locking
-    Task.Run(async () => 
-    {
-        // Wait 1 second to ensure the UI has fully removed the images from the Visual Tree
-        await Task.Delay(1000); 
-
-        await Dispatcher.UIThread.InvokeAsync(() => 
-        {
-            foreach (var i in imagesToDispose) 
-            {
-                i.Bitmap?.Dispose(); 
-            }
-            // Force a GC collection to reclaim the memory
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-        });
-    });
+    // 5. Trigger GC to clean up
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
 }
     }
 }
