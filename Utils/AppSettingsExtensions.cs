@@ -1,4 +1,4 @@
-﻿using dbmselect.Models;
+using dbmselect.Models;
 using System;
 using System.IO;
 using System.Text.Json;

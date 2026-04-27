@@ -1,10 +1,13 @@
 ﻿using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace dbm_select.Models
 {
-    public class ImageItem
+    public partial class ImageItem : ObservableObject
     {
-        public required Bitmap Bitmap { get; set; }
+        [ObservableProperty]
+        private Bitmap? _bitmap;
+
         public required string FileName { get; set; }
         public required string FullPath { get; set; }
 

@@ -196,23 +196,30 @@ namespace dbm_select.ViewModels
     // 1. Try to load settings
     LoadSettings();
 
-    // 2. Check if Paths are missing (First run OR Broken settings)
-    if (string.IsNullOrEmpty(OutputFolderPath) || string.IsNullOrEmpty(ExcelFolderPath))
+    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    
+    // 2. Enforce Defaults for Missing Settings
+    bool missingSettings = false;
+
+    if (string.IsNullOrEmpty(OutputFolderPath))
     {
-        // Define Defaults
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string baseFolder = Path.Combine(documentsPath, "DBM Select"); // Use your Constants
-        string logsFolder = Path.Combine(baseFolder, "Logs"); // Use your Constants
-
+        string baseFolder = Path.Combine(documentsPath, "DBM Select");
         if (!Directory.Exists(baseFolder)) Directory.CreateDirectory(baseFolder);
-        if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
-
-        // Apply Defaults to Properties
         OutputFolderPath = baseFolder;
-        ExcelFolderPath = logsFolder;
-        ExcelFileName = "ClientLogs"; // Use your Constants
+        missingSettings = true;
+    }
 
-        // 3. Save immediately so we don't ask again next time
+    if (string.IsNullOrEmpty(ExcelFolderPath))
+    {
+        string baseFolder = Path.Combine(documentsPath, "DBM Select");
+        string logsFolder = Path.Combine(baseFolder, "Logs");
+        if (!Directory.Exists(logsFolder)) Directory.CreateDirectory(logsFolder);
+        ExcelFolderPath = logsFolder;
+        missingSettings = true;
+    }
+
+    if (missingSettings)
+    {
         SaveSettings();
     }
 
@@ -242,7 +249,9 @@ namespace dbm_select.ViewModels
 
         private void CheckSettingsDirty()
         {
-            IsSettingsDirty = OutputFolderPath != _snapOutputFolder || ExcelFolderPath != _snapExcelFolder || ExcelFileName != _snapExcelFileName;
+            IsSettingsDirty = OutputFolderPath != _snapOutputFolder ||
+                              ExcelFolderPath != _snapExcelFolder || 
+                              ExcelFileName != _snapExcelFileName;
         }
 
         [ObservableProperty] private string? _clientName;
@@ -437,34 +446,28 @@ namespace dbm_select.ViewModels
                 {
                     if (token.IsCancellationRequested) return;
 
-                    try
+                    var item = new ImageItem
                     {
-                        // Tiny load (40px)
-                        var tinyBmp = LoadBitmapWithOrientation(file, 40);
+                        FileName = Path.GetFileName(file) ?? "Unknown",
+                        FullPath = file,
+                        Bitmap = null // Instantly pushed to UI as empty shell
+                    };
 
-                        if (tinyBmp != null)
-                        {
-                            var item = new ImageItem
-                            {
-                                FileName = Path.GetFileName(file) ?? "Unknown",
-                                FullPath = file,
-                                Bitmap = tinyBmp
-                            };
+                    currentFolderItems.Add(item);
+                    batch.Add(item);
 
-                            currentFolderItems.Add(item);
-                            batch.Add(item);
+                    // Enqueue for background worker to generate the high-quality 200px thumbnail
+                    _upgradeQueue.Enqueue(item);
 
-                            // Enqueue for background worker to upgrade later
-                            _upgradeQueue.Enqueue(item);
-                        }
-                    }
-                    catch { }
-
-                    // Update UI in batches of 10 to prevent freezing
-                    if (batch.Count >= 10)
+                    // Update UI in batches of 50 for near-instant rendering
+                    if (batch.Count >= 50)
                     {
                         var chunk = batch.ToList();
                         batch.Clear();
+
+                        // Yield briefly to let the UI thread breathe
+                        await Task.Delay(25, token);
+
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             foreach (var i in chunk) Images.Add(i);
@@ -513,40 +516,72 @@ namespace dbm_select.ViewModels
 
         // --- BACKGROUND WORKER FOR UPGRADES ---
         // This runs sequentially on a background thread, ensuring we don't overload the system
+        private int _activeWorkers = 0;
         private async Task ProcessUpgradeQueue(CancellationToken token)
         {
-            // Simple locking mechanism to ensure only one worker runs per token
-            // Note: In a real producer/consumer, we'd use Channels, but this is sufficient here.
-
-            while (!_upgradeQueue.IsEmpty)
+            // Limit the number of concurrent background workers (e.g. to avoid thread starvation)
+            int maxWorkers = Math.Max(2, Environment.ProcessorCount / 2);
+            if (Interlocked.Increment(ref _activeWorkers) > maxWorkers)
             {
-                if (token.IsCancellationRequested) return;
+                Interlocked.Decrement(ref _activeWorkers);
+                return;
+            }
 
-                if (_upgradeQueue.TryDequeue(out var item))
+            try
+            {
+                while (!_upgradeQueue.IsEmpty)
                 {
-                    try
+                    if (token.IsCancellationRequested) return;
+
+                    if (_upgradeQueue.TryDequeue(out var item))
                     {
-                        // Check if already high quality (e.g. from previous run)
-                        if (item.Bitmap != null && item.Bitmap.PixelSize.Width > 100) continue;
-
-                        // Heavy Load
-                        var highResBmp = await Task.Run(() => LoadBitmapWithOrientation(item.FullPath, 200), token);
-
-                        if (highResBmp != null && !token.IsCancellationRequested)
+                        try
                         {
-                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            // Step 1: Rapid Native Pre-filling (if still completely empty)
+                            if (item.Bitmap == null)
                             {
-                                // var old = item.Bitmap;
-                                item.Bitmap = highResBmp; // UI Snaps here
-                                // old?.Dispose();
-                            }, DispatcherPriority.Background);
-                        }
-                    }
-                    catch { }
-                }
+                                Bitmap? tinyBmp = null;
+                                try
+                                {
+                                    using var stream = File.OpenRead(item.FullPath);
+                                    tinyBmp = Bitmap.DecodeToWidth(stream, 80);
+                                }
+                                catch { }
 
-                // Small breathe between heavy decodes
-                await Task.Delay(5, token);
+                                if (tinyBmp != null && !token.IsCancellationRequested)
+                                {
+                                    await Dispatcher.UIThread.InvokeAsync(() =>
+                                    {
+                                        if (item.Bitmap == null) item.Bitmap = tinyBmp; // Fast UI visual
+                                    }, DispatcherPriority.Background);
+                                }
+                            }
+
+                            // Step 2: Smooth Skia Upgrading (Upgrade to 200px)
+                            // We MUST run this if the image is still null (Native extract failed) OR if it's the tiny 80px native one.
+                            if (item.Bitmap != null && item.Bitmap.Size.Width >= 150) continue;
+
+                            // Heavy Load (Load straight to 200px thumbnail)
+                            var highResBmp = await Task.Run(() => LoadBitmapWithOrientation(item.FullPath, 200), token);
+
+                            if (highResBmp != null && !token.IsCancellationRequested)
+                            {
+                                await Dispatcher.UIThread.InvokeAsync(() =>
+                                {
+                                    item.Bitmap = highResBmp; // UI Snaps here
+                                }, DispatcherPriority.Background);
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // Small breathe between heavy decodes
+                    await Task.Delay(10, token);
+                }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeWorkers);
             }
         }
 
@@ -708,12 +743,28 @@ namespace dbm_select.ViewModels
                 var result = codec.GetPixels(bitmapInfo, bitmap.GetPixels());
                 if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput) return null;
 
-                SKBitmap finalBitmap = bitmap;
+                SKBitmap currentBitmap = bitmap;
                 bool needsDispose = false;
+
+                // Explicit downscaling if the codec's downscale capability is insufficient (e.g. 1/8th limit in JPEG)
+                if (targetWidth.HasValue && currentBitmap.Width > targetWidth.Value * 1.5f)
+                {
+                    float actualScale = (float)targetWidth.Value / currentBitmap.Width;
+                    int newW = targetWidth.Value;
+                    int newH = (int)(currentBitmap.Height * actualScale);
+
+                    var scaledBitmap = new SKBitmap(newW, newH, SKColorType.Bgra8888, SKAlphaType.Premul);
+                    currentBitmap.ScalePixels(scaledBitmap, SKFilterQuality.Low);
+                    currentBitmap = scaledBitmap;
+                    needsDispose = true;
+                }
+
+                SKBitmap finalBitmap = currentBitmap;
 
                 if (codec.EncodedOrigin != SKEncodedOrigin.TopLeft)
                 {
-                    finalBitmap = RotateBitmap(bitmap, codec.EncodedOrigin);
+                    finalBitmap = RotateBitmap(currentBitmap, codec.EncodedOrigin);
+                    if (needsDispose) currentBitmap.Dispose();
                     needsDispose = true;
                 }
 
@@ -777,30 +828,12 @@ namespace dbm_select.ViewModels
                     needsDispose = true;
                 }
 
-                var finalInfo = new SKImageInfo(workingBitmap.Width, workingBitmap.Height);
-                using var surface = SKSurface.Create(finalInfo);
-                using var canvas = surface.Canvas;
-
-                var kernel = new float[] { 
-                    -0.09375f, -0.09375f, -0.09375f, 
-                    -0.09375f,  1.75f,    -0.09375f, 
-                    -0.09375f, -0.09375f, -0.09375f
-                };
-                using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
-                paint.ImageFilter = SKImageFilter.CreateMatrixConvolution(new SKSizeI(3, 3), kernel, 1.0f, 0.0f, new SKPointI(1, 1), SKShaderTileMode.Clamp, false, null, null);
-
-                canvas.DrawBitmap(workingBitmap, 0, 0, paint);
-                canvas.Flush();
-
+                // Optimization: Directly create Avalonia Bitmap without expensive matrix convolution or PNG re-encoding
+                var writeableBitmap = CreateAvaloniaBitmap(workingBitmap);
+                
                 if (needsDispose) workingBitmap.Dispose();
 
-                using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                using var ms = new MemoryStream();
-                data.SaveTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-
-                return new ImageItem { Bitmap = new Bitmap(ms), FileName = Path.GetFileName(path), FullPath = path };
+                return new ImageItem { Bitmap = writeableBitmap, FileName = Path.GetFileName(path), FullPath = path };
             }
             catch { return null; }
         }
@@ -978,8 +1011,71 @@ namespace dbm_select.ViewModels
         }
 
 
+        [ObservableProperty] private bool _isModeChangeDialogVisible;
+        private string _pendingClientType = string.Empty;
+
         [RelayCommand]
         public void SelectClientType(string type)
+        {
+            string currentType = "";
+            if (IsSeniorHigh) currentType = "SHS";
+            else if (IsNonStudent) currentType = "NA";
+            else currentType = "College";
+
+            bool hasImages = Image8x10 != null || ImageBarong != null || 
+                             ImageCreative != null || ImageAny != null || 
+                             ImageSoloGroup != null || ImageBarkada != null;
+
+            if (type == currentType)
+            {
+                IsClientTypeDialogVisible = false;
+            }
+            else if (hasImages)
+            {
+                // Changing to a different mode AND there are images at risk of being wiped
+                _pendingClientType = type;
+                IsClientTypeDialogVisible = false;
+                IsModeChangeDialogVisible = true;
+            }
+            else
+            {
+                // No images at risk, apply immediately
+                ApplyClientType(type);
+                IsClientTypeDialogVisible = false;
+                UpdateVisibility(SelectedPackage);
+            }
+        }
+
+        [RelayCommand]
+        private void ConfirmModeChange()
+        {
+            // Clear current images placed in the slots
+            Image8x10 = null;
+            ImageBarong = null;
+            ImageCreative = null;
+            ImageAny = null;
+            ImageSoloGroup = null;
+            ImageBarkada = null;
+            SelectedImage = null;
+            PreviewImage = null;
+
+            // Apply mode change
+            ApplyClientType(_pendingClientType);
+            IsModeChangeDialogVisible = false;
+            _pendingClientType = string.Empty;
+            
+            // Re-evalute layouts because mode branch switched (i.e. SHS vs College)
+            UpdateVisibility(SelectedPackage);
+        }
+
+        [RelayCommand]
+        private void CancelModeChange()
+        {
+            IsModeChangeDialogVisible = false;
+            _pendingClientType = string.Empty;
+        }
+
+        private void ApplyClientType(string type)
         {
             // Reset flags
             IsSeniorHigh = false;
@@ -994,24 +1090,15 @@ namespace dbm_select.ViewModels
                 case "SHS":
                     IsSeniorHigh = true;
                     ClientTypeLabel = "Senior High";
-                    if (SelectedPackage == "D") UpdatePackage("Basic");
                     break;
-
                 case "NA":
                     IsNonStudent = true;
                     ClientTypeLabel = "N/A (Others)";
-                    // Logic: We DO NOT fill ClientSchool/ClientCourse with "N/A".
-                    // The inputs will be hidden by the View, and the Submit command 
-                    // will skip validation because IsNonStudent is true.
                     break;
-
-                case "College":
                 default:
                     ClientTypeLabel = "College";
                     break;
             }
-
-            IsClientTypeDialogVisible = false;
         }
 
         [RelayCommand]
@@ -1114,18 +1201,20 @@ public async Task ProceedFromAcknowledgement()
         await Task.Run(() =>
         {
             // --- A. VALIDATION & SETUP ---
-            if (string.IsNullOrWhiteSpace(OutputFolderPath))
+            string targetFolder = OutputFolderPath;
+
+            if (string.IsNullOrWhiteSpace(targetFolder))
                 throw new DirectoryNotFoundException("The output folder path is not set in Settings.");
 
-            if (!Directory.Exists(OutputFolderPath))
-                Directory.CreateDirectory(OutputFolderPath);
+            if (!Directory.Exists(targetFolder))
+                Directory.CreateDirectory(targetFolder);
 
             // Sanitize Name
             string safeClientName = (ClientName ?? "Unknown").ToUpper();
             foreach (char c in Path.GetInvalidFileNameChars())
                 safeClientName = safeClientName.Replace(c, '_');
 
-            string specificFolder = Path.Combine(OutputFolderPath, $"{SelectedPackage}-{safeClientName}");
+            string specificFolder = Path.Combine(targetFolder, $"{SelectedPackage}-{safeClientName}");
             if (!Directory.Exists(specificFolder))
                 Directory.CreateDirectory(specificFolder);
 
@@ -1184,18 +1273,14 @@ public async Task ProceedFromAcknowledgement()
                 Status = "DONE CHOOSING",
                 Name = safeClientName,
                 Email = ClientEmail ?? string.Empty,
-                
-                // LOGIC CHANGE HERE:
                 School = finalSchool,
                 Course = finalCourse,
-                
                 Package = SelectedPackage,
                 Box_LargePrint = Image8x10?.FileName ?? "Empty",
                 Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
                 Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
                 Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
                 Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
-                Box_Barkada = IsBarkadaVisible ? (ImageBarkada?.FileName ?? "None") : "N/A",
                 TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
@@ -1297,68 +1382,90 @@ private void UpdateVisibility(string pkg)
     ScrollVisibility = ScrollBarVisibility.Auto;
     AnySlotLabel = "Any";
 
-    if (pkg == "Basic")
+    if (IsSeniorHigh)
     {
-        // 1 Slot: 8x10 Only
-        IsSingleLargeLayout = true;
-        LayoutStretch = Stretch.Uniform;
-        ScrollVisibility = ScrollBarVisibility.Disabled;
+        if (pkg == "Basic")
+        {
+            // 1 Slot: 8x10 Only
+            IsSingleLargeLayout = true;
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "A" || pkg == "B")
+        {
+            // 2 Slots: 8x10 + Barong (Large Layout)
+            IsBarongVisible = true;
+            IsBarongVertical = true;
+            IsDoubleLargeLayout = true; 
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "C")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any";
+            
+            IsQuadLayout = true; 
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
     }
-    else if (pkg == "A")
+    else
     {
-        // 2 Slots: 8x10 + Barong (Large Layout)
-        IsBarongVisible = true;
-        IsBarongVertical = true;
-        IsDoubleLargeLayout = true; 
+        if (pkg == "Basic")
+        {
+            // 1 Slot: 8x10 Only
+            IsSingleLargeLayout = true;
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "A" || pkg == "B") 
+        {
+            // 2 Slots: 8x10 + Barong (Large Layout)
+            IsBarongVisible = true;
+            IsBarongVertical = true;
+            IsDoubleLargeLayout = true; 
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "C")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any + Barkada
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any";
+            IsBarkadaVisible = true;
+            
+            IsQuadLayout = true; 
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "D")
+        {
+            // 4 Slots: 8x10 + Barong + Creative + Any + Solo/Group
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            
+            IsAnyVisible = true; 
+            AnySlotLabel = "Any"; 
+            
+            IsSoloGroupVisible = true;
         
-        LayoutStretch = Stretch.Uniform;
-        ScrollVisibility = ScrollBarVisibility.Disabled;
-    }
-    else if (pkg == "B")
-    {
-        // 2 Slots: 8x10 + Barong (Large Layout - Matches Pkg A)
-        IsBarongVisible = true;
-        IsBarongHorizontal = true;
-        IsBarkadaVisible = true;
-
-        IsQuadLayout = true;
-        
-        LayoutStretch = Stretch.Uniform;
-        ScrollVisibility = ScrollBarVisibility.Disabled;
-    }
-    else if (pkg == "C")
-    {
-        // 4 Slots: 8x10 + Barong + Creative + Any
-        IsBarongVisible = true;
-        IsBarongHorizontal = true;
-        IsCreativeVisible = true;
-        IsAnyVisible = true; 
-        AnySlotLabel = "Any";
-        IsBarkadaVisible = true;
-        
-        IsQuadLayout = true; 
-        
-        LayoutStretch = Stretch.Uniform;
-        ScrollVisibility = ScrollBarVisibility.Disabled;
-    }
-    else if (pkg == "D")
-    {
-        // 4 Slots: 8x10 + Barong + Creative + Any
-        IsBarongVisible = true;
-        IsBarongHorizontal = true;
-        IsCreativeVisible = true;
-        
-        // RESTORED: Any Slot (formerly Solo/Group logic)
-        IsAnyVisible = true; 
-        AnySlotLabel = "Any"; // Renamed to 'Any'
-        
-        IsSoloGroupVisible = true;
-    
-        IsQuadLayout = false; 
-        IsFiveLayout = true;
-        
-        LayoutStretch = Stretch.Uniform;
-        ScrollVisibility = ScrollBarVisibility.Disabled;
+            IsQuadLayout = false; 
+            IsFiveLayout = true;
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
     }
 }
 
