@@ -1,4 +1,4 @@
-﻿using Avalonia.Media.Imaging;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace dbm_select.Models
@@ -13,5 +13,8 @@ namespace dbm_select.Models
 
         // ✅ NEW: Property to store correction angle (0, 90, 180, 270)
         public double RotationAngle { get; set; } = 0;
+
+        [ObservableProperty]
+        private bool _isFavorite;
     }
 }
