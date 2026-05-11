@@ -196,7 +196,7 @@ namespace dbm_select.ViewModels
     // 1. Try to load settings
     LoadSettings();
 
-    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     
     // 2. Enforce Defaults for Missing Settings
     bool missingSettings = false;
@@ -226,7 +226,7 @@ namespace dbm_select.ViewModels
     // Load initial images
     string folderToLoad = !string.IsNullOrEmpty(_currentBrowseFolderPath) && Directory.Exists(_currentBrowseFolderPath)
         ? _currentBrowseFolderPath
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures));
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
     _ = LoadImages(folderToLoad);
 
@@ -252,6 +252,75 @@ namespace dbm_select.ViewModels
             IsSettingsDirty = OutputFolderPath != _snapOutputFolder ||
                               ExcelFolderPath != _snapExcelFolder || 
                               ExcelFileName != _snapExcelFileName;
+        }
+
+        [ObservableProperty] private bool _showFavoritesOnly;
+        partial void OnShowFavoritesOnlyChanged(bool value)
+        {
+            _ = RefreshDisplayImagesAsync();
+        }
+
+        private async Task RefreshDisplayImagesAsync()
+        {
+            if (string.IsNullOrEmpty(_currentBrowseFolderPath)) return;
+            if (!_folderCache.TryGetValue(_currentBrowseFolderPath, out var allItems)) return;
+            
+            IsLoadingImages = true;
+            await Task.Delay(50); // Yield to let UI disable the button
+            
+            Images.Clear();
+            var itemsToShow = ShowFavoritesOnly ? allItems.Where(x => x.IsFavorite).ToList() : allItems;
+            
+            var batch = new List<ImageItem>();
+            foreach (var item in itemsToShow)
+            {
+                batch.Add(item);
+                if (batch.Count >= 50)
+                {
+                    var chunk = batch.ToList();
+                    batch.Clear();
+                    
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        foreach (var i in chunk) Images.Add(i);
+                    }, DispatcherPriority.Background);
+                    
+                    await Task.Delay(15); // Let layout update smoothly
+                }
+            }
+            
+            if (batch.Count > 0)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var i in batch) Images.Add(i);
+                });
+            }
+            
+            IsLoadingImages = false;
+        }
+
+        [ObservableProperty] private double _thumbnailWidth = 110;
+        [ObservableProperty] private double _thumbnailHeight = 80;
+
+        [RelayCommand]
+        private void IncreaseThumbnailSize()
+        {
+            if (ThumbnailWidth < 330)
+            {
+                ThumbnailWidth += 22;
+                ThumbnailHeight += 16;
+            }
+        }
+
+        [RelayCommand]
+        private void DecreaseThumbnailSize()
+        {
+            if (ThumbnailWidth > 110)
+            {
+                ThumbnailWidth -= 22;
+                ThumbnailHeight -= 16;
+            }
         }
 
         [ObservableProperty] private string? _clientName;
@@ -413,7 +482,8 @@ namespace dbm_select.ViewModels
                 if (cachedImages.Count == 0) HasNoImages = true;
 
                 // Add all to UI instantly
-                foreach (var img in cachedImages) Images.Add(img);
+                var itemsToShow = ShowFavoritesOnly ? cachedImages.Where(x => x.IsFavorite) : cachedImages;
+                foreach (var img in itemsToShow) Images.Add(img);
 
                 IsLoadingImages = false;
                 return;
@@ -470,7 +540,8 @@ namespace dbm_select.ViewModels
 
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            foreach (var i in chunk) Images.Add(i);
+                            var itemsToShow = ShowFavoritesOnly ? chunk.Where(x => x.IsFavorite) : chunk;
+                            foreach (var i in itemsToShow) Images.Add(i);
                         }, DispatcherPriority.Background);
 
                         // Start the upgrade worker if not running
@@ -483,7 +554,8 @@ namespace dbm_select.ViewModels
                 {
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        foreach (var i in batch) Images.Add(i);
+                        var itemsToShow = ShowFavoritesOnly ? batch.Where(x => x.IsFavorite) : batch;
+                        foreach (var i in itemsToShow) Images.Add(i);
                     });
                     _ = ProcessUpgradeQueue(token);
                 }
@@ -964,25 +1036,22 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void OpenHelp() { IsHelpDialogVisible = true; }
         [RelayCommand] public void CloseHelp() { IsHelpDialogVisible = false; }
 
-        [RelayCommand]
-        public void Submit()
+        private bool ValidateInput()
         {
-          // 1. Check Name and Email (Always Required)
             if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
             {
                 ErrorMessage = "Please fill in Client Name and Email Address.";
                 IsErrorDialogVisible = true;
-                return;
+                return false;
             }
 
-            // 2. Check School/Course ONLY if NOT Senior High AND NOT Non-Student
             if (!IsSeniorHigh && !IsNonStudent) 
             {
                 if (string.IsNullOrWhiteSpace(ClientSchool) || string.IsNullOrWhiteSpace(ClientCourse))
                 {
                     ErrorMessage = "Please fill in School and Course/Program.";
                     IsErrorDialogVisible = true;
-                    return;
+                    return false;
                 }
             }
 
@@ -990,7 +1059,7 @@ namespace dbm_select.ViewModels
             {
                 ErrorMessage = "The Email Address format is invalid.\n(e.g., user@example.com)";
                 IsErrorDialogVisible = true;
-                return;
+                return false;
             }
 
             bool isMissing = false;
@@ -998,16 +1067,24 @@ namespace dbm_select.ViewModels
             else if (IsBarongVisible && ImageBarong == null) isMissing = true;
             else if (IsCreativeVisible && ImageCreative == null) isMissing = true;
             else if (IsAnyVisible && ImageAny == null) isMissing = true;
-            // UPDATED CHECK
             else if (IsSoloGroupVisible && ImageSoloGroup == null) isMissing = true;
 
             if (isMissing)
             {
                 ErrorMessage = $"Your selected package ({SelectedPackage}) requires all photo slots to be filled.";
                 IsErrorDialogVisible = true;
-                return;
+                return false;
             }
-            IsSubmitConfirmationVisible = true;
+
+            return true;
+        }
+
+        [RelayCommand]
+        public async Task Submit()
+        {
+            if (!ValidateInput()) return;
+            
+            await OpenPreviewPackage();
         }
 
 
@@ -1107,7 +1184,14 @@ namespace dbm_select.ViewModels
             IsClientTypeDialogVisible = true;
         }
 
-        [RelayCommand] public void ConfirmSubmit() { IsSubmitConfirmationVisible = false; IsImportantNotesDialogVisible = true; }
+        [RelayCommand] 
+        public void ConfirmSubmit() 
+        { 
+            if (!ValidateInput()) return;
+            IsPreviewPackageDialogVisible = false;
+            IsSubmitConfirmationVisible = false; 
+            IsImportantNotesDialogVisible = true; 
+        }
         [RelayCommand] public void ContinueFromNotes() { IsImportantNotesDialogVisible = false; IsImportantNotesChecked = false; IsAcknowledgementDialogVisible = true; }
         [RelayCommand] public void CancelNotes() { IsImportantNotesDialogVisible = false; }
         [RelayCommand] public void CancelAcknowledgement() { IsAcknowledgementDialogVisible = false; }
