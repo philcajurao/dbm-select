@@ -44,5 +44,8 @@
         <PackageReference Include="MiniExcel" Version="1.42.0" />
         <PackageReference Include="MetadataExtractor" Version="2.8.1" />
         <PackageReference Include="SkiaSharp" Version="2.88.9" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+        <!-- ↓ NEW: MIT-licensed Excel library for auto daily log (ClosedXML chosen over EPPlus due to free commercial license) -->
+        <PackageReference Include="ClosedXML" Version="0.102.2" />
     </ItemGroup>
 </Project>

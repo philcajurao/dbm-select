@@ -10,7 +10,7 @@ public static class AppSettingsExtensions
 {
     private static readonly string _settingsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "DBM Select", // Hardcoded safely or use your constant
+        "DBM Select", 
         "settings.json");
 
     public static bool LoadSettings(this Models.AppSettings appSettings)
@@ -28,7 +28,6 @@ public static class AppSettingsExtensions
                         // FIX: Map properties manually to the existing instance
                         appSettings.LastOutputFolder = loaded.LastOutputFolder;
                         appSettings.LastExcelFolder = loaded.LastExcelFolder;
-                        appSettings.LastExcelFileName = loaded.LastExcelFileName;
                         appSettings.LastBrowseFolder = loaded.LastBrowseFolder;
                         return true;
                     }
@@ -42,7 +41,7 @@ public static class AppSettingsExtensions
         return false;
     }
 
-    public static void SaveSettings(this Models.AppSettings appSettings, string outputFolderPath, string excelFolderPath, string excelFileName, string currentBrowseFolderPath)
+    public static void SaveSettings(this Models.AppSettings appSettings, string outputFolderPath, string excelFolderPath, string currentBrowseFolderPath)
     {
         try
         {
@@ -53,7 +52,6 @@ public static class AppSettingsExtensions
             }
             appSettings.LastOutputFolder = outputFolderPath;
             appSettings.LastExcelFolder = excelFolderPath;
-            appSettings.LastExcelFileName = excelFileName;
             appSettings.LastBrowseFolder = currentBrowseFolderPath;
 
             var json = JsonSerializer.Serialize(appSettings, new JsonSerializerOptions { WriteIndented = true });

@@ -23,5 +23,5 @@ rm "$DEST_DIR/$APP_NAME.app/Contents/MacOS/Assets/AppIcon.icns"
 
 xattr -cr ~/Desktop/DBM\ Select.app
 
-# Optional
-chmod +x /Users/You/Desktop/DBM\ Select.app/Contents/MacOS/dbm-select
+# Mandatory: Make the binary executable
+chmod +x ~/Desktop/DBM\ Select.app/Contents/MacOS/dbm-select

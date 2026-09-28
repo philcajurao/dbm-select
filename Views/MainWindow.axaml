@@ -21,6 +21,7 @@
     </Design.DataContext>
 
     <Window.Resources>
+        <StreamGeometry x:Key="PinIcon">M16,12V4H17V2H7V4H8V12L6,14V16H11.5V22H12.5V16H18V14L16,12Z</StreamGeometry>
         <StreamGeometry x:Key="TrashIcon">M10,2 L9,3 L5,3 L5,4 L15,4 L15,3 L11,3 L10,2 Z M5,5 L5,16 C5,17.1045695 5.8954305,18 7,18 L13,18 C14.1045695 18 15,17.1045695 15,16 L15,5 L5,5 Z</StreamGeometry>
         <StreamGeometry x:Key="FolderIcon">M19,20H5C3.89,20 3,19.1 3,18V6C3,4.89 3.89,4 5,4H9L11,6H19C20.1,6 21,6.89 21,8V18C21,19.1 20.1,20 19,20Z</StreamGeometry>
         <StreamGeometry x:Key="SettingsIcon">M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.35 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,13L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z</StreamGeometry>
@@ -196,7 +197,7 @@
         <Style Selector="TextBlock.slot-label">
             <Setter Property="Foreground" Value="#f0f0f0"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontSize" Value="13"/>
         </Style>
 
         <Style Selector="TextBlock.filename-text">
@@ -335,7 +336,7 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="8x10" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding Image8x10.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding Image8x10, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
                         <TextBlock Text="{Binding LargePrintLabel}" Classes="slot-label"/>
@@ -354,9 +355,9 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="Barong" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding BarongSlotLabel}" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                 </Panel>
             </Border>
@@ -374,9 +375,9 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="Barong" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding ImageBarong.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Barong/Filipiniana" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding BarongSlotLabel}" Classes="slot-label" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="110"/></Border>
                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Barong" IsVisible="{Binding ImageBarong, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                 </Panel>
             </Border>
@@ -393,9 +394,9 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="Creative" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding ImageCreative.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="Creative" Classes="slot-label"/></Border>
+                    <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding CreativeSlotLabel}" Classes="slot-label"/></Border>
                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Creative" IsVisible="{Binding ImageCreative, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
                 </Panel>
             </Border>
@@ -409,7 +410,7 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="Any" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding ImageAny.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2"><TextBlock Text="{Binding AnySlotLabel}" Classes="slot-label"/></Border>
                     <Button Classes="delete-overlay" Command="{Binding ClearSlotCommand}" CommandParameter="Any" IsVisible="{Binding ImageAny, Converter={x:Static ObjectConverters.IsNotNull}}"><PathIcon Data="{StaticResource TrashIcon}" Foreground="White" Width="24" Height="24"/></Button>
@@ -429,7 +430,7 @@
                     Classes.penta="{Binding IsFiveLayout}"
                     Tag="Solo/Group" Background="Transparent" ClipToBounds="True">
                 <Panel>
-                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="10" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNull}}"/>
+                    <TextBlock Text="Drop photo here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#aaa" FontSize="13" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNull}}"/>
                     <Image Source="{Binding ImageSoloGroup.Bitmap}" Stretch="UniformToFill" IsVisible="{Binding ImageSoloGroup, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     <Border Background="#99000000" CornerRadius="0,0,4,4" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="8,2">
                         <TextBlock Text="Solo/Group" Classes="slot-label"/>
@@ -552,6 +553,18 @@
                                     <TextBlock Text="No images found.&#x0a;Please choose a folder to browse." Foreground="#666666" TextAlignment="Center" FontSize="14" FontWeight="SemiBold"/>
                                 </StackPanel>
 
+                                <!-- Empty favorites state — shown when filter is on but no photos are starred -->
+                                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            IsVisible="{Binding HasNoFavorites}" Spacing="12">
+                                    <TextBlock Text="♡" FontSize="48" Foreground="#444444" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="No favorites yet in this folder."
+                                               Foreground="#888888" TextAlignment="Center"
+                                               FontSize="15" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Star a photo by clicking the ♡ on any thumbnail,&#x0a;then it will appear here."
+                                               Foreground="#555555" TextAlignment="Center"
+                                               FontSize="12" TextWrapping="Wrap" MaxWidth="260"/>
+                                </StackPanel>
+
                                 <ListBox Grid.Row="1" 
                                      x:Name="PhotosListBox" 
                                      KeyDown="PhotosListBox_KeyDown"
@@ -629,11 +642,11 @@
                             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Spacing="2">
                                 <TextBlock Text="Select Package" FontSize="12" Foreground="#f0f0f0" Margin="2,0,0,0"/>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <RadioButton GroupName="Package Group" Content="Basic" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsBasicSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="Basic" Cursor="Hand"/>
+                                    <RadioButton GroupName="Package Group" Content="Basic" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsBasicSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="Basic" Cursor="Hand" IsVisible="{Binding IsBasicVisible}"/>
                                     <RadioButton GroupName="Package Group" Content="A" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgASelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="A" Cursor="Hand"/>
                                     <RadioButton GroupName="Package Group" Content="B" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgBSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="B" Cursor="Hand"/>
-                                    <RadioButton GroupName="Package Group" Content="C" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgCSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="C" Cursor="Hand"/>
-                                    <RadioButton GroupName="Package Group" Content="D" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgDSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="D" Cursor="Hand" IsVisible="{Binding !IsSeniorHigh}"/>
+                                    <RadioButton GroupName="Package Group" Content="C" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgCSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="C" Cursor="Hand" IsVisible="{Binding IsPkgCVisible}"/>
+                                    <RadioButton GroupName="Package Group" Content="D" FontSize="10" Padding="4,0,0,0" VerticalAlignment="Center" IsChecked="{Binding IsPkgDSelected}" Command="{Binding UpdatePackageCommand}" CommandParameter="D" Cursor="Hand" IsVisible="{Binding IsPkgDVisible}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>
@@ -702,7 +715,7 @@
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.8" MaterialOpacity="0.5" />
                     </ExperimentalAcrylicBorder.Material>
                     <StackPanel Spacing="20">
-                        <TextBlock Text="Action Required" FontWeight="Bold" FontSize="16" Foreground="#d9534f" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ErrorTitle}" FontWeight="Bold" FontSize="16" Foreground="#d9534f" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding ErrorMessage}" FontSize="14" Foreground="#f0f0f0" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center"/>
                         <Button Content="OK" Classes="dialog-btn secondary" Command="{Binding CloseErrorDialogCommand}" HorizontalAlignment="Center" Padding="20,8"/>
                     </StackPanel>
@@ -735,22 +748,188 @@
                             <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
                                 <PathIcon Grid.Row="0" Grid.Column="0" Data="{StaticResource FolderIcon}" Width="20" Height="20" Foreground="#aaa" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Excel Log Location" FontSize="12" Foreground="#f0f0f0"/>
+                                    <TextBlock Text="Database Log Location" FontSize="12" Foreground="#f0f0f0"/>
                                     <TextBlock Text="{Binding ExcelFolderPath}" FontSize="10" Foreground="#aaa" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExcelFolderPath}"/>
                                 </StackPanel>
                                 <Button Grid.Row="0" Grid.Column="2" Content="Change" Click="SetExcelFolder_Click" Classes="dialog-btn secondary" FontSize="10" Padding="10,5" Margin="10,0,0,0"/>
                             </Grid>
-                            <Grid ColumnDefinitions="Auto, *, Auto">
-                                <TextBlock Grid.Column="0" Text="Excel Filename" Foreground="#ccc" VerticalAlignment="Center" Margin="30,0,10,0"/>
-                                <TextBox Grid.Column="1" Text="{Binding ExcelFileName, UpdateSourceTrigger=PropertyChanged}" Background="#333333" Foreground="White" BorderThickness="0" CornerRadius="4" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="2" Text=".xlsx" Foreground="#ccc" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                            </Grid>
                         </StackPanel>
-                        <Separator Height="1" Background="#404040" Margin="0,10"/>
+                        <Separator Height="1" Background="#404040" Margin="0,5"/>
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Database Operations" FontSize="14" FontWeight="SemiBold" Foreground="#d3d3d3"/>
+                            <Button Content="Export Logs to Excel" Command="{Binding OpenExportDialogCommand}" Classes="dialog-btn success" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,5,0,0" Padding="12"/>
+                        </StackPanel>
+                        <Separator Height="1" Background="#404040" Margin="0,5"/>
                         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
                             <Button Content="Save" Command="{Binding SaveAndCloseSettingsCommand}" IsEnabled="{Binding IsSettingsDirty}" Classes="dialog-btn success" Padding="25,8"/>
                             <Button Content="Cancel" Command="{Binding CancelSettingsCommand}" Classes="dialog-btn secondary" Padding="25,8"/>
                         </StackPanel>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <!-- Export Dialog: normal content hidden while loading, loading panel shown while exporting -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsExportDialogVisible}" ZIndex="250">
+            <Border CornerRadius="8" BorderBrush="#555555" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="420">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="30">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.95" MaterialOpacity="0.95" />
+                    </ExperimentalAcrylicBorder.Material>
+
+                    <!-- Outer Grid: normal content and loading panel share the same space -->
+                    <Grid>
+
+                        <!-- ═══ NORMAL CONTENT — hidden while exporting ═══ -->
+                        <StackPanel Spacing="20" IsVisible="{Binding !IsExportLoading}">
+
+                            <!-- Title row -->
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="Export Records to Excel" FontSize="18" FontWeight="Bold" Foreground="#f0f0f0"/>
+                                <Button Grid.Column="1" Command="{Binding CloseExportDialogCommand}" Content="✕" Background="Transparent" Foreground="#d3d3d3" Padding="5" FontSize="14" Cursor="Hand"/>
+                            </Grid>
+
+                            <Separator Height="1" Background="#404040" Margin="0,0,0,4"/>
+
+                            <!-- Explainer note -->
+                            <TextBlock Text="Pick a date range. Ranges with no records in the backup database will be blocked from exporting." FontSize="11" Foreground="#888888" TextWrapping="Wrap"/>
+
+                            <!-- Date pickers -->
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Date Range" FontSize="12" FontWeight="SemiBold" Foreground="#aaa"/>
+                                <Grid ColumnDefinitions="50, *" RowDefinitions="Auto, Auto" Margin="0,4">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="From:" Foreground="#ccc" VerticalAlignment="Center" Margin="0,0,10,10" FontSize="12"/>
+                                    <DatePicker Grid.Row="0" Grid.Column="1" SelectedDate="{Binding ExportDateFrom}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="To:" Foreground="#ccc" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
+                                    <DatePicker Grid.Row="1" Grid.Column="1" SelectedDate="{Binding ExportDateTo}" HorizontalAlignment="Stretch"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Live status banner — green when records found, amber when empty -->
+                            <Border CornerRadius="6" Padding="12,9" Background="#1A3A1A" BorderBrush="#2D6A2D" BorderThickness="1"
+                                    IsVisible="{Binding IsExportEnabled}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Foreground="#4CAF50" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ExportStatusMessage}" FontSize="12" Foreground="#81C784" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border CornerRadius="6" Padding="12,9" Background="#3A2A0A" BorderBrush="#6A4A0A" BorderThickness="1"
+                                    IsVisible="{Binding !IsExportEnabled}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="⚠" FontSize="14" FontWeight="Bold" Foreground="#FFA726" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ExportStatusMessage}" FontSize="12" Foreground="#FFCC80" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Separator Height="1" Background="#404040" Margin="0,4"/>
+
+                            <!-- Action buttons -->
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Button Grid.Column="0"
+                                        Content="Export to Excel"
+                                        Command="{Binding ExportDateRangeCommand}"
+                                        IsEnabled="{Binding IsExportEnabled}"
+                                        Classes="dialog-btn success"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        Padding="10"/>
+                                <Button Grid.Column="1"
+                                        Content="Close"
+                                        Command="{Binding CloseExportDialogCommand}"
+                                        Classes="dialog-btn secondary"
+                                        Padding="20,8"
+                                        Margin="10,0,0,0"/>
+                            </Grid>
+
+                        </StackPanel>
+                        <!-- ═══ end NORMAL CONTENT ═══ -->
+
+                        <!-- ═══ LOADING PANEL — shown only while export is running ═══ -->
+                        <StackPanel IsVisible="{Binding IsExportLoading}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Spacing="18" Margin="0,30">
+                            <TextBlock Text="Exporting…"
+                                       FontSize="18" FontWeight="SemiBold"
+                                       Foreground="#f0f0f0"
+                                       HorizontalAlignment="Center"/>
+                            <ProgressBar IsIndeterminate="True"
+                                         Width="240" Height="5"
+                                         Foreground="#4CAF50"
+                                         Background="#2a2a2a"
+                                         CornerRadius="3"/>
+                            <TextBlock Text="Writing records to Excel. This may take a moment."
+                                       FontSize="11" Foreground="#888888"
+                                       TextWrapping="Wrap" TextAlignment="Center"
+                                       MaxWidth="300" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <!-- ═══ end LOADING PANEL ═══ -->
+
+                    </Grid>
+                </ExperimentalAcrylicBorder>
+            </Border>
+        </Grid>
+
+        <!-- Export Success Dialog — appears after export completes, replaces the export dialog -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#99000000" IsVisible="{Binding IsExportSuccessDialogVisible}" ZIndex="260">
+            <Border CornerRadius="8" BorderBrush="#2D6A2D" BorderThickness="1" BoxShadow="0 10 40 10 #000000" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+                <ExperimentalAcrylicBorder CornerRadius="8" Padding="32">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.97" MaterialOpacity="0.97" />
+                    </ExperimentalAcrylicBorder.Material>
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+
+                        <!-- Success icon -->
+                        <TextBlock Text="✅" FontSize="44" HorizontalAlignment="Center"/>
+
+                        <!-- Title -->
+                        <TextBlock Text="Export Complete!"
+                                   FontSize="20" FontWeight="Bold"
+                                   Foreground="#f0f0f0"
+                                   HorizontalAlignment="Center"/>
+
+                        <!-- Details card -->
+                        <Border CornerRadius="6" Padding="16,12" Background="#1A3A1A" BorderBrush="#2D6A2D" BorderThickness="1" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="8">
+                                <!-- Record count -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                                    <TextBlock Text="{Binding ExportSuccessCount}"
+                                               FontSize="28" FontWeight="Bold"
+                                               Foreground="#4CAF50"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="records exported"
+                                               FontSize="13" Foreground="#81C784"
+                                               VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                                </StackPanel>
+                                <!-- Filename -->
+                                <TextBlock Text="{Binding ExportSuccessFileName}"
+                                           FontSize="11" Foreground="#aaaaaa"
+                                           TextWrapping="Wrap" TextAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           FontFamily="Cascadia Code, Consolas, monospace"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Buttons -->
+                        <Grid ColumnDefinitions="*, *" HorizontalAlignment="Stretch">
+                            <Button Grid.Column="0"
+                                    Content="Open File"
+                                    Command="{Binding OpenExportedFileCommand}"
+                                    Classes="dialog-btn success"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="0,0,6,0"
+                                    Padding="10"/>
+                            <Button Grid.Column="1"
+                                    Content="Close"
+                                    Command="{Binding CloseExportSuccessDialogCommand}"
+                                    Classes="dialog-btn secondary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="6,0,0,0"
+                                    Padding="10"/>
+                        </Grid>
+
                     </StackPanel>
                 </ExperimentalAcrylicBorder>
             </Border>
@@ -968,7 +1147,7 @@
             
             <Border CornerRadius="12" BorderBrush="#555555" BorderThickness="1" 
                     BoxShadow="0 20 60 20 #000000" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="800">
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="980">
                 <ExperimentalAcrylicBorder CornerRadius="12" Padding="40">
                     <ExperimentalAcrylicBorder.Material>
                         <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="0.95" MaterialOpacity="0.95" />
@@ -981,7 +1160,7 @@
                             <TextBlock Text="Please select your category to begin:" FontSize="16" Foreground="#aaa" HorizontalAlignment="Center"/>
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="*, 20, *, 20, *">
+                        <Grid ColumnDefinitions="*, 15, *, 15, *, 15, *">
                             <Button Grid.Column="0" Command="{Binding SelectClientTypeCommand}" CommandParameter="College" 
                                     HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
                                     BorderBrush="#444" BorderThickness="1" Cursor="Hand"
@@ -1036,7 +1215,34 @@
                                 </StackPanel>
                             </Button>
 
-                            <Button Grid.Column="4" Command="{Binding SelectClientTypeCommand}" CommandParameter="NA" 
+                            <Button Grid.Column="4" Command="{Binding SelectClientTypeCommand}" CommandParameter="CP" 
+                                    HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
+                                    BorderBrush="#444" BorderThickness="1" Cursor="Hand"
+                                    RenderTransform="scale(1)">
+                                <Button.Transitions>
+                                    <Transitions>
+                                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" Easing="CubicEaseOut"/>
+                                    </Transitions>
+                                </Button.Transitions>
+                                <Button.Styles>
+                                    <Style Selector="Button:pressed">
+                                        <Setter Property="RenderTransform" Value="scale(0.95)"/>
+                                    </Style>
+                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                        <Setter Property="Background" Value="#222"/>
+                                        <Setter Property="BorderBrush" Value="#666"/>
+                                    </Style>
+                                </Button.Styles>
+                                <StackPanel VerticalAlignment="Center" Spacing="15">
+                                    <PathIcon Data="{StaticResource PinIcon}" 
+                                            Width="40" Height="40" Foreground="#ffb74d"/>
+                                    <TextBlock Text="CAPPING &amp; PINNING" FontWeight="Bold" FontSize="16" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="For nursing and allied health students." FontSize="11" Foreground="#888" 
+                                            TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="6" Command="{Binding SelectClientTypeCommand}" CommandParameter="NA" 
                                     HorizontalAlignment="Stretch" Height="180" Background="#222" CornerRadius="8" 
                                     BorderBrush="#444" BorderThickness="1" Cursor="Hand"
                                     RenderTransform="scale(1)">

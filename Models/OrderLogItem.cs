@@ -8,6 +8,10 @@ namespace dbm_select.Models
         [ExcelColumn(Name = "STATUS", Width = 20, Index = 0)]
         public string Status { get; set; } = "DONE CHOOSING";
 
+        // 2. Category
+        [ExcelColumn(Name = "Category", Width = 25, Index = 1)]
+        public string Category { get; set; } = "";
+
 
         // 3. Name
         [ExcelColumn(Name = "Name", Width = 30, Index = 2)]
