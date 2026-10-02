@@ -4,8 +4,13 @@ public class AppSettings
 {
     public string? LastOutputFolder { get; set; } 
     public string? LastExcelFolder { get; set; } 
-    public string? LastExcelFileName { get; set; } 
-    public string? LastBrowseFolder { get; set; } 
+    public string? LastBrowseFolder { get; set; }
+
+    public double BasicPackageFileLabelSize { get; set; } = 9;
+    public double PackageAFileLabelSize { get; set; } = 9;
+    public double PackageBFileLabelSize { get; set; } = 9;
+    public double PackageCFileLabelSize { get; set; } = 9;
+    public double PackageDFileLabelSize { get; set; } = 9;
 
     // Email Settings
     public bool EmailEnabled { get; set; } = false;

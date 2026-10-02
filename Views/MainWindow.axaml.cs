@@ -8,7 +8,9 @@ using Avalonia.Threading;
 using dbm_select.Models;
 using dbm_select.ViewModels;
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace dbm_select.Views
 {
@@ -113,6 +115,116 @@ private void PhotosListBox_KeyDown(object? sender, KeyEventArgs e)
         }
     }
 }
+
+        private void ClientCourse_LostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not AutoCompleteBox courseBox || DataContext is not MainWindowViewModel viewModel)
+                return;
+
+            var input = courseBox.Text?.Trim() ?? string.Empty;
+            var normalized = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower(CultureInfo.CurrentCulture));
+            var titleWords = Regex.Matches(normalized, @"[\p{L}\p{M}]+");
+            var wordIndex = 0;
+            normalized = Regex.Replace(normalized, @"[\p{L}\p{M}]+", match =>
+            {
+                var precedingText = normalized[..match.Index].TrimEnd();
+                var isTitleBoundary = wordIndex == 0 || wordIndex == titleWords.Count - 1 || precedingText.EndsWith(':');
+                var isMinorWord = match.Value is "A" or "An" or "The" or "And" or "But" or "For" or "Or" or "Nor"
+                    or "As" or "At" or "By" or "In" or "Of" or "On" or "Per" or "To" or "Via" or "Vs";
+                wordIndex++;
+                return isMinorWord && !isTitleBoundary
+                    ? match.Value.ToLower(CultureInfo.CurrentCulture)
+                    : match.Value;
+            });
+            normalized = Regex.Replace(normalized, @"\bBS\b", "Bachelor of Science", RegexOptions.IgnoreCase);
+            normalized = Regex.Replace(normalized, @"\bBA\b", "Bachelor of Arts", RegexOptions.IgnoreCase);
+
+            viewModel.ClientCourse = normalized;
+            courseBox.Text = normalized;
+        }
+
+        private void ClientInput_KeyUp(object? sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter || sender is not Control control)
+                return;
+
+            e.Handled = true;
+            TopLevel.GetTopLevel(control)?.FocusManager?.ClearFocus();
+        }
+
+        private void ClientEmail_LostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not TextBox emailBox || DataContext is not MainWindowViewModel viewModel)
+                return;
+
+            var email = emailBox.Text?.Trim() ?? string.Empty;
+            if (email.Length > 0)
+            {
+                email = email.Contains('@')
+                    ? Regex.Replace(email, @"@gmai(?:l)?(?:\.(?:c|co|com|con|cmo|comm))?$", "@gmail.com", RegexOptions.IgnoreCase)
+                    : $"{email}@gmail.com";
+            }
+
+            emailBox.Text = email;
+            viewModel.ClientEmail = email;
+        }
+
+        private void ContactNumber_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            if (sender is not TextBox phoneBox)
+                return;
+
+            var normalized = NormalizeContactNumber(phoneBox.Text, allowPartialCountryPrefix: true);
+            if (normalized == phoneBox.Text)
+                return;
+
+            phoneBox.Text = normalized;
+            phoneBox.CaretIndex = normalized.Length;
+            if (DataContext is MainWindowViewModel viewModel)
+                viewModel.ClientContactNumber = normalized;
+        }
+
+        private void ContactNumber_LostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not TextBox phoneBox || DataContext is not MainWindowViewModel viewModel)
+                return;
+
+            var normalized = NormalizeContactNumber(phoneBox.Text, allowPartialCountryPrefix: false);
+            phoneBox.Text = normalized;
+            viewModel.ClientContactNumber = normalized;
+        }
+
+        private static string NormalizeContactNumber(string? input, bool allowPartialCountryPrefix)
+        {
+            var value = input?.Trim() ?? string.Empty;
+            if (value.StartsWith('+'))
+            {
+                var internationalDigits = Regex.Replace(value[1..], @"\D", string.Empty);
+                if (allowPartialCountryPrefix && "63".StartsWith(internationalDigits, StringComparison.Ordinal) && internationalDigits.Length < 2)
+                    return $"+{internationalDigits}";
+
+                if (internationalDigits.StartsWith("63", StringComparison.Ordinal))
+                    return $"+63{internationalDigits[2..Math.Min(internationalDigits.Length, 12)]}";
+
+                if (allowPartialCountryPrefix && internationalDigits.Length == 0)
+                    return "+";
+
+                return internationalDigits.Length == 0
+                    ? string.Empty
+                    : $"0{internationalDigits[..Math.Min(internationalDigits.Length, 10)]}";
+            }
+
+            var digits = Regex.Replace(value, @"\D", string.Empty);
+            if (digits.StartsWith('0'))
+                return $"0{digits[1..Math.Min(digits.Length, 11)]}";
+
+            if (digits.StartsWith("63", StringComparison.Ordinal))
+                return $"+63{digits[2..Math.Min(digits.Length, 12)]}";
+
+            return digits.Length == 0
+                ? string.Empty
+                : $"0{digits[..Math.Min(digits.Length, 10)]}";
+        }
 
         // Browse Folder Button Handler
         private async void BrowseFolder_Click(object? sender, RoutedEventArgs e)

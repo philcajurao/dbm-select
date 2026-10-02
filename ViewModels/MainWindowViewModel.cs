@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,9 @@ namespace dbm_select.ViewModels
     public partial class MainWindowViewModel : ViewModelBase
     {
         private readonly AppSettings _appsettings = new();
+        private readonly Services.DatabaseService _dbService = new();
+        // NEW: daily auto-Excel service — completely independent of SQLite
+        private readonly Services.ExcelLogService _excelService = new();
 
         // --- CACHING VARIABLES ---
         private const int MaxCacheSize = 20;
@@ -218,9 +222,42 @@ namespace dbm_select.ViewModels
         missingSettings = true;
     }
 
-    if (missingSettings)
+    try
     {
-        SaveSettings();
+        if (missingSettings)
+        {
+            SaveSettings();
+        }
+        else
+        {
+            _dbService.Init(ExcelFolderPath);    // unchanged
+            _excelService.Init(ExcelFolderPath); // NEW: init alongside SQLite
+        }
+    }
+    catch (Exception ex)
+    {
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string fallbackBase = Path.Combine(desktopPath, "DBM Select");
+        string fallbackLogs = Path.Combine(fallbackBase, "Logs");
+
+        try
+        {
+            if (!Directory.Exists(fallbackBase)) Directory.CreateDirectory(fallbackBase);
+            if (!Directory.Exists(fallbackLogs)) Directory.CreateDirectory(fallbackLogs);
+
+            OutputFolderPath = fallbackBase;
+            ExcelFolderPath = fallbackLogs;
+
+            SaveSettings(); // Re-saves and initializes with safe fallback paths
+
+            ErrorTitle = "⚠️ Folder Access Reverted";
+            ErrorMessage = $"Unable to access your configured folders:\n{ex.Message}\n\nPaths have been temporarily reverted to your Desktop.";
+            IsErrorDialogVisible = true;
+        }
+        catch (Exception fbEx)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Startup-Fallback] Failed: {fbEx.Message}");
+        }
     }
 
     // Load initial images
@@ -236,25 +273,69 @@ namespace dbm_select.ViewModels
         // --- PROPERTIES (Unchanged) ---
         private string _snapOutputFolder = string.Empty;
         private string _snapExcelFolder = string.Empty;
-        private string _snapExcelFileName = string.Empty;
         private string _currentBrowseFolderPath = string.Empty;
+        private double _snapBasicPackageFileLabelSize = 9;
+        private double _snapPackageAFileLabelSize = 9;
+        private double _snapPackageBFileLabelSize = 9;
+        private double _snapPackageCFileLabelSize = 9;
+        private double _snapPackageDFileLabelSize = 9;
 
         [ObservableProperty] private bool _isSettingsDirty;
         [ObservableProperty] private string _outputFolderPath = string.Empty;
         partial void OnOutputFolderPathChanged(string value) => CheckSettingsDirty();
         [ObservableProperty] private string _excelFolderPath = string.Empty;
         partial void OnExcelFolderPathChanged(string value) => CheckSettingsDirty();
-        [ObservableProperty] private string _excelFileName = FileNameConstants.CLIENT_LOGS;
-        partial void OnExcelFileNameChanged(string value) => CheckSettingsDirty();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        private double _basicPackageFileLabelSize = 9;
+        partial void OnBasicPackageFileLabelSizeChanged(double value) => CheckSettingsDirty();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        private double _packageAFileLabelSize = 9;
+        partial void OnPackageAFileLabelSizeChanged(double value) => CheckSettingsDirty();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        private double _packageBFileLabelSize = 9;
+        partial void OnPackageBFileLabelSizeChanged(double value) => CheckSettingsDirty();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        private double _packageCFileLabelSize = 9;
+        partial void OnPackageCFileLabelSizeChanged(double value) => CheckSettingsDirty();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        private double _packageDFileLabelSize = 9;
+        partial void OnPackageDFileLabelSizeChanged(double value) => CheckSettingsDirty();
+
+        public double CurrentSelectedPackageFileLabelSize => SelectedPackage switch
+        {
+            PackgeConstants.Basic => BasicPackageFileLabelSize,
+            "A" => PackageAFileLabelSize,
+            "B" => PackageBFileLabelSize,
+            "C" => PackageCFileLabelSize,
+            "D" => PackageDFileLabelSize,
+            _ => 9
+        };
 
         private void CheckSettingsDirty()
         {
             IsSettingsDirty = OutputFolderPath != _snapOutputFolder ||
-                              ExcelFolderPath != _snapExcelFolder || 
-                              ExcelFileName != _snapExcelFileName;
+                              ExcelFolderPath != _snapExcelFolder ||
+                              BasicPackageFileLabelSize != _snapBasicPackageFileLabelSize ||
+                              PackageAFileLabelSize != _snapPackageAFileLabelSize ||
+                              PackageBFileLabelSize != _snapPackageBFileLabelSize ||
+                              PackageCFileLabelSize != _snapPackageCFileLabelSize ||
+                              PackageDFileLabelSize != _snapPackageDFileLabelSize;
         }
 
-        [ObservableProperty] private bool _showFavoritesOnly;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasNoFavorites))]
+        private bool _showFavoritesOnly;
+
         partial void OnShowFavoritesOnlyChanged(bool value)
         {
             _ = RefreshDisplayImagesAsync();
@@ -298,6 +379,8 @@ namespace dbm_select.ViewModels
             }
             
             IsLoadingImages = false;
+            // Notify the empty-favorites panel after every refresh finishes
+            OnPropertyChanged(nameof(HasNoFavorites));
         }
 
         [ObservableProperty] private double _thumbnailWidth = 110;
@@ -325,11 +408,18 @@ namespace dbm_select.ViewModels
 
         [ObservableProperty] private string? _clientName;
         [ObservableProperty] private string? _clientEmail;
-        [ObservableProperty] private string? _clientSchool;
+        [ObservableProperty] private string? _clientContactNumber;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ClientSchoolDisplayName))]
+        private string? _clientSchool;
+        public string ClientSchoolDisplayName => ClientSchool?.ToUpperInvariant() ?? string.Empty;
         [ObservableProperty] private string? _clientCourse;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedPackageDisplayName))]
+        [NotifyPropertyChangedFor(nameof(CurrentSelectedPackageFileLabelSize))]
+        [NotifyPropertyChangedFor(nameof(BarongSlotLabel))]
+        [NotifyPropertyChangedFor(nameof(CreativeSlotLabel))]
         private string _selectedPackage = PackgeConstants.Basic;
         public string SelectedPackageDisplayName => SelectedPackage == PackgeConstants.Basic ? PackgeConstants.BasicPackage : $"Package {SelectedPackage}";
 
@@ -416,10 +506,50 @@ namespace dbm_select.ViewModels
         [ObservableProperty] private bool _isImportantNotesChecked;
         [ObservableProperty] private bool _isLoadingSubmit;
         [ObservableProperty] private string _errorMessage = "Please check your inputs.";
-        [ObservableProperty] private bool _hasNoImages = true;
-        [ObservableProperty] private bool _isLoadingImages;
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(LargePrintLabel))] private bool _isSeniorHigh = false;
+        [ObservableProperty] private string _errorTitle = "Action Required";
+        [ObservableProperty] private bool _isExportDialogVisible;
+        [ObservableProperty] private DateTimeOffset _exportDateFrom = new DateTimeOffset(dbm_select.Utils.TimeProvider.Today);
+        [ObservableProperty] private DateTimeOffset _exportDateTo = new DateTimeOffset(dbm_select.Utils.TimeProvider.Today);
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasNoFavorites))]
+        private bool _hasNoImages = true;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasNoFavorites))]
+        private bool _isLoadingImages;
+
+        /// <summary>
+        /// True when the favorites filter is active, images have loaded, but none are marked as a favorite.
+        /// Drives the "no favorites yet" empty-state panel in the browser.
+        /// </summary>
+        public bool HasNoFavorites =>
+            ShowFavoritesOnly && !IsLoadingImages && !HasNoImages && Images.Count == 0;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))]
+        [NotifyPropertyChangedFor(nameof(IsBasicVisible))]
+        [NotifyPropertyChangedFor(nameof(IsPkgCVisible))]
+        [NotifyPropertyChangedFor(nameof(IsPkgDVisible))]
+        [NotifyPropertyChangedFor(nameof(BarongSlotLabel))]
+        [NotifyPropertyChangedFor(nameof(CreativeSlotLabel))]
+        private bool _isCappingPinning = false;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(LargePrintLabel))]
+        [NotifyPropertyChangedFor(nameof(IsPkgDVisible))]
+        private bool _isSeniorHigh = false;
+
+        public bool IsBasicVisible => !IsCappingPinning;
+        public bool IsPkgCVisible => !IsCappingPinning;
+        public bool IsPkgDVisible => !IsSeniorHigh && !IsCappingPinning;
+
+        public string BarongSlotLabel => IsCappingPinning 
+            ? (SelectedPackage == "A" ? "Wallet size" : "5R (Photo 1)") 
+            : "Barong/Filipiniana";
+
+        public string CreativeSlotLabel => IsCappingPinning 
+            ? (SelectedPackage == "B" ? "5R (Photo 2)" : "Creative") 
+            : "Creative";
 
         partial void OnIsSeniorHighChanged(bool value)
         {
@@ -432,6 +562,17 @@ namespace dbm_select.ViewModels
                 }
                 
                 // 2. Clear or Auto-fill College fields so they aren't stuck
+                ClientSchool = string.Empty;
+                ClientCourse = string.Empty;
+            }
+        }
+
+        partial void OnIsCappingPinningChanged(bool value)
+        {
+            if (value) // If switching TO Capping & Pinning
+            {
+                UpdatePackage("A");
+                
                 ClientSchool = string.Empty;
                 ClientCourse = string.Empty;
             }
@@ -1038,9 +1179,12 @@ namespace dbm_select.ViewModels
 
         private bool ValidateInput()
         {
-            if (string.IsNullOrWhiteSpace(ClientName) || string.IsNullOrWhiteSpace(ClientEmail))
+            ErrorTitle = "Action Required";
+            if (string.IsNullOrWhiteSpace(ClientName) ||
+                string.IsNullOrWhiteSpace(ClientEmail) ||
+                string.IsNullOrWhiteSpace(ClientContactNumber))
             {
-                ErrorMessage = "Please fill in Client Name and Email Address.";
+                ErrorMessage = "Please fill in Client Name, Email Address, and Contact Number.";
                 IsErrorDialogVisible = true;
                 return false;
             }
@@ -1084,7 +1228,17 @@ namespace dbm_select.ViewModels
         {
             if (!ValidateInput()) return;
             
-            await OpenPreviewPackage();
+            if (IsCappingPinning)
+            {
+                // Directly proceed to the submission dialog (ConfirmSubmit logic)
+                IsPreviewPackageDialogVisible = false;
+                IsSubmitConfirmationVisible = false; 
+                IsImportantNotesDialogVisible = true; 
+            }
+            else
+            {
+                await OpenPreviewPackage();
+            }
         }
 
 
@@ -1097,6 +1251,7 @@ namespace dbm_select.ViewModels
             string currentType = "";
             if (IsSeniorHigh) currentType = "SHS";
             else if (IsNonStudent) currentType = "NA";
+            else if (IsCappingPinning) currentType = "CP";
             else currentType = "College";
 
             bool hasImages = Image8x10 != null || ImageBarong != null || 
@@ -1157,6 +1312,7 @@ namespace dbm_select.ViewModels
             // Reset flags
             IsSeniorHigh = false;
             IsNonStudent = false;
+            IsCappingPinning = false;
 
             // Clear inputs for ALL modes so they start fresh
             ClientSchool = string.Empty;
@@ -1171,6 +1327,10 @@ namespace dbm_select.ViewModels
                 case "NA":
                     IsNonStudent = true;
                     ClientTypeLabel = "N/A (Others)";
+                    break;
+                case "CP":
+                    IsCappingPinning = true;
+                    ClientTypeLabel = "Capping & Pinning";
                     break;
                 default:
                     ClientTypeLabel = "College";
@@ -1199,7 +1359,19 @@ namespace dbm_select.ViewModels
         [RelayCommand] public void CloseSettings() { CancelSettings(); }
         [RelayCommand] public void CancelSubmit() { IsSubmitConfirmationVisible = false; }
         [RelayCommand] public void CloseErrorDialog() { IsErrorDialogVisible = false; }
-        [RelayCommand] public void UpdatePackage(string packageName) { SelectedPackage = packageName; UpdateVisibility(packageName); }
+        [RelayCommand]
+        public void UpdatePackage(string packageName)
+        {
+            SelectedPackage = packageName;
+            UpdateVisibility(packageName);
+
+            // Synchronize the RadioButton checked properties
+            IsBasicSelected = (packageName == "Basic");
+            IsPkgASelected   = (packageName == "A");
+            IsPkgBSelected   = (packageName == "B");
+            IsPkgCSelected   = (packageName == "C");
+            IsPkgDSelected   = (packageName == "D");
+        }
         [RelayCommand] public void ClearAll() { IsClearConfirmationVisible = true; }
         [RelayCommand] public void ConfirmClear() { ResetData(); IsClearConfirmationVisible = false; }
         [RelayCommand] public void CancelClear() { IsClearConfirmationVisible = false; }
@@ -1209,7 +1381,11 @@ namespace dbm_select.ViewModels
         {
             _snapOutputFolder = OutputFolderPath;
             _snapExcelFolder = ExcelFolderPath;
-            _snapExcelFileName = ExcelFileName;
+            _snapBasicPackageFileLabelSize = BasicPackageFileLabelSize;
+            _snapPackageAFileLabelSize = PackageAFileLabelSize;
+            _snapPackageBFileLabelSize = PackageBFileLabelSize;
+            _snapPackageCFileLabelSize = PackageCFileLabelSize;
+            _snapPackageDFileLabelSize = PackageDFileLabelSize;
             IsSettingsDirty = false;
             IsSettingsDialogVisible = true;
         }
@@ -1219,11 +1395,29 @@ namespace dbm_select.ViewModels
         {
             OutputFolderPath = _snapOutputFolder;
             ExcelFolderPath = _snapExcelFolder;
-            ExcelFileName = _snapExcelFileName;
+            BasicPackageFileLabelSize = _snapBasicPackageFileLabelSize;
+            PackageAFileLabelSize = _snapPackageAFileLabelSize;
+            PackageBFileLabelSize = _snapPackageBFileLabelSize;
+            PackageCFileLabelSize = _snapPackageCFileLabelSize;
+            PackageDFileLabelSize = _snapPackageDFileLabelSize;
             IsSettingsDialogVisible = false;
         }
 
-        [RelayCommand] public void SaveAndCloseSettings() { SaveSettings(); IsSettingsDialogVisible = false; }
+        [RelayCommand]
+        public void SaveAndCloseSettings()
+        {
+            try
+            {
+                SaveSettings();
+                IsSettingsDialogVisible = false;
+            }
+            catch (Exception ex)
+            {
+                ErrorTitle = "Invalid Folder Path";
+                ErrorMessage = $"Failed to initialize folders:\n{ex.Message}\n\nPlease verify that the paths exist and are accessible.";
+                IsErrorDialogVisible = true;
+            }
+        }
         [RelayCommand] public void OpenAbout() { IsAboutDialogVisible = true; }
         [RelayCommand] public void CloseAbout() { IsAboutDialogVisible = false; }
 
@@ -1277,6 +1471,13 @@ public async Task ProceedFromAcknowledgement()
     // Tiny delay to let UI breathe
     await Task.Delay(500);
 
+
+
+    // Storage error strings captured from the background thread.
+    // Null = no error; non-null = surfaced as a non-fatal warning after success.
+    string? sqliteError = null;  // NEW
+    string? excelError  = null;  // NEW
+
     try
     {
         // ---------------------------------------------------------
@@ -1306,10 +1507,10 @@ public async Task ProceedFromAcknowledgement()
             SaveImageToFile(Image8x10, $" {LargePrintLabel} ", specificFolder);
 
             if (IsBarongVisible)
-                SaveImageToFile(ImageBarong, " Barong Filipiniana ", specificFolder);
+                SaveImageToFile(ImageBarong, $" {BarongSlotLabel} ", specificFolder);
 
             if (IsCreativeVisible)
-                SaveImageToFile(ImageCreative, " Creative ", specificFolder);
+                SaveImageToFile(ImageCreative, $" {CreativeSlotLabel} ", specificFolder);
 
             if (IsAnyVisible)
                 SaveImageToFile(ImageAny, $" {AnySlotLabel} ", specificFolder);
@@ -1320,59 +1521,63 @@ public async Task ProceedFromAcknowledgement()
             if (IsBarkadaVisible && ImageBarkada != null)
                 SaveImageToFile(ImageBarkada, " Barkada ", specificFolder);
 
-            // --- C. EXCEL LOGGING ---
-            string excelPath = Path.Combine(ExcelFolderPath, ExcelFileName + ".xlsx");
-            string? excelDir = Path.GetDirectoryName(excelPath);
-
-            if (!string.IsNullOrEmpty(excelDir) && !Directory.Exists(excelDir))
-                Directory.CreateDirectory(excelDir);
-
-            var allRows = new List<OrderLogItem>();
-
-            if (File.Exists(excelPath))
-            {
-                try
-                {
-                    allRows.AddRange(MiniExcel.Query<OrderLogItem>(excelPath));
-                }
-                catch { }
-            }
-
+            // --- C. BUILD THE RECORD OBJECT (shared by both storage systems) ---
             string finalSchool = ClientSchool ?? "";
-                    string finalCourse = ClientCourse ?? "";
+            string finalCourse = ClientCourse ?? "";
 
-                    if (IsSeniorHigh)
-                    {
-                        finalSchool = "Senior High School";
-                        finalCourse = "N/A";
-                    }
-                    else if (IsNonStudent)
-                    {
-                        finalSchool = "N/A";
-                        finalCourse = "N/A";
-                    }
+            if (IsSeniorHigh)
+            {
+                finalSchool = "Senior High School";
+                finalCourse = "N/A";
+            }
+            else if (IsNonStudent)
+            {
+                finalSchool = "N/A";
+                finalCourse = "N/A";
+            }
 
             var newItem = new OrderLogItem
             {
-                Status = "DONE CHOOSING",
-                Name = safeClientName,
-                Email = ClientEmail ?? string.Empty,
-                School = finalSchool,
-                Course = finalCourse,
-                Package = SelectedPackage,
+                Status        = "DONE CHOOSING",
+                Category      = ClientTypeLabel ?? "College",
+                Name          = safeClientName,
+                Email         = ClientEmail ?? string.Empty,
+                ContactNumber = ClientContactNumber ?? string.Empty,
+                School        = finalSchool,
+                Course        = finalCourse,
+                Package       = SelectedPackage,
                 Box_LargePrint = Image8x10?.FileName ?? "Empty",
-                Box_Barong = IsBarongVisible ? ImageBarong?.FileName ?? "Empty" : "N/A",
-                Box_Creative = IsCreativeVisible ? ImageCreative?.FileName ?? "Empty" : "N/A",
-                Box_Any = IsAnyVisible ? ImageAny?.FileName ?? "Empty" : "N/A",
+                Box_Barong    = IsBarongVisible    ? ImageBarong?.FileName   ?? "Empty" : "N/A",
+                Box_Creative  = IsCreativeVisible  ? ImageCreative?.FileName ?? "Empty" : "N/A",
+                Box_Any       = IsAnyVisible       ? ImageAny?.FileName      ?? "Empty" : "N/A",
                 Box_SoloGroup = IsSoloGroupVisible ? ImageSoloGroup?.FileName ?? "Empty" : "N/A",
-                TimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                TimeStamp     = dbm_select.Utils.TimeProvider.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
-            allRows.Add(newItem);
+            // --- D. SQLITE BACKUP (unchanged logic, now isolated in its own try/catch) ---
+            // A failure here must never block the Excel write below.
+            try
+            {
+                _dbService.InsertOrder(newItem);
+            }
+            catch (Exception dbEx)
+            {
+                sqliteError = dbEx.Message;
+                System.Diagnostics.Debug.WriteLine($"[SQLite-Backup] Insert failed: {dbEx}");
+            }
 
-            if (File.Exists(excelPath)) File.Delete(excelPath);
-            MiniExcel.SaveAs(excelPath, allRows);
-
+            // --- E. EXCEL DAILY AUTO-LOG (NEW — isolated in its own try/catch) ---
+            // Appends one row to data_YYYY-MM-DD.xlsx. Creates the file if it does not exist.
+            // A failure here must never affect the SQLite backup above.
+            try
+            {
+                _excelService.AppendRow(newItem);
+            }
+            catch (Exception xlEx)
+            {
+                excelError = xlEx.Message;
+                System.Diagnostics.Debug.WriteLine($"[Excel-Log] AppendRow failed: {xlEx}");
+            }
         }); 
 
         // ---------------------------------------------------------
@@ -1382,31 +1587,60 @@ public async Task ProceedFromAcknowledgement()
         // Only reset the input slots and text fields
         ResetData();
 
-        // REMOVED: ClearBrowserImages(); 
-        // REMOVED: LoadImages(...);
-        
-        // This keeps the photos on the right side visible!
         IsLoadingSubmit = false;
         IsThankYouDialogVisible = true;
+
+        // Surface any non-fatal storage errors as a warning AFTER showing the Thank-You dialog.
+        // The submission itself is always considered successful at this point.
+        if (sqliteError is not null || excelError is not null)
+        {
+            ErrorTitle   = "⚠️ Warning — Partial Save";
+            ErrorMessage = BuildPartialSaveMessage(sqliteError, excelError);
+            IsErrorDialogVisible = true;
+        }
     }
     catch (IOException ioEx)
     {
         IsLoadingSubmit = false;
-        ErrorMessage = $"File Error: {ioEx.Message}\n(Check if the Excel file is open)";
+        ErrorTitle = "Submission Failed";
+        ErrorMessage = $"File Error: {ioEx.Message}";
         IsErrorDialogVisible = true;
     }
     catch (Exception ex)
     {
         IsLoadingSubmit = false;
+        ErrorTitle = "Submission Failed";
         ErrorMessage = $"An error occurred: {ex.Message}";
         IsErrorDialogVisible = true;
     }
 }
+
+        /// <summary>
+        /// Builds a user-friendly warning message when one or both storage backends encountered
+        /// a non-fatal error during submission. Both errors are reported in one message.
+        /// </summary>
+        private static string BuildPartialSaveMessage(string? sqliteError, string? excelError)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Your submission was recorded, but one or more background logs encountered an error:");
+            sb.AppendLine();
+
+            if (sqliteError is not null)
+                sb.AppendLine($"• SQLite backup: {sqliteError}");
+
+            if (excelError is not null)
+                sb.AppendLine($"• Daily Excel log: {excelError}");
+
+            sb.AppendLine();
+            sb.Append("Please check that the log folder is accessible and not full.");
+            return sb.ToString();
+        }
         private void SaveImageToFile(ImageItem? image, string cat, string folder)
         {
             if (image == null) return;
             string ext = Path.GetExtension(image.FileName);
-            string newName = $"({SelectedPackage}) {(ClientName ?? "Unknown").ToUpper()}{cat}{Path.GetFileNameWithoutExtension(image.FileName)}{ext}";
+            string packagePrefix = IsCappingPinning ? $"CaP-{SelectedPackage}" : SelectedPackage;
+            string newName = $"({packagePrefix}) {(ClientName ?? "Unknown").ToUpper()}{cat}{Path.GetFileNameWithoutExtension(image.FileName)}{ext}";
             foreach (char c in Path.GetInvalidFileNameChars()) newName = newName.Replace(c, '_');
             File.Copy(image.FullPath, Path.Combine(folder, newName), true);
         }
@@ -1423,21 +1657,32 @@ public async Task ProceedFromAcknowledgement()
                 ExcelFolderPath = _appsettings.LastExcelFolder;
             else ExcelFolderPath = OutputFolderPath;
 
-            if (!string.IsNullOrEmpty(_appsettings.LastExcelFileName))
-                ExcelFileName = _appsettings.LastExcelFileName;
-
             if (!string.IsNullOrEmpty(_appsettings.LastBrowseFolder))
                 _currentBrowseFolderPath = _appsettings.LastBrowseFolder;
+
+            BasicPackageFileLabelSize = _appsettings.BasicPackageFileLabelSize;
+            PackageAFileLabelSize = _appsettings.PackageAFileLabelSize;
+            PackageBFileLabelSize = _appsettings.PackageBFileLabelSize;
+            PackageCFileLabelSize = _appsettings.PackageCFileLabelSize;
+            PackageDFileLabelSize = _appsettings.PackageDFileLabelSize;
 
             return true;
         }
         private void SaveSettings()
         {
+            _appsettings.BasicPackageFileLabelSize = BasicPackageFileLabelSize;
+            _appsettings.PackageAFileLabelSize = PackageAFileLabelSize;
+            _appsettings.PackageBFileLabelSize = PackageBFileLabelSize;
+            _appsettings.PackageCFileLabelSize = PackageCFileLabelSize;
+            _appsettings.PackageDFileLabelSize = PackageDFileLabelSize;
+
             _appsettings.SaveSettings(
                 OutputFolderPath,
                 ExcelFolderPath,
-                ExcelFileName,
                 _currentBrowseFolderPath);
+
+            _dbService.Init(ExcelFolderPath);    // unchanged
+            _excelService.Init(ExcelFolderPath); // NEW: re-init on settings save
         }
 
         [ObservableProperty] private string _anySlotLabel = "Any";
@@ -1466,7 +1711,31 @@ private void UpdateVisibility(string pkg)
     ScrollVisibility = ScrollBarVisibility.Auto;
     AnySlotLabel = "Any";
 
-    if (IsSeniorHigh)
+    if (IsCappingPinning)
+    {
+        if (pkg == "A")
+        {
+            // 2 Slots: 8x10 + Wallet (reusing Barong slot)
+            IsBarongVisible = true;
+            IsBarongVertical = true;
+            IsDoubleLargeLayout = true;
+            
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+        else if (pkg == "B")
+        {
+            // 3 Slots: 8x10 + 5R (Photo 1) (reusing Barong) + 5R (Photo 2) (reusing Creative)
+            IsBarongVisible = true;
+            IsBarongHorizontal = true;
+            IsCreativeVisible = true;
+            
+            IsQuadLayout = true;
+            LayoutStretch = Stretch.Uniform;
+            ScrollVisibility = ScrollBarVisibility.Disabled;
+        }
+    }
+    else if (IsSeniorHigh)
     {
         if (pkg == "Basic")
         {
@@ -1558,13 +1827,14 @@ private void UpdateVisibility(string pkg)
     // 1. Unbind UI Properties
     ClientName = string.Empty;
     ClientEmail = string.Empty;
+    ClientContactNumber = string.Empty;
     ClientSchool = string.Empty;
     ClientCourse = string.Empty;
-    SelectedPackage = "Basic";
+    SelectedPackage = IsCappingPinning ? "A" : "Basic";
     
     // Reset Checkboxes
-    IsBasicSelected = true;
-    IsPkgASelected = false;
+    IsBasicSelected = !IsCappingPinning;
+    IsPkgASelected = IsCappingPinning;
     IsPkgBSelected = false;
     IsPkgCSelected = false;
     IsPkgDSelected = false;
@@ -1583,7 +1853,7 @@ private void UpdateVisibility(string pkg)
 
     // 3. Reset Layout Visibility
     IsBarkadaVisible = false;
-    UpdateVisibility("Basic");
+    UpdateVisibility(SelectedPackage);
 
     // 4. Clear internal cache
     ClearCache(); 
@@ -1600,6 +1870,190 @@ private void UpdateVisibility(string pkg)
     // ---  SHOW STARTUP QUESTION AGAIN ---
     // IsClientTypeDialogVisible = true;
 }
+
+        // ------------------------------------------------------------------ //
+        // EXPORT DIALOG — CHANGED                                              //
+        //   • OpenExportDialog now seeds live count on open.                   //
+        //   • ExportToday and ExportAll REMOVED (free date-range covers both). //
+        //   • ExportDateRange is now the single export action.                 //
+        //   • ExportRecordCount, IsExportEnabled, ExportStatusMessage NEW.     //
+        // ------------------------------------------------------------------ //
+
+        // NEW: live record count for the selected date range
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsExportEnabled))]
+        [NotifyPropertyChangedFor(nameof(ExportStatusMessage))]
+        [NotifyPropertyChangedFor(nameof(ExportHasRecords))]
+        private int _exportRecordCount;
+
+        /// <summary>True when the selected date range contains at least one record; drives the Export button's IsEnabled.</summary>
+        public bool IsExportEnabled  => ExportRecordCount > 0;
+
+        /// <summary>True when the selected date range has no records; drives the "no data" warning panel.</summary>
+        public bool ExportHasRecords => ExportRecordCount > 0;
+
+        /// <summary>Live human-readable summary shown below the date pickers.</summary>
+        public string ExportStatusMessage => ExportRecordCount switch
+        {
+            0 => "No records found in this date range.",
+            1 => "1 record found — ready to export.",
+            _ => $"{ExportRecordCount} records found — ready to export."
+        };
+
+        // Requery the count every time either date picker changes.
+        partial void OnExportDateFromChanged(DateTimeOffset value) => UpdateExportCount();
+        partial void OnExportDateToChanged(DateTimeOffset value)   => UpdateExportCount();
+
+        /// <summary>Queries the SQLite backup for the count in the current picker range and updates <see cref="ExportRecordCount"/>.</summary>
+        private void UpdateExportCount()
+        {
+            try
+            {
+                // Ensure From is never after To before querying.
+                var from = ExportDateFrom.DateTime;
+                var to   = ExportDateTo.DateTime;
+                if (from > to) to = from;
+
+                ExportRecordCount = _dbService.GetOrderCountByRange(from, to);
+            }
+            catch
+            {
+                ExportRecordCount = 0;
+            }
+        }
+
+        [RelayCommand]
+        public void OpenExportDialog()
+        {
+            ExportDateFrom = new DateTimeOffset(dbm_select.Utils.TimeProvider.Today);
+            ExportDateTo   = new DateTimeOffset(dbm_select.Utils.TimeProvider.Today);
+            UpdateExportCount(); // seed count for today on open
+            IsExportDialogVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseExportDialog()
+        {
+            IsExportDialogVisible = false;
+        }
+
+        // ------------------------------------------------------------------ //
+        // NEW: Export loading + success state                                 //
+        // ------------------------------------------------------------------ //
+
+        /// <summary>True while the background export Task is running; drives the loading spinner inside the export dialog.</summary>
+        [ObservableProperty] private bool _isExportLoading;
+
+        /// <summary>True after a successful export; drives the dedicated success dialog.</summary>
+        [ObservableProperty] private bool _isExportSuccessDialogVisible;
+
+        /// <summary>The short filename of the most recently exported file, shown in the success dialog.</summary>
+        [ObservableProperty] private string _exportSuccessFileName = string.Empty;
+
+        /// <summary>The record count of the most recent export, shown in the success dialog.</summary>
+        [ObservableProperty] private int _exportSuccessCount;
+
+        /// <summary>Full path of the most recently exported file; used by <see cref="OpenExportedFileCommand"/>.</summary>
+        private string _lastExportedFilePath = string.Empty;
+
+        /// <summary>Closes the export success dialog.</summary>
+        [RelayCommand]
+        public void CloseExportSuccessDialog() => IsExportSuccessDialogVisible = false;
+
+        /// <summary>
+        /// Opens the most recently exported Excel file in the system's default spreadsheet application.
+        /// Silently swallows errors (e.g. no associated app) to avoid cascading dialogs.
+        /// </summary>
+        [RelayCommand]
+        public void OpenExportedFile()
+        {
+            if (string.IsNullOrEmpty(_lastExportedFilePath)) return;
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_lastExportedFilePath)
+                {
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[OpenExportedFile] Could not open file: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously exports SQLite backup records for the selected date range to a
+        /// timestamped Excel file. Shows a loading spinner while the background work runs,
+        /// then closes the export dialog and shows a dedicated success dialog on completion.
+        /// The Export button is gated by <see cref="IsExportEnabled"/>, but a defensive guard
+        /// is included in case of a race condition.
+        /// </summary>
+        [RelayCommand]
+        public async Task ExportDateRange()
+        {
+            var from = ExportDateFrom.DateTime;
+            var to   = ExportDateTo.DateTime;
+            if (from > to) to = from;
+
+            // Show loading spinner; disable the Export and Close buttons
+            IsExportLoading = true;
+
+            string filename    = string.Empty;
+            string fullPath    = string.Empty;
+            int    recordCount = 0;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    // 1. Query the SQLite backup
+                    var records = _dbService.GetOrdersByRange(from, to);
+
+                    // Defensive guard — button should already be disabled, but be safe
+                    if (records == null || records.Count == 0)
+                        return;
+
+                    recordCount = records.Count;
+
+                    // 2. Build timestamped filename (same format as before)
+                    string fromStr  = from.ToString("MM-dd-yyyy");
+                    string toStr    = to.ToString("MM-dd-yyyy");
+                    string timeStr  = dbm_select.Utils.TimeProvider.Now.ToString("HH-mm");
+                    filename = $"ClientLogs({fromStr}-{toStr})-{timeStr}.xlsx";
+                    fullPath = Path.Combine(ExcelFolderPath, filename);
+
+                    // 3. Write the Excel file via MiniExcel (unchanged library/format)
+                    MiniExcel.SaveAs(fullPath, records);
+                });
+
+                IsExportLoading = false;
+
+                if (recordCount == 0)
+                {
+                    // Race-condition fallback — show the standard error dialog and reset
+                    ErrorTitle = "No Data";
+                    ErrorMessage = "No records were found for the selected date range.";
+                    IsErrorDialogVisible = true;
+                    return;
+                }
+
+                // 4. Stash file path for the "Open File" button
+                _lastExportedFilePath = fullPath;
+                ExportSuccessFileName = filename;
+                ExportSuccessCount    = recordCount;
+
+                // 5. Close the export dialog and show the success dialog
+                IsExportDialogVisible        = false;
+                IsExportSuccessDialogVisible = true;
+            }
+            catch (Exception ex)
+            {
+                IsExportLoading = false;
+                ErrorTitle   = "Export Failed";
+                ErrorMessage = $"Failed to export records: {ex.Message}";
+                IsErrorDialogVisible = true;
+            }
+        }
 
         private bool IsValidEmail(string email) { try { return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase); } catch { return false; } }
       private void ClearBrowserImages()

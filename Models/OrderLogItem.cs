@@ -8,6 +8,10 @@ namespace dbm_select.Models
         [ExcelColumn(Name = "STATUS", Width = 20, Index = 0)]
         public string Status { get; set; } = "DONE CHOOSING";
 
+        // 2. Category
+        [ExcelColumn(Name = "Category", Width = 25, Index = 1)]
+        public string Category { get; set; } = "";
+
 
         // 3. Name
         [ExcelColumn(Name = "Name", Width = 30, Index = 2)]
@@ -52,5 +56,8 @@ namespace dbm_select.Models
         // 13. Solo/Group 
         [ExcelColumn(Name = "Solo/Group", Width = 40, Index = 12)]
         public string Box_SoloGroup { get; set; } = "";
+
+        [ExcelColumn(Name = "Contact Number", Width = 22, Index = 13)]
+        public string ContactNumber { get; set; } = "";
     }
 }
